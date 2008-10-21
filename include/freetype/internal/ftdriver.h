@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    FreeType font driver interface (specification).                      */
 /*                                                                         */
-/*  Copyright 1996-2001, 2002, 2003, 2006 by                               */
+/*  Copyright 1996-2001, 2002, 2003, 2006, 2008 by                         */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -22,7 +22,6 @@
 
 #include <ft2build.h>
 #include FT_MODULE_H
-
 
 FT_BEGIN_HEADER
 
@@ -97,18 +96,17 @@ FT_BEGIN_HEADER
                              FT_UInt     right_glyph,
                              FT_Vector*  kerning );
 
-
   typedef FT_Error
   (*FT_Face_AttachFunc)( FT_Face    face,
                          FT_Stream  stream );
 
 
   typedef FT_Error
-  (*FT_Face_GetAdvancesFunc)( FT_Face     face,
-                              FT_UInt     first,
-                              FT_UInt     count,
-                              FT_Bool     vertical,
-                              FT_UShort*  advances );
+  (*FT_Face_GetAdvancesFunc)( FT_Face    face,
+                              FT_UInt    first,
+                              FT_UInt    count,
+                              FT_UInt    flags,
+                              FT_Fixed*  advances );
 
 
   /*************************************************************************/
@@ -145,10 +143,6 @@ FT_BEGIN_HEADER
   /*    load_glyph       :: A function handle to load a glyph to a slot.   */
   /*                        This field is mandatory!                       */
   /*                                                                       */
-  /*    get_char_index   :: A function handle to return the glyph index of */
-  /*                        a given character for a given charmap.  This   */
-  /*                        field is mandatory!                            */
-  /*                                                                       */
   /*    get_kerning      :: A function handle to return the unscaled       */
   /*                        kerning for a given pair of glyphs.  Can be    */
   /*                        set to 0 if the format doesn't support         */
@@ -180,8 +174,8 @@ FT_BEGIN_HEADER
   /*                        to 0 if the scaling done in the base layer     */
   /*                        suffices.                                      */
   /* <Note>                                                                */
-  /*    Most function pointers, with the exception of `load_glyph' and     */
-  /*    `get_char_index' can be set to 0 to indicate a default behaviour.  */
+  /*    Most function pointers, with the exception of `load_glyph', can be */
+  /*    set to 0 to indicate a default behaviour.                          */
   /*                                                                       */
   typedef struct  FT_Driver_ClassRec_
   {

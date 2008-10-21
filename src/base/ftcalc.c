@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    Arithmetic computations (body).                                      */
 /*                                                                         */
-/*  Copyright 1996-2001, 2002, 2003, 2004, 2005, 2006 by                   */
+/*  Copyright 1996-2001, 2002, 2003, 2004, 2005, 2006, 2008 by             */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -37,6 +37,9 @@
 #include FT_INTERNAL_DEBUG_H
 #include FT_INTERNAL_OBJECTS_H
 
+#ifdef  FT_MULFIX_INLINED
+#undef  FT_MulFix
+#endif
 
 /* we need to define a 64-bits data type here */
 
@@ -192,6 +195,9 @@
   FT_MulFix( FT_Long  a,
              FT_Long  b )
   {
+#ifdef FT_MULFIX_ASSEMBLER
+    return FT_MULFIX_ASSEMBLER(a,b);
+#else
     FT_Int   s = 1;
     FT_Long  c;
 
@@ -201,6 +207,7 @@
 
     c = (FT_Long)( ( (FT_Int64)a * b + 0x8000L ) >> 16 );
     return ( s > 0 ) ? c : -c ;
+#endif
   }
 
 
@@ -412,32 +419,9 @@
   FT_MulFix( FT_Long  a,
              FT_Long  b )
   {
-    /* use inline assembly to speed up things a bit */
-
-#if defined( __GNUC__ ) && defined( i386 )
-
-    FT_Long  result;
-
-
-    __asm__ __volatile__ (
-      "imul  %%edx\n"
-      "movl  %%edx, %%ecx\n"
-      "sarl  $31, %%ecx\n"
-      "addl  $0x8000, %%ecx\n"
-      "addl  %%ecx, %%eax\n"
-      "adcl  $0, %%edx\n"
-      "shrl  $16, %%eax\n"
-      "shll  $16, %%edx\n"
-      "addl  %%edx, %%eax\n"
-      "mov   %%eax, %0\n"
-      : "=r"(result)
-      : "a"(a), "d"(b)
-      : "%ecx"
-    );
-    return result;
-
-#elif 1
-
+#ifdef FT_MULFIX_ASSEMBLER
+    return FT_MULFIX_ASSEMBLER(a,b);
+#else
     FT_Long   sa, sb;
     FT_ULong  ua, ub;
 
@@ -468,37 +452,7 @@
     ua  = (FT_ULong)(( ua ^ sa ) - sa);
 
     return (FT_Long)ua;
-
-#else /* 0 */
-
-    FT_Long   s;
-    FT_ULong  ua, ub;
-
-
-    if ( a == 0 || b == 0x10000L )
-      return a;
-
-    s  = a; a = FT_ABS( a );
-    s ^= b; b = FT_ABS( b );
-
-    ua = (FT_ULong)a;
-    ub = (FT_ULong)b;
-
-    if ( ua <= 2048 && ub <= 1048576L )
-      ua = ( ua * ub + 0x8000UL ) >> 16;
-    else
-    {
-      FT_ULong  al = ua & 0xFFFFUL;
-
-
-      ua = ( ua >> 16 ) * ub +  al * ( ub >> 16 ) +
-           ( ( al * ( ub & 0xFFFFUL ) + 0x8000UL ) >> 16 );
-    }
-
-    return ( s < 0 ? -(FT_Long)ua : (FT_Long)ua );
-
-#endif /* 0 */
-
+#endif
   }
 
 
@@ -664,6 +618,55 @@
 
 
 #endif /* FT_LONG64 */
+  /* documentation is in ftcalc.h */
+
+  FT_BASE_DEF( void )
+  FT_Matrix_Multiply_Scaled( const FT_Matrix*  a,
+                             FT_Matrix        *b,
+                             FT_Long           scaling )
+  {
+    FT_Fixed  xx, xy, yx, yy;
+
+    FT_Long   val = 0x10000L * scaling;
+
+
+    if ( !a || !b )
+      return;
+
+    xx = FT_MulDiv( a->xx, b->xx, val ) + FT_MulDiv( a->xy, b->yx, val );
+    xy = FT_MulDiv( a->xx, b->xy, val ) + FT_MulDiv( a->xy, b->yy, val );
+    yx = FT_MulDiv( a->yx, b->xx, val ) + FT_MulDiv( a->yy, b->yx, val );
+    yy = FT_MulDiv( a->yx, b->xy, val ) + FT_MulDiv( a->yy, b->yy, val );
+
+    b->xx = xx;  b->xy = xy;
+    b->yx = yx;  b->yy = yy;
+  }
+
+
+  /* documentation is in ftcalc.h */
+
+  FT_BASE_DEF( void )
+  FT_Vector_Transform_Scaled( FT_Vector*        vector,
+                              const FT_Matrix*  matrix,
+                              FT_Long           scaling )
+  {
+    FT_Pos   xz, yz;
+
+    FT_Long  val = 0x10000L * scaling;
+
+
+    if ( !vector || !matrix )
+      return;
+
+    xz = FT_MulDiv( vector->x, matrix->xx, val ) +
+         FT_MulDiv( vector->y, matrix->xy, val );
+
+    yz = FT_MulDiv( vector->x, matrix->yx, val ) +
+         FT_MulDiv( vector->y, matrix->yy, val );
+
+    vector->x = xz;
+    vector->y = yz;
+  }
 
 
   /* documentation is in ftcalc.h */

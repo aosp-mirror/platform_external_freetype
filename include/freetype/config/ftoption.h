@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    User-selectable configuration macros (specification only).           */
 /*                                                                         */
-/*  Copyright 1996-2001, 2002, 2003, 2004, 2005, 2006, 2007 by             */
+/*  Copyright 1996-2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 by       */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -113,6 +113,26 @@ FT_BEGIN_HEADER
   /*         `configure' script on supported platforms.                    */
   /*                                                                       */
 #undef  FT_CONFIG_OPTION_FORCE_INT64
+
+
+  /*************************************************************************/
+  /*                                                                       */
+  /* When this macro is defined, do not try to use an assembler version    */
+  /* of performance-critical functions (e.g. FT_MulFix). you should only   */
+  /* do that to verify that the assembler function works properly, or even */
+  /* to benchmarks the various implementations...                          */
+/* #define FT_CONFIG_OPTION_NO_ASSEMBLER */
+
+  /*************************************************************************/
+  /*                                                                       */
+  /* When this macro is defined, try to use an inlined assembler version   */
+  /* of the FT_MulFix function, which appears to be a hotspot when loading */
+  /* and hinting glyphs.                                                   */
+  /*                                                                       */
+  /* note that if your compiler/cpu isn't supported, this will default to  */
+  /* the standard and portable implementation found in src/base/ftcalc.c   */
+  /*                                                                       */
+#define FT_CONFIG_OPTION_INLINE_MULFIX
 
 
   /*************************************************************************/
@@ -436,6 +456,7 @@ FT_BEGIN_HEADER
 #define TT_CONFIG_CMAP_FORMAT_8
 #define TT_CONFIG_CMAP_FORMAT_10
 #define TT_CONFIG_CMAP_FORMAT_12
+#define TT_CONFIG_CMAP_FORMAT_14
 
 
   /*************************************************************************/
@@ -624,7 +645,8 @@ FT_BEGIN_HEADER
 
   /*************************************************************************/
   /*                                                                       */
-  /* Compile autofit module with CJK script support.                       */
+  /* Compile autofit module with CJK (Chinese, Japanese, Korean) script    */
+  /* support.                                                              */
   /*                                                                       */
 #define AF_CONFIG_OPTION_CJK
 

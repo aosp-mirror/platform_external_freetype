@@ -45,7 +45,6 @@
 
 FT_BEGIN_HEADER
 
-
   /*************************************************************************/
   /*                                                                       */
   /*               PLATFORM-SPECIFIC CONFIGURATION MACROS                  */
@@ -139,12 +138,63 @@ FT_BEGIN_HEADER
 
   /*************************************************************************/
   /*                                                                       */
-  /* IntN types                                                            */
+  /* <Section>                                                             */
+  /*    basic_types                                                        */
   /*                                                                       */
-  /*   Used to guarantee the size of some specific integers.               */
+  /*************************************************************************/
+
+
+  /*************************************************************************/
   /*                                                                       */
-  typedef signed short    FT_Int16;
+  /* <Type>                                                                */
+  /*    FT_Int16                                                           */
+  /*                                                                       */
+  /* <Description>                                                         */
+  /*    A typedef for a 16bit signed integer type.                         */
+  /*                                                                       */
+  typedef signed short  FT_Int16;
+
+
+  /*************************************************************************/
+  /*                                                                       */
+  /* <Type>                                                                */
+  /*    FT_UInt16                                                          */
+  /*                                                                       */
+  /* <Description>                                                         */
+  /*    A typedef for a 16bit unsigned integer type.                       */
+  /*                                                                       */
   typedef unsigned short  FT_UInt16;
+  /* */
+
+
+  /* this #if 0 ... #endif clause is for documentation purposes */
+#if 0
+
+  /*************************************************************************/
+  /*                                                                       */
+  /* <Type>                                                                */
+  /*    FT_Int32                                                           */
+  /*                                                                       */
+  /* <Description>                                                         */
+  /*    A typedef for a 32bit signed integer type.  The size depends on    */
+  /*    the configuration.                                                 */
+  /*                                                                       */
+  typedef signed XXX  FT_Int32;
+
+
+  /*************************************************************************/
+  /*                                                                       */
+  /* <Type>                                                                */
+  /*    FT_UInt32                                                          */
+  /*                                                                       */
+  /*    A typedef for a 32bit unsigned integer type.  The size depends on  */
+  /*    the configuration.                                                 */
+  /*                                                                       */
+  typedef unsigned XXX  FT_UInt32;
+
+  /* */
+
+#endif
 
 #if FT_SIZEOF_INT == (32 / FT_CHAR_BIT)
 
@@ -171,6 +221,68 @@ FT_BEGIN_HEADER
   typedef long           FT_Fast;
   typedef unsigned long  FT_UFast;
 
+#endif
+
+#if !defined(FT_CONFIG_OPTION_NO_ASSEMBLER)
+/* provide assembler fragments for performance-critical
+ * functions. these must be defined static __inline__
+ * with GCC
+ */
+#if defined(__GNUC__)
+
+#  if defined(__arm__) && !defined(__thumb__)
+#    define FT_MULFIX_ASSEMBLER   FT_MulFix_arm
+    static __inline__ FT_Int32
+    FT_MulFix_arm( FT_Int32  a, FT_Int32  b )
+    {
+        register FT_Int32  t, t2;
+        asm __volatile__ (
+            "smull  %1, %2, %4, %3\n\t"   /* (lo=%1,hi=%2) = a*b */
+            "mov    %0, %2, asr #31\n\t"  /* %0  = (hi >> 31) */
+            "add    %0, %0, #0x8000\n\t"  /* %0 += 0x8000 */
+            "adds   %1, %1, %0\n\t"       /* %1 += %0 */
+            "adc    %2, %2, #0\n\t"       /* %2 += carry */
+            "mov    %0, %1, lsr #16\n\t"  /* %0  = %1 >> 16 */
+            "orr    %0, %2, lsl #16\n\t"  /* %0 |= %2 << 16 */
+            : "=r"(a), "=&r"(t2), "=&r"(t)
+            : "r"(a), "r"(b)
+            );
+        return a;
+    }
+#  endif
+
+#  if defined(i386)
+#    define FT__MULFIX_ASSEMBLER  FT_MulFix_i386
+    static __inline__ FT_Int32
+    FT_MulFix_i386( FT_Int32  a, FT_Int32  b )
+    {
+        register FT_Int32  result;
+
+        __asm__ __volatile__ (
+          "imul  %%edx\n"
+          "movl  %%edx, %%ecx\n"
+          "sarl  $31, %%ecx\n"
+          "addl  $0x8000, %%ecx\n"
+          "addl  %%ecx, %%eax\n"
+          "adcl  $0, %%edx\n"
+          "shrl  $16, %%eax\n"
+          "shll  $16, %%edx\n"
+          "addl  %%edx, %%eax\n"
+          : "=a"(result)
+          : "a"(a), "d"(b)
+          : "%ecx"
+        );
+        return result;
+    }
+#  endif
+
+#endif /* __GNUC__ */
+#endif /* !NO_ASSEMBLER */
+
+#ifdef FT_CONFIG_OPTION_INLINE_MULFIX
+#  ifdef FT_MULFIX_ASSEMBLER
+#    define FT_MULFIX_INLINED   FT_MULFIX_ASSEMBLER
+#  endif
 #endif
 
 
@@ -272,7 +384,7 @@ FT_BEGIN_HEADER
 #ifndef FT_BASE_DEF
 
 #ifdef __cplusplus
-#define FT_BASE_DEF( x )  x
+#define FT_BASE_DEF( x )  extern "C" x
 #else
 #define FT_BASE_DEF( x )  x
 #endif
