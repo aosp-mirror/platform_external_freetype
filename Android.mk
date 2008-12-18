@@ -54,7 +54,7 @@ LOCAL_CFLAGS += -DANDROID_FONT_HACK=1
 # when running the program to activate it. It will dump memory
 # statistics when FT_Done_FreeType is called
 #
-ifeq ($(TARGET_PRODUCT),sim)
+ifeq ($(TARGET_SIMULATOR),true)
 LOCAL_CFLAGS += "-DFT_DEBUG_MEMORY"
 endif
 
