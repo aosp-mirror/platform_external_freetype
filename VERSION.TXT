@@ -1,0 +1,2 @@
+The sources in this directory correspond to 2.3.8 plus a few bug fixes, as taken
+from the upstream FreeType CVS snapshot on 2009-03-03 4pm CET.

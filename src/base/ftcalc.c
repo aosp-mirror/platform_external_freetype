@@ -33,12 +33,13 @@
 
 
 #include <ft2build.h>
+#include FT_GLYPH_H
 #include FT_INTERNAL_CALC_H
 #include FT_INTERNAL_DEBUG_H
 #include FT_INTERNAL_OBJECTS_H
 
-#ifdef  FT_MULFIX_INLINED
-#undef  FT_MulFix
+#ifdef FT_MULFIX_INLINED
+#undef FT_MulFix
 #endif
 
 /* we need to define a 64-bits data type here */
@@ -196,18 +197,32 @@
              FT_Long  b )
   {
 #ifdef FT_MULFIX_ASSEMBLER
-    return FT_MULFIX_ASSEMBLER(a,b);
+
+    return FT_MULFIX_ASSEMBLER( a, b );
+
 #else
+
     FT_Int   s = 1;
     FT_Long  c;
 
 
-    if ( a < 0 ) { a = -a; s = -1; }
-    if ( b < 0 ) { b = -b; s = -s; }
+    if ( a < 0 )
+    {
+      a = -a;
+      s = -1;
+    }
+
+    if ( b < 0 )
+    {
+      b = -b;
+      s = -s;
+    }
 
     c = (FT_Long)( ( (FT_Int64)a * b + 0x8000L ) >> 16 );
-    return ( s > 0 ) ? c : -c ;
-#endif
+
+    return ( s > 0 ) ? c : -c;
+
+#endif /* FT_MULFIX_ASSEMBLER */
   }
 
 
@@ -420,8 +435,18 @@
              FT_Long  b )
   {
 #ifdef FT_MULFIX_ASSEMBLER
-    return FT_MULFIX_ASSEMBLER(a,b);
-#else
+
+    return FT_MULFIX_ASSEMBLER( a, b );
+
+#elif 0
+
+    /*
+     *  This code is nonportable.  See comment below.
+     *
+     *  However, on a platform where right-shift of a signed quantity fills
+     *  the leftmost bits by copying the sign bit, it might be faster.
+     */
+
     FT_Long   sa, sb;
     FT_ULong  ua, ub;
 
@@ -429,6 +454,24 @@
     if ( a == 0 || b == 0x10000L )
       return a;
 
+    /*
+     *  This is a clever way of converting a signed number `a' into its
+     *  absolute value (stored back into `a') and its sign.  The sign is
+     *  stored in `sa'; 0 means `a' was positive or zero, and -1 means `a'
+     *  was negative.  (Similarly for `b' and `sb').
+     *
+     *  Unfortunately, it doesn't work (at least not portably).
+     *
+     *  It makes the assumption that right-shift on a negative signed value
+     *  fills the leftmost bits by copying the sign bit.  This is wrong. 
+     *  According to K&R 2nd ed, section `A7.8 Shift Operators' on page 206,
+     *  the result of right-shift of a negative signed value is
+     *  implementation-defined.  At least one implementation fills the
+     *  leftmost bits with 0s (i.e., it is exactly the same as an unsigned
+     *  right shift).  This means that when `a' is negative, `sa' ends up
+     *  with the value 1 rather than -1.  After that, everything else goes
+     *  wrong.
+     */
     sa = ( a >> ( sizeof ( a ) * 8 - 1 ) );
     a  = ( a ^ sa ) - sa;
     sb = ( b >> ( sizeof ( b ) * 8 - 1 ) );
@@ -452,7 +495,37 @@
     ua  = (FT_ULong)(( ua ^ sa ) - sa);
 
     return (FT_Long)ua;
-#endif
+
+#else /* 0 */
+
+    FT_Long   s;
+    FT_ULong  ua, ub;
+
+
+    if ( a == 0 || b == 0x10000L )
+      return a;
+
+    s  = a; a = FT_ABS( a );
+    s ^= b; b = FT_ABS( b );
+
+    ua = (FT_ULong)a;
+    ub = (FT_ULong)b;
+
+    if ( ua <= 2048 && ub <= 1048576L )
+      ua = ( ua * ub + 0x8000UL ) >> 16;
+    else
+    {
+      FT_ULong  al = ua & 0xFFFFUL;
+
+
+      ua = ( ua >> 16 ) * ub +  al * ( ub >> 16 ) +
+           ( ( al * ( ub & 0xFFFFUL ) + 0x8000UL ) >> 16 );
+    }
+
+    return ( s < 0 ? -(FT_Long)ua : (FT_Long)ua );
+
+#endif /* 0 */
+
   }
 
 
@@ -466,8 +539,8 @@
     FT_UInt32  q;
 
 
-    s  = a; a = FT_ABS(a);
-    s ^= b; b = FT_ABS(b);
+    s  = a; a = FT_ABS( a );
+    s ^= b; b = FT_ABS( b );
 
     if ( b == 0 )
     {
@@ -618,6 +691,61 @@
 
 
 #endif /* FT_LONG64 */
+
+
+  /* documentation is in ftglyph.h */
+
+  FT_EXPORT_DEF( void )
+  FT_Matrix_Multiply( const FT_Matrix*  a,
+                      FT_Matrix        *b )
+  {
+    FT_Fixed  xx, xy, yx, yy;
+
+
+    if ( !a || !b )
+      return;
+
+    xx = FT_MulFix( a->xx, b->xx ) + FT_MulFix( a->xy, b->yx );
+    xy = FT_MulFix( a->xx, b->xy ) + FT_MulFix( a->xy, b->yy );
+    yx = FT_MulFix( a->yx, b->xx ) + FT_MulFix( a->yy, b->yx );
+    yy = FT_MulFix( a->yx, b->xy ) + FT_MulFix( a->yy, b->yy );
+
+    b->xx = xx;  b->xy = xy;
+    b->yx = yx;  b->yy = yy;
+  }
+
+
+  /* documentation is in ftglyph.h */
+
+  FT_EXPORT_DEF( FT_Error )
+  FT_Matrix_Invert( FT_Matrix*  matrix )
+  {
+    FT_Pos  delta, xx, yy;
+
+
+    if ( !matrix )
+      return FT_Err_Invalid_Argument;
+
+    /* compute discriminant */
+    delta = FT_MulFix( matrix->xx, matrix->yy ) -
+            FT_MulFix( matrix->xy, matrix->yx );
+
+    if ( !delta )
+      return FT_Err_Invalid_Argument;  /* matrix can't be inverted */
+
+    matrix->xy = - FT_DivFix( matrix->xy, delta );
+    matrix->yx = - FT_DivFix( matrix->yx, delta );
+
+    xx = matrix->xx;
+    yy = matrix->yy;
+
+    matrix->xx = FT_DivFix( yy, delta );
+    matrix->yy = FT_DivFix( xx, delta );
+
+    return FT_Err_Ok;
+  }
+
+
   /* documentation is in ftcalc.h */
 
   FT_BASE_DEF( void )

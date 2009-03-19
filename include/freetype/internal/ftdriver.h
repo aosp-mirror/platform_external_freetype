@@ -23,6 +23,7 @@
 #include <ft2build.h>
 #include FT_MODULE_H
 
+
 FT_BEGIN_HEADER
 
 
@@ -90,11 +91,13 @@ FT_BEGIN_HEADER
   (*FT_CharMap_CharNextFunc)( FT_CharMap  charmap,
                               FT_Long     charcode );
 
+
   typedef FT_Error
   (*FT_Face_GetKerningFunc)( FT_Face     face,
                              FT_UInt     left_glyph,
                              FT_UInt     right_glyph,
                              FT_Vector*  kerning );
+
 
   typedef FT_Error
   (*FT_Face_AttachFunc)( FT_Face    face,
@@ -105,7 +108,7 @@ FT_BEGIN_HEADER
   (*FT_Face_GetAdvancesFunc)( FT_Face    face,
                               FT_UInt    first,
                               FT_UInt    count,
-                              FT_UInt    flags,
+                              FT_Int32   flags,
                               FT_Fixed*  advances );
 
 
