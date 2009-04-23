@@ -67,9 +67,7 @@ endif
 # of the product
 #LOCAL_CFLAGS += "-DTT_CONFIG_OPTION_BYTECODE_INTERPRETER"
 
-ifeq ($(TARGET_BUILD_TYPE),release)
-	LOCAL_CFLAGS += -O2
-endif
+LOCAL_CFLAGS += -O2
 
 LOCAL_MODULE:= libft2
 
