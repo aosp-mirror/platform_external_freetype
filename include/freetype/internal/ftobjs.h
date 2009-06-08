@@ -193,6 +193,7 @@ FT_BEGIN_HEADER
     FT_CMap_DoneFunc       done;
     FT_CMap_CharIndexFunc  char_index;
     FT_CMap_CharNextFunc   char_next;
+
     /* Subsequent entries are special ones for format 14 -- the variant */
     /* selector subtable which behaves like no other                    */
 

@@ -382,8 +382,8 @@
 
     for ( ; vec < vec_limit; vec++, flag++ )
     {
-      FT_Pos  y = 0;
-      FT_Byte f = *flag;
+      FT_Pos   y = 0;
+      FT_Byte  f = *flag;
 
 
       if ( f & 2 )
@@ -405,7 +405,8 @@
 
       x     += y;
       vec->x = x;
-      *flag  = f & ~( 2 | 16 );
+      /* the cast is for stupid compilers */
+      *flag  = (FT_Byte)( f & ~( 2 | 16 ) );
     }
 
     /* reading the Y coordinates */
@@ -417,8 +418,8 @@
 
     for ( ; vec < vec_limit; vec++, flag++ )
     {
-      FT_Pos  y = 0;
-      FT_Byte f = *flag;
+      FT_Pos   y = 0;
+      FT_Byte  f = *flag;
 
 
       if ( f & 4 )
@@ -440,7 +441,8 @@
 
       x     += y;
       vec->y = x;
-      *flag  = f & FT_CURVE_TAG_ON;
+      /* the cast is for stupid compilers */
+      *flag  = (FT_Byte)( f & FT_CURVE_TAG_ON );
     }
 
     outline->n_points   = (FT_UShort)n_points;
@@ -557,10 +559,10 @@
       FT_Stream  stream = loader->stream;
 
 
-      /* we must undo the FT_FRAME_ENTER in order to point to the */
-      /* composite instructions, if we find some.               */
-      /* we will process them later...                          */
-      /*                                                        */
+      /* we must undo the FT_FRAME_ENTER in order to point */
+      /* to the composite instructions, if we find some.   */
+      /* We will process them later.                       */
+      /*                                                   */
       loader->ins_pos = (FT_ULong)( FT_STREAM_POS() +
                                     p - limit );
     }
@@ -643,6 +645,7 @@
     /* save original point position in org */
     if ( n_ins > 0 )
       FT_ARRAY_COPY( zone->org, zone->cur, zone->n_points );
+
     /* Reset graphics state. */
     loader->exec->GS = ((TT_Size)loader->size)->GS;
 
@@ -1242,6 +1245,13 @@
 
     if ( loader->byte_len > 0 )
     {
+      if ( !loader->glyf_offset )
+      {
+        FT_TRACE2(( "no `glyf' table but non-zero `loca' entry!\n" ));
+        error = TT_Err_Invalid_Table;
+        goto Exit;
+      }
+
       error = face->access_glyph_frame( loader, glyph_index,
                                         loader->glyf_offset + offset,
                                         loader->byte_len );
@@ -1433,7 +1443,6 @@
         for ( n = 0; n < num_subglyphs; n++ )
         {
           FT_Vector  pp[4];
-
 
 
           /* Each time we call load_truetype_glyph in this loop, the   */
@@ -1668,8 +1677,8 @@
     }
 
     /* adjust advance width to the value contained in the hdmx table */
-    if ( !face->postscript.isFixedPitch &&
-         IS_HINTED( loader->load_flags )        )
+    if ( !face->postscript.isFixedPitch  &&
+         IS_HINTED( loader->load_flags ) )
     {
       FT_Byte*  widthp;
 
@@ -1838,12 +1847,15 @@
       FT_Error  error = face->goto_table( face, TTAG_glyf, stream, 0 );
 
 
-      if ( error )
+      if ( error == TT_Err_Table_Missing )
+        loader->glyf_offset = 0;
+      else if ( error )
       {
         FT_ERROR(( "TT_Load_Glyph: could not access glyph table\n" ));
         return error;
       }
-      loader->glyf_offset = FT_STREAM_POS();
+      else
+        loader->glyf_offset = FT_STREAM_POS();
     }
 
     /* get face's glyph loader */
@@ -1855,7 +1867,7 @@
       loader->gloader = gloader;
     }
 
-    loader->load_flags    = load_flags;
+    loader->load_flags = load_flags;
 
     loader->face   = (FT_Face)face;
     loader->size   = (FT_Size)size;
@@ -1957,6 +1969,40 @@
         if ( ( face->header.Flags & 2 ) == 0 && loader.pp1.x )
           FT_Outline_Translate( &glyph->outline, -loader.pp1.x, 0 );
       }
+
+#ifdef TT_USE_BYTECODE_INTERPRETER
+
+      if ( IS_HINTED( load_flags ) )
+      {
+        if ( loader.exec->GS.scan_control )
+        {
+          /* convert scan conversion mode to FT_OUTLINE_XXX flags */
+          switch ( loader.exec->GS.scan_type )
+          {
+          case 0: /* simple drop-outs including stubs */
+            glyph->outline.flags |= FT_OUTLINE_INCLUDE_STUBS;
+            break;
+          case 1: /* simple drop-outs excluding stubs */
+            /* nothing; it's the default rendering mode */
+            break;
+          case 4: /* smart drop-outs including stubs */
+            glyph->outline.flags |= FT_OUTLINE_SMART_DROPOUTS |
+                                    FT_OUTLINE_INCLUDE_STUBS;
+            break;
+          case 5: /* smart drop-outs excluding stubs  */
+            glyph->outline.flags |= FT_OUTLINE_SMART_DROPOUTS;
+            break;
+
+          default: /* no drop-out control */
+            glyph->outline.flags |= FT_OUTLINE_IGNORE_DROPOUTS;
+            break;
+          }
+        }
+        else 
+          glyph->outline.flags |= FT_OUTLINE_IGNORE_DROPOUTS;
+      }
+
+#endif /* TT_USE_BYTECODE_INTERPRETER */
 
       compute_glyph_metrics( &loader, glyph_index );
     }

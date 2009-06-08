@@ -1,10 +1,10 @@
 # this is now the default FreeType build for Android
 #
 ifndef USE_FREETYPE
-USE_FREETYPE := 2.3.6
+USE_FREETYPE := 2.3.9
 endif
 
-ifeq ($(USE_FREETYPE),2.3.6)
+ifeq ($(USE_FREETYPE),2.3.9)
 LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
 
@@ -23,7 +23,6 @@ LOCAL_SRC_FILES:= \
 	src/base/ftsystem.c \
 	src/base/ftinit.c \
 	src/base/ftgasp.c \
-	src/base/ftadvanc.c \
 	src/raster/raster.c \
 	src/sfnt/sfnt.c \
 	src/smooth/smooth.c \
@@ -41,13 +40,6 @@ LOCAL_CFLAGS += -W -Wall
 LOCAL_CFLAGS += -fPIC -DPIC
 LOCAL_CFLAGS += "-DDARWIN_NO_CARBON"
 LOCAL_CFLAGS += "-DFT2_BUILD_LIBRARY"
-
-# only enable this if you want to enable our ugly font hack
-# to be able to switch the system's font hinting at runtime
-# through our modified Development Settings. the change will
-# only happen when you reboot or restart an application
-#
-LOCAL_CFLAGS += -DANDROID_FONT_HACK=1
 
 # enable the FreeType internal memory debugger in the simulator
 # you need to define the FT2_DEBUG_MEMORY environment variable
