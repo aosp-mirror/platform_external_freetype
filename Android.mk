@@ -1,3 +1,10 @@
+# this is now the default FreeType build for Android
+#
+ifndef USE_FREETYPE
+USE_FREETYPE := 2.3.9
+endif
+
+ifeq ($(USE_FREETYPE),2.3.9)
 LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
 
@@ -16,7 +23,6 @@ LOCAL_SRC_FILES:= \
 	src/base/ftsystem.c \
 	src/base/ftinit.c \
 	src/base/ftgasp.c \
-	src/base/ftadvanc.c \
 	src/raster/raster.c \
 	src/sfnt/sfnt.c \
 	src/smooth/smooth.c \
@@ -53,4 +59,4 @@ LOCAL_CFLAGS += -O2
 LOCAL_MODULE:= libft2
 
 include $(BUILD_STATIC_LIBRARY)
-
+endif
