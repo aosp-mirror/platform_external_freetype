@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    OpenType font driver implementation (body).                          */
 /*                                                                         */
-/*  Copyright 1996-2001, 2002, 2003, 2004, 2005, 2006, 2007 by             */
+/*  Copyright 1996-2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 by */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -37,6 +37,7 @@
 
 #include FT_SERVICE_XFREE86_NAME_H
 #include FT_SERVICE_GLYPH_DICT_H
+
 
   /*************************************************************************/
   /*                                                                       */
@@ -186,36 +187,39 @@
   }
 
 
-  FT_CALLBACK_DEF(FT_Error)
-  cff_get_advances( FT_Face    ftface,
+  FT_CALLBACK_DEF( FT_Error )
+  cff_get_advances( FT_Face    face,
                     FT_UInt    start,
                     FT_UInt    count,
-                    FT_UInt    flags,
+                    FT_Int32   flags,
                     FT_Fixed*  advances )
   {
-    CFF_Face      face = (CFF_Face) ftface;
     FT_UInt       nn;
-    FT_Error      error = 0;
-    FT_GlyphSlot  slot = face->root.glyph;
+    FT_Error      error = CFF_Err_Ok;
+    FT_GlyphSlot  slot  = face->glyph;
+
 
     flags |= FT_LOAD_ADVANCE_ONLY;
 
-    for (nn = 0; nn < count; nn++)
+    for ( nn = 0; nn < count; nn++ )
     {
-      error = Load_Glyph( slot, face->root.size, start+nn, flags );
-      if (error) break;
+      error = Load_Glyph( slot, face->size, start + nn, flags );
+      if ( error )
+        break;
 
-      advances[nn] = (flags & FT_LOAD_VERTICAL_LAYOUT)
-                   ? slot->advance.y
-                   : slot->advance.x;
+      advances[nn] = ( flags & FT_LOAD_VERTICAL_LAYOUT )
+                     ? slot->linearVertAdvance
+                     : slot->linearHoriAdvance;
     }
+
     return error;
   }
 
- /*
-  *  GLYPH DICT SERVICE
-  *
-  */
+
+  /*
+   *  GLYPH DICT SERVICE
+   *
+   */
 
   static FT_Error
   cff_get_glyph_name( CFF_Face    face,
@@ -366,7 +370,8 @@
       cff->font_info = font_info;
     }
 
-    *afont_info = *cff->font_info;
+    if ( cff )
+      *afont_info = *cff->font_info;
 
   Fail:
     return error;
@@ -376,6 +381,7 @@
   static const FT_Service_PsInfoRec  cff_service_ps_info =
   {
     (PS_GetFontInfoFunc)   cff_ps_get_font_info,
+    (PS_GetFontExtraFunc)  NULL,
     (PS_HasGlyphNamesFunc) cff_ps_has_glyph_names,
     (PS_GetFontPrivateFunc)NULL         /* unsupported with CFF fonts */
   };
@@ -421,6 +427,7 @@
 
 
     cmap_info->language = 0;
+    cmap_info->format   = 0;
 
     if ( cmap->clazz != &cff_cmap_encoding_class_rec &&
          cmap->clazz != &cff_cmap_unicode_class_rec  )
@@ -500,9 +507,74 @@
   }
 
 
+  static FT_Error
+  cff_get_is_cid( CFF_Face  face,
+                  FT_Bool  *is_cid )
+  {
+    FT_Error  error = CFF_Err_Ok;
+    CFF_Font  cff   = (CFF_Font)face->extra.data;
+
+
+    *is_cid = 0;
+
+    if ( cff )
+    {
+      CFF_FontRecDict  dict = &cff->top_font.font_dict;
+
+
+      if ( dict->cid_registry != 0xFFFFU )
+        *is_cid = 1;
+    }
+
+    return error;
+  }
+
+
+  static FT_Error
+  cff_get_cid_from_glyph_index( CFF_Face  face,
+                                FT_UInt   glyph_index,
+                                FT_UInt  *cid )
+  {
+    FT_Error  error = CFF_Err_Ok;
+    CFF_Font  cff;
+
+
+    cff = (CFF_Font)face->extra.data;
+
+    if ( cff )
+    {
+      FT_UInt          c;
+      CFF_FontRecDict  dict = &cff->top_font.font_dict;
+
+
+      if ( dict->cid_registry == 0xFFFFU )
+      {
+        error = CFF_Err_Invalid_Argument;
+        goto Fail;
+      }
+
+      if ( glyph_index > cff->num_glyphs )
+      {
+        error = CFF_Err_Invalid_Argument;
+        goto Fail;
+      }
+
+      c = cff->charset.sids[glyph_index];
+
+      if ( cid )
+        *cid = c;
+    }
+
+  Fail:
+    return error;
+  }
+
+
   static const FT_Service_CIDRec  cff_service_cid_info =
   {
-    (FT_CID_GetRegistryOrderingSupplementFunc)cff_get_ros
+    (FT_CID_GetRegistryOrderingSupplementFunc)cff_get_ros,
+    (FT_CID_GetIsInternallyCIDKeyedFunc)      cff_get_is_cid,
+    (FT_CID_GetCIDFromGlyphIndexFunc)         cff_get_cid_from_glyph_index
   };
 
 
