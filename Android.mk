@@ -50,11 +50,6 @@ ifeq ($(TARGET_SIMULATOR),true)
 LOCAL_CFLAGS += "-DFT_DEBUG_MEMORY"
 endif
 
-# the following activates the new experimental auto-hinter
-# one that should create less problems with a wide variety
-# of glyphs, including our double-decker "g"
-#LOCAL_CFLAGS += -DFT_OPTION_AUTOFIT2
-
 # the following is for testing only, and should not be used in final builds
 # of the product
 #LOCAL_CFLAGS += "-DTT_CONFIG_OPTION_BYTECODE_INTERPRETER"
@@ -65,4 +60,3 @@ LOCAL_MODULE:= libft2
 
 include $(BUILD_STATIC_LIBRARY)
 endif
-

@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    Auto-fitter hinting routines for CJK script (body).                  */
 /*                                                                         */
-/*  Copyright 2006, 2007 by                                                */
+/*  Copyright 2006, 2007, 2008 by                                          */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -1253,10 +1253,15 @@
         else if ( after >= edge_limit )
           af_cjk_align_serif_edge( hints, before, edge );
         else
-          edge->pos = before->pos +
-            FT_MulDiv( edge->fpos - before->fpos,
-                       after->pos - before->pos,
-                       after->fpos - before->fpos );
+        {
+          if ( after->fpos == before->fpos )
+            edge->pos = before->pos;
+          else
+            edge->pos = before->pos +
+                        FT_MulDiv( edge->fpos - before->fpos,
+                                   after->pos - before->pos,
+                                   after->fpos - before->fpos );
+        }
       }
     }
   }
