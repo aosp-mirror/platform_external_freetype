@@ -2448,7 +2448,10 @@
           return CFF_Err_Unimplemented_Feature;
         }
 
-      decoder->top = args;
+        decoder->top = args;
+
+        if ( decoder->top - stack >= CFF_MAX_OPERANDS )
+          goto Stack_Overflow;
 
       } /* general operator processing */
 
