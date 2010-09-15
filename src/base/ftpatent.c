@@ -131,7 +131,7 @@
         error = service->table_info( face, i,
                                      &tag_i, &offset_i, &length_i );
 
-      if ( error                    ||
+      if ( error                      ||
            FT_STREAM_SEEK( offset_i ) )
         goto Exit;
 

@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    Auto-fitter hinting routines for latin script (body).                */
 /*                                                                         */
-/*  Copyright 2003, 2004, 2005, 2006, 2007, 2008, 2009 by                  */
+/*  Copyright 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 by            */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -84,7 +84,7 @@
 
       af_glyph_hints_rescale( hints, (AF_ScriptMetrics)dummy );
 
-      error = af_glyph_hints_reload( hints, &face->glyph->outline, 0 );
+      error = af_glyph_hints_reload( hints, &face->glyph->outline );
       if ( error )
         goto Exit;
 
@@ -545,7 +545,8 @@
         FT_Pos  fitted = ( scaled + 40 ) & ~63;
 
 #if 1
-        if ( scaled != fitted ) {
+        if ( scaled != fitted )
+        {
           scale = FT_MulDiv( scale, fitted, scaled );
           AF_LOG(( "== scaled x-top = %.2g  fitted = %.2g, scaling = %.4g\n", scaled/64.0, fitted/64.0, (fitted*1.0)/scaled ));
         }
@@ -2104,51 +2105,51 @@
       FT_Int  n_edges = edge_limit - edges;
 
 
-    if ( dim == AF_DIMENSION_HORZ && ( n_edges == 6 || n_edges == 12 ) )
-    {
-      AF_Edge  edge1, edge2, edge3;
-      FT_Pos   dist1, dist2, span, delta;
-
-
-      if ( n_edges == 6 )
+      if ( dim == AF_DIMENSION_HORZ && ( n_edges == 6 || n_edges == 12 ) )
       {
-        edge1 = edges;
-        edge2 = edges + 2;
-        edge3 = edges + 4;
-      }
-      else
-      {
-        edge1 = edges + 1;
-        edge2 = edges + 5;
-        edge3 = edges + 9;
-      }
+        AF_Edge  edge1, edge2, edge3;
+        FT_Pos   dist1, dist2, span, delta;
 
-      dist1 = edge2->opos - edge1->opos;
-      dist2 = edge3->opos - edge2->opos;
 
-      span = dist1 - dist2;
-      if ( span < 0 )
-        span = -span;
-
-      if ( span < 8 )
-      {
-        delta = edge3->pos - ( 2 * edge2->pos - edge1->pos );
-        edge3->pos -= delta;
-        if ( edge3->link )
-          edge3->link->pos -= delta;
-
-        /* move the serifs along with the stem */
-        if ( n_edges == 12 )
+        if ( n_edges == 6 )
         {
-          ( edges + 8 )->pos -= delta;
-          ( edges + 11 )->pos -= delta;
+          edge1 = edges;
+          edge2 = edges + 2;
+          edge3 = edges + 4;
+        }
+        else
+        {
+          edge1 = edges + 1;
+          edge2 = edges + 5;
+          edge3 = edges + 9;
         }
 
-        edge3->flags |= AF_EDGE_DONE;
-        if ( edge3->link )
-          edge3->link->flags |= AF_EDGE_DONE;
+        dist1 = edge2->opos - edge1->opos;
+        dist2 = edge3->opos - edge2->opos;
+
+        span = dist1 - dist2;
+        if ( span < 0 )
+          span = -span;
+
+        if ( span < 8 )
+        {
+          delta = edge3->pos - ( 2 * edge2->pos - edge1->pos );
+          edge3->pos -= delta;
+          if ( edge3->link )
+            edge3->link->pos -= delta;
+
+          /* move the serifs along with the stem */
+          if ( n_edges == 12 )
+          {
+            ( edges + 8 )->pos -= delta;
+            ( edges + 11 )->pos -= delta;
+          }
+
+          edge3->flags |= AF_EDGE_DONE;
+          if ( edge3->link )
+            edge3->link->flags |= AF_EDGE_DONE;
+        }
       }
-    }
     }
 #endif
 
@@ -2249,7 +2250,7 @@
     int       dim;
 
 
-    error = af_glyph_hints_reload( hints, outline, 1 );
+    error = af_glyph_hints_reload( hints, outline );
     if ( error )
       goto Exit;
 

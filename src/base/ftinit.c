@@ -98,7 +98,8 @@
 #undef  FT_USE_MODULE
 #define FT_USE_MODULE( type, x )  MODULE_CLASS_##x,
 
-  enum {
+  enum
+  {
 #include FT_CONFIG_MODULES_H
     FT_NUM_MODULE_CLASSES
   };
@@ -190,7 +191,7 @@ Exit:
       if ( error )
         FT_TRACE0(( "FT_Add_Default_Module:"
                     " Cannot install `%s', error = 0x%x\n",
-                   (*cur)->module_name, error ));
+                    (*cur)->module_name, error ));
       cur++;
     }
   }
