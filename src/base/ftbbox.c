@@ -561,11 +561,11 @@
   }
 
 FT_DEFINE_OUTLINE_FUNCS(bbox_interface,
-        (FT_Outline_MoveTo_Func) BBox_Move_To,
-        (FT_Outline_LineTo_Func) BBox_Move_To,
-        (FT_Outline_ConicTo_Func)BBox_Conic_To,
-        (FT_Outline_CubicTo_Func)BBox_Cubic_To,
-        0, 0
+    (FT_Outline_MoveTo_Func) BBox_Move_To,
+    (FT_Outline_LineTo_Func) BBox_Move_To,
+    (FT_Outline_ConicTo_Func)BBox_Conic_To,
+    (FT_Outline_CubicTo_Func)BBox_Cubic_To,
+    0, 0
   )
 
   /* documentation is in ftbbox.h */

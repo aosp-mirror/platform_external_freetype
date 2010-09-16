@@ -1,7 +1,7 @@
 # Copyright 2010 Google Inc. All Rights Reserved.
 #Fri Jul 16 10:03:09 PDT 2010
-currentVersion=2.3.12
-version=2.3.9
+currentVersion=2.4.2
+version=2.4.2
 isNative=true
 feedurl=http\://freetype.sourceforge.net/index2.html
 name=freetype

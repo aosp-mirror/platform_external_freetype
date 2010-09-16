@@ -183,9 +183,9 @@
 
         if ( axis->num_edges > 1 && AF_HINTS_DO_ADVANCE( hints ) )
         {
-          old_rsb     = loader->pp2.x - edge2->opos;
-          old_lsb     = edge1->opos;
-          new_lsb     = edge1->pos;
+          old_rsb = loader->pp2.x - edge2->opos;
+          old_lsb = edge1->opos;
+          new_lsb = edge1->pos;
 
           /* remember unhinted values to later account */
           /* for rounding errors                       */
@@ -216,8 +216,8 @@
         }
         else
         {
-          FT_Pos   pp1x = loader->pp1.x;
-          FT_Pos   pp2x = loader->pp2.x;
+          FT_Pos  pp1x = loader->pp1.x;
+          FT_Pos  pp2x = loader->pp2.x;
 
 
           loader->pp1.x = FT_PIX_ROUND( pp1x );
@@ -229,8 +229,8 @@
       }
       else
       {
-        FT_Pos   pp1x = loader->pp1.x;
-        FT_Pos   pp2x = loader->pp2.x;
+        FT_Pos  pp1x = loader->pp1.x;
+        FT_Pos  pp2x = loader->pp2.x;
 
 
         loader->pp1.x = FT_PIX_ROUND( pp1x + hints->xmin_delta );

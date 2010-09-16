@@ -305,8 +305,8 @@
     *anoutline = null_outline;
 
     if ( FT_NEW_ARRAY( anoutline->points,   numPoints   ) ||
-         FT_NEW_ARRAY( anoutline->tags,     numPoints      ) ||
-         FT_NEW_ARRAY( anoutline->contours, numContours    ) )
+         FT_NEW_ARRAY( anoutline->tags,     numPoints   ) ||
+         FT_NEW_ARRAY( anoutline->contours, numContours ) )
       goto Fail;
 
     anoutline->n_points    = (FT_UShort)numPoints;
@@ -990,7 +990,8 @@
 
     int             i;
     FT_Pos          ray_y[3];
-    FT_Orientation  result[3];
+    FT_Orientation  result[3] =
+      { FT_ORIENTATION_NONE, FT_ORIENTATION_NONE, FT_ORIENTATION_NONE };
 
 
     if ( !outline || outline->n_points <= 0 )
