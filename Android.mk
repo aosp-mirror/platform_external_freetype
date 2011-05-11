@@ -17,6 +17,7 @@ LOCAL_SRC_FILES:= \
 	src/base/ftbbox.c \
 	src/base/ftbitmap.c \
 	src/base/ftglyph.c \
+	src/base/ftlcdfil.c \
 	src/base/ftstroke.c \
 	src/base/ftxf86.c \
 	src/base/ftbase.c \
