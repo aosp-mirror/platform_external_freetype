@@ -42,15 +42,6 @@ LOCAL_CFLAGS += -fPIC -DPIC
 LOCAL_CFLAGS += "-DDARWIN_NO_CARBON"
 LOCAL_CFLAGS += "-DFT2_BUILD_LIBRARY"
 
-# enable the FreeType internal memory debugger in the simulator
-# you need to define the FT2_DEBUG_MEMORY environment variable
-# when running the program to activate it. It will dump memory
-# statistics when FT_Done_FreeType is called
-#
-ifeq ($(TARGET_SIMULATOR),true)
-LOCAL_CFLAGS += "-DFT_DEBUG_MEMORY"
-endif
-
 # the following is for testing only, and should not be used in final builds
 # of the product
 #LOCAL_CFLAGS += "-DTT_CONFIG_OPTION_BYTECODE_INTERPRETER"
