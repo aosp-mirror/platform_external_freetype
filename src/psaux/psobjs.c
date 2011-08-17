@@ -4,8 +4,7 @@
 /*                                                                         */
 /*    Auxiliary functions for PostScript fonts (body).                     */
 /*                                                                         */
-/*  Copyright 1996-2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,   */
-/*            2010 by                                                      */
+/*  Copyright 1996-2011 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -188,11 +187,11 @@
     {
       FT_Error   error;
       FT_Offset  new_size = table->capacity;
-      FT_Long    in_offset;
+      FT_PtrDist  in_offset;
 
 
-      in_offset = (FT_Long)((FT_Byte*)object - table->block);
-      if ( (FT_ULong)in_offset >= table->capacity )
+      in_offset = (FT_Byte*)object - table->block;
+      if ( in_offset < 0 || (FT_Offset)in_offset >= table->capacity )
         in_offset = -1;
 
       while ( new_size < table->cursor + length )
