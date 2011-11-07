@@ -185,8 +185,8 @@
     /* grow the base block if needed */
     if ( table->cursor + length > table->capacity )
     {
-      FT_Error   error;
-      FT_Offset  new_size = table->capacity;
+      FT_Error    error;
+      FT_Offset   new_size = table->capacity;
       FT_PtrDist  in_offset;
 
 
