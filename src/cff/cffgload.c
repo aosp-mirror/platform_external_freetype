@@ -434,7 +434,7 @@
         goto Exit;
       }
 
-      FT_TRACE3(( "glyph index %d (subfont %d):\n", glyph_index, fd_index ));
+      FT_TRACE3(( "  in subfont %d:\n", fd_index ));
 
       sub = cff->subfonts[fd_index];
 
@@ -447,10 +447,6 @@
         builder->hints_globals = (void *)internal->subfonts[fd_index];
       }
     }
-#ifdef FT_DEBUG_LEVEL_TRACE
-    else
-      FT_TRACE3(( "glyph index %d:\n", glyph_index ));
-#endif
 
     decoder->num_locals    = sub->local_subrs_index.count;
     decoder->locals        = sub->local_subrs;
@@ -2849,7 +2845,16 @@
         /* as a consequence, glyphs larger than 2000ppem get rejected */
         if ( FT_ERR_EQ( error, Glyph_Too_Big ) )
         {
-          /* XXX to be implemented */
+          /* this time, we retry unhinted and scale up the glyph later on */
+          /* (the engine uses and sets the hardcoded value 0x10000 / 64 = */
+          /* 0x400 for both `x_scale' and `y_scale' in this case)         */
+          hinting       = FALSE;
+          force_scaling = TRUE;
+          glyph->hint   = hinting;
+
+          error = cf2_decoder_parse_charstrings( &decoder,
+                                                 charstring,
+                                                 charstring_len );
         }
       }
 
