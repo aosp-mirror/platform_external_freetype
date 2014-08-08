@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    The FreeType glyph rasterizer (body).                                */
 /*                                                                         */
-/*  Copyright 1996-2003, 2005, 2007-2013 by                                */
+/*  Copyright 1996-2003, 2005, 2007-2014 by                                */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -1874,7 +1874,7 @@
         v_start.x = ( v_start.x + v_last.x ) / 2;
         v_start.y = ( v_start.y + v_last.y ) / 2;
 
-        v_last = v_start;
+     /* v_last = v_start; */
       }
       point--;
       tags--;
@@ -2284,6 +2284,8 @@
     Long   e1, e2;
     Byte*  target;
 
+    Int  dropOutControl = left->flags & 7;
+
     FT_UNUSED( y );
     FT_UNUSED( left );
     FT_UNUSED( right );
@@ -2293,7 +2295,8 @@
 
     e1 = TRUNC( CEILING( x1 ) );
 
-    if ( x2 - x1 - ras.precision <= ras.precision_jitter )
+    if ( dropOutControl != 2                             &&
+         x2 - x1 - ras.precision <= ras.precision_jitter )
       e2 = e1;
     else
       e2 = TRUNC( FLOOR( x2 ) );

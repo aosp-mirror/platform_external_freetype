@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    A new `perfect' anti-aliasing renderer (body).                       */
 /*                                                                         */
-/*  Copyright 2000-2003, 2005-2013 by                                      */
+/*  Copyright 2000-2003, 2005-2014 by                                      */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -97,6 +97,9 @@
   /* Auxiliary macros for token concatenation. */
 #define FT_ERR_XCAT( x, y )  x ## y
 #define FT_ERR_CAT( x, y )   FT_ERR_XCAT( x, y )
+
+#define FT_BEGIN_STMNT  do {
+#define FT_END_STMNT    } while ( 0 )
 
 
   /* define this to dump debugging information */
@@ -1364,7 +1367,6 @@ typedef ptrdiff_t  FT_PtrDist;
         ras.num_gray_spans = 0;
         ras.span_y         = (int)y;
 
-        count = 0;
         span  = ras.gray_spans;
       }
       else

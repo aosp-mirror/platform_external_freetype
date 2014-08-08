@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    TrueType bytecode interpreter (body).                                */
 /*                                                                         */
-/*  Copyright 1996-2013                                                    */
+/*  Copyright 1996-2014                                                    */
 /*  by David Turner, Robert Wilhelm, and Werner Lemberg.                   */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -796,16 +796,13 @@
   FT_EXPORT_DEF( TT_ExecContext )
   TT_New_Context( TT_Driver  driver )
   {
-    TT_ExecContext  exec;
-    FT_Memory       memory;
+    FT_Memory  memory = driver->root.root.memory;
 
-
-    memory = driver->root.root.memory;
-    exec   = driver->context;
 
     if ( !driver->context )
     {
-      FT_Error  error;
+      FT_Error        error;
+      TT_ExecContext  exec;
 
 
       /* allocate object */
@@ -1470,7 +1467,7 @@
     __asm__ __volatile__ (
       "smull  %1, %2, %4, %3\n\t"       /* (lo=%1,hi=%2) = a*b */
       "mov    %0, %2, asr #31\n\t"      /* %0  = (hi >> 31) */
-#ifdef __clang__
+#if defined( __clang__ ) && defined( __thumb2__ )
       "add.w  %0, %0, #0x2000\n\t"      /* %0 += 0x2000 */
 #else
       "add    %0, %0, #0x2000\n\t"      /* %0 += 0x2000 */
@@ -7169,7 +7166,7 @@
         org_dist = CUR_fast_dualproj( &vec );
       }
 
-      cur_dist = CUR_Func_project ( &CUR.zp2.cur[point], cur_base );
+      cur_dist = CUR_Func_project( &CUR.zp2.cur[point], cur_base );
 
       if ( org_dist )
       {
@@ -7180,14 +7177,20 @@
           /* This is the same as what MS does for the invalid case:  */
           /*                                                         */
           /*   delta = (Original_Pt - Original_RP1) -                */
-          /*           (Current_Pt - Current_RP1)                    */
+          /*           (Current_Pt - Current_RP1)         ;          */
           /*                                                         */
           /* In FreeType speak:                                      */
           /*                                                         */
-          /*   new_dist = cur_dist -                                 */
-          /*              org_dist - cur_dist;                       */
+          /*   delta = org_dist - cur_dist          .                */
+          /*                                                         */
+          /* We move `point' by `new_dist - cur_dist' after leaving  */
+          /* this block, thus we have                                */
+          /*                                                         */
+          /*   new_dist - cur_dist = delta                   ,       */
+          /*   new_dist - cur_dist = org_dist - cur_dist     ,       */
+          /*              new_dist = org_dist                .       */
 
-          new_dist = -org_dist;
+          new_dist = org_dist;
         }
       }
       else
@@ -7593,9 +7596,9 @@
             else if ( CUR.ignore_x_mode )
             {
               if ( CUR.GS.freeVector.y != 0 )
-                B1 = CUR.zp0.cur[A].y;
+                B1 = (FT_UShort)CUR.zp0.cur[A].y;
               else
-                B1 = CUR.zp0.cur[A].x;
+                B1 = (FT_UShort)CUR.zp0.cur[A].x;
 
 #if 0
               /* Standard Subpixel Hinting: Allow y move.       */
@@ -7612,7 +7615,7 @@
                    !( CUR.sph_tweak_flags & SPH_TWEAK_ALWAYS_SKIP_DELTAP ) )
               {
                 /* save the y value of the point now; compare after move */
-                B1 = CUR.zp0.cur[A].y;
+                B1 = (FT_UShort)CUR.zp0.cur[A].y;
 
                 if ( CUR.sph_tweak_flags & SPH_TWEAK_ROUND_NONPIXEL_Y_MOVES )
                   B = FT_PIX_ROUND( B1 + B ) - B1;
@@ -7624,7 +7627,7 @@
                   CUR_Func_move( &CUR.zp0, A, B );
               }
 
-              B2 = CUR.zp0.cur[A].y;
+              B2 = (FT_UShort)CUR.zp0.cur[A].y;
 
               /* Reverse this move if it results in a disallowed move */
               if ( CUR.GS.freeVector.y != 0                           &&
@@ -9032,10 +9035,13 @@
     /* If any errors have occurred, function tables may be broken. */
     /* Force a re-execution of `prep' and `fpgm' tables if no      */
     /* bytecode debugger is run.                                   */
-    if ( CUR.error && !CUR.instruction_trap )
+    if ( CUR.error
+         && !CUR.instruction_trap
+         && CUR.curRange == tt_coderange_glyph )
     {
       FT_TRACE1(( "  The interpreter returned error 0x%x\n", CUR.error ));
-      exc->size->cvt_ready      = FALSE;
+      exc->size->bytecode_ready = -1;
+      exc->size->cvt_ready      = -1;
     }
 
     return CUR.error;

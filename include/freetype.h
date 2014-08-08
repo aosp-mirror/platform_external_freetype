@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    FreeType high-level API and common types (specification only).       */
 /*                                                                         */
-/*  Copyright 1996-2013 by                                                 */
+/*  Copyright 1996-2014 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -1592,7 +1592,6 @@ FT_BEGIN_HEADER
   /*                         This field is only valid for the composite    */
   /*                         glyph format that should normally only be     */
   /*                         loaded with the @FT_LOAD_NO_RECURSE flag.     */
-  /*                         For now this is internal to FreeType.         */
   /*                                                                       */
   /*    subglyphs         :: An array of subglyph descriptors for          */
   /*                         composite glyphs.  There are `num_subglyphs'  */
@@ -2305,6 +2304,8 @@ FT_BEGIN_HEADER
   /*    glyph relative to this size.  For more information refer to        */
   /*    `http://www.freetype.org/freetype2/docs/glyphs/glyphs-2.html'      */
   /*                                                                       */
+  /*    Don't use this function if you are using the FreeType cache API.   */
+  /*                                                                       */
   FT_EXPORT( FT_Error )
   FT_Request_Size( FT_Face          face,
                    FT_Size_Request  req );
@@ -2378,6 +2379,8 @@ FT_BEGIN_HEADER
   /*    You should not rely on the resulting glyphs matching, or being     */
   /*    constrained, to this pixel size.  Refer to @FT_Request_Size to     */
   /*    understand how requested sizes relate to actual sizes.             */
+  /*                                                                       */
+  /*    Don't use this function if you are using the FreeType cache API.   */
   /*                                                                       */
   FT_EXPORT( FT_Error )
   FT_Set_Pixel_Sizes( FT_Face  face,
@@ -2556,14 +2559,11 @@ FT_BEGIN_HEADER
    *     Ignored.  Deprecated.
    *
    *   FT_LOAD_NO_RECURSE ::
-   *     This flag is only used internally.  It merely indicates that the
-   *     font driver should not load composite glyphs recursively.  Instead,
-   *     it should set the `num_subglyph' and `subglyphs' values of the
-   *     glyph slot accordingly, and set `glyph->format' to
-   *     @FT_GLYPH_FORMAT_COMPOSITE.
-   *
-   *     The description of sub-glyphs is not available to client
-   *     applications for now.
+   *     Indicate that the font driver should not load composite glyphs
+   *     recursively.  Instead, it should set the `num_subglyph' and
+   *     `subglyphs' values of the glyph slot accordingly, and set
+   *     `glyph->format' to @FT_GLYPH_FORMAT_COMPOSITE.  The description of
+   *     subglyphs can then be accessed with @FT_Get_SubGlyph_Info.
    *
    *     This flag implies @FT_LOAD_NO_SCALE and @FT_LOAD_IGNORE_TRANSFORM.
    *
@@ -2871,6 +2871,10 @@ FT_BEGIN_HEADER
   /* <Return>                                                              */
   /*    FreeType error code.  0~means success.                             */
   /*                                                                       */
+  /* <Note>                                                                */
+  /*    To get meaningful results, font scaling values must be set with    */
+  /*    functions like @FT_Set_Char_Size before calling FT_Render_Glyph.   */
+  /*                                                                       */
   FT_EXPORT( FT_Error )
   FT_Render_Glyph( FT_GlyphSlot    slot,
                    FT_Render_Mode  render_mode );
@@ -3057,9 +3061,8 @@ FT_BEGIN_HEADER
   /*    glyph index~0 always corresponds to the `missing glyph' (called    */
   /*    `.notdef').                                                        */
   /*                                                                       */
-  /*    This function is not compiled within the library if the config     */
-  /*    macro `FT_CONFIG_OPTION_NO_GLYPH_NAMES' is defined in              */
-  /*    `ftoptions.h'.                                                     */
+  /*    This function always returns an error if the config macro          */
+  /*    `FT_CONFIG_OPTION_NO_GLYPH_NAMES' is not defined in `ftoptions.h'. */
   /*                                                                       */
   FT_EXPORT( FT_Error )
   FT_Get_Glyph_Name( FT_Face     face,
@@ -3957,7 +3960,7 @@ FT_BEGIN_HEADER
    */
 #define FREETYPE_MAJOR  2
 #define FREETYPE_MINOR  5
-#define FREETYPE_PATCH  2
+#define FREETYPE_PATCH  3
 
 
   /*************************************************************************/

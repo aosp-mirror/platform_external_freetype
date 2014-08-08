@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    Auto-fitter hinting routines (specification).                        */
 /*                                                                         */
-/*  Copyright 2003-2008, 2010-2012 by                                      */
+/*  Copyright 2003-2008, 2010-2012, 2014 by                                */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -27,7 +27,7 @@ FT_BEGIN_HEADER
 
   /*
    *  The definition of outline glyph hints.  These are shared by all
-   *  script analysis routines (until now).
+   *  writing system analysis routines (until now).
    */
 
   typedef enum  AF_Dimension_
@@ -236,10 +236,7 @@ FT_BEGIN_HEADER
     AF_FLAG_WEAK_INTERPOLATION = 1 << 8,
 
     /* all inflection points in the outline have this flag set */
-    AF_FLAG_INFLECTION = 1 << 9,
-
-    /* the current point is very near to another one */
-    AF_FLAG_NEAR = 1 << 10
+    AF_FLAG_INFLECTION = 1 << 9
 
   } AF_Flags;
 
@@ -247,10 +244,11 @@ FT_BEGIN_HEADER
   /* edge hint flags */
   typedef enum  AF_Edge_Flags_
   {
-    AF_EDGE_NORMAL = 0,
-    AF_EDGE_ROUND  = 1 << 0,
-    AF_EDGE_SERIF  = 1 << 1,
-    AF_EDGE_DONE   = 1 << 2
+    AF_EDGE_NORMAL  = 0,
+    AF_EDGE_ROUND   = 1 << 0,
+    AF_EDGE_SERIF   = 1 << 1,
+    AF_EDGE_DONE    = 1 << 2,
+    AF_EDGE_NEUTRAL = 1 << 3  /* set if edge aligns to a neutral blue zone */
 
   } AF_Edge_Flags;
 
@@ -343,31 +341,31 @@ FT_BEGIN_HEADER
 
   typedef struct  AF_GlyphHintsRec_
   {
-    FT_Memory         memory;
+    FT_Memory        memory;
 
-    FT_Fixed          x_scale;
-    FT_Pos            x_delta;
+    FT_Fixed         x_scale;
+    FT_Pos           x_delta;
 
-    FT_Fixed          y_scale;
-    FT_Pos            y_delta;
+    FT_Fixed         y_scale;
+    FT_Pos           y_delta;
 
-    FT_Int            max_points;    /* number of allocated points */
-    FT_Int            num_points;    /* number of used points      */
-    AF_Point          points;        /* points array               */
+    FT_Int           max_points;    /* number of allocated points */
+    FT_Int           num_points;    /* number of used points      */
+    AF_Point         points;        /* points array               */
 
-    FT_Int            max_contours;  /* number of allocated contours */
-    FT_Int            num_contours;  /* number of used contours      */
-    AF_Point*         contours;      /* contours array               */
+    FT_Int           max_contours;  /* number of allocated contours */
+    FT_Int           num_contours;  /* number of used contours      */
+    AF_Point*        contours;      /* contours array               */
 
-    AF_AxisHintsRec   axis[AF_DIMENSION_MAX];
+    AF_AxisHintsRec  axis[AF_DIMENSION_MAX];
 
-    FT_UInt32         scaler_flags;  /* copy of scaler flags     */
-    FT_UInt32         other_flags;   /* free for script-specific */
-                                     /* implementations          */
-    AF_ScriptMetrics  metrics;
+    FT_UInt32        scaler_flags;  /* copy of scaler flags    */
+    FT_UInt32        other_flags;   /* free for style-specific */
+                                    /* implementations         */
+    AF_StyleMetrics  metrics;
 
-    FT_Pos            xmin_delta;    /* used for warping */
-    FT_Pos            xmax_delta;
+    FT_Pos           xmin_delta;    /* used for warping */
+    FT_Pos           xmax_delta;
 
   } AF_GlyphHintsRec;
 
@@ -429,8 +427,8 @@ FT_BEGIN_HEADER
                        FT_Memory      memory );
 
   FT_LOCAL( void )
-  af_glyph_hints_rescale( AF_GlyphHints     hints,
-                          AF_ScriptMetrics  metrics );
+  af_glyph_hints_rescale( AF_GlyphHints    hints,
+                          AF_StyleMetrics  metrics );
 
   FT_LOCAL( FT_Error )
   af_glyph_hints_reload( AF_GlyphHints  hints,

@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    TrueType Glyph Loader (body).                                        */
 /*                                                                         */
-/*  Copyright 1996-2013                                                    */
+/*  Copyright 1996-2014                                                    */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -99,13 +99,13 @@
 
     else if ( face->os2.version != 0xFFFFU )
     {
-      *tsb = face->os2.sTypoAscender - yMax;
+      *tsb = (FT_Short)( face->os2.sTypoAscender - yMax );
       *ah  = face->os2.sTypoAscender - face->os2.sTypoDescender;
     }
 
     else
     {
-      *tsb = face->horizontal.Ascender - yMax;
+      *tsb = (FT_Short)( face->horizontal.Ascender - yMax );
       *ah  = face->horizontal.Ascender - face->horizontal.Descender;
     }
 
@@ -2120,7 +2120,7 @@
       FT_Bool  reexecute = FALSE;
 
 
-      if ( !size->cvt_ready )
+      if ( size->bytecode_ready < 0 || size->cvt_ready < 0 )
       {
         FT_Error  error = tt_size_ready_bytecode( size, pedantic );
 
@@ -2128,6 +2128,10 @@
         if ( error )
           return error;
       }
+      else if ( size->bytecode_ready )
+        return size->bytecode_ready;
+      else if ( size->cvt_ready )
+        return size->cvt_ready;
 
       /* query new execution context */
       exec = size->debug ? size->context
@@ -2238,12 +2242,15 @@
 
       if ( reexecute )
       {
-        FT_UInt  i;
+        FT_UInt   i;
+        FT_Error  error;
 
 
         for ( i = 0; i < size->cvt_size; i++ )
           size->cvt[i] = FT_MulFix( face->cvt[i], size->ttmetrics.scale );
-        tt_size_run_prep( size, pedantic );
+        error = tt_size_run_prep( size, pedantic );
+        if ( error )
+          return error;
       }
 
       /* see whether the cvt program has disabled hinting */
@@ -2345,8 +2352,6 @@
     FT_Error      error;
     TT_LoaderRec  loader;
 
-
-    error = FT_Err_Ok;
 
     FT_TRACE1(( "TT_Load_Glyph: glyph index %d\n", glyph_index ));
 
