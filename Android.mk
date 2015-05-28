@@ -26,6 +26,7 @@ LOCAL_SRC_FILES:= \
 	src/base/ftsystem.c \
 	src/base/ftinit.c \
 	src/base/ftgasp.c \
+	src/base/ftmm.c \
 	src/gzip/ftgzip.c \
 	src/raster/raster.c \
 	src/sfnt/sfnt.c \
