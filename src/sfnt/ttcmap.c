@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    TrueType character mapping table (cmap) support (body).              */
 /*                                                                         */
-/*  Copyright 2002-2010, 2012-2014 by                                      */
+/*  Copyright 2002-2015 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -360,7 +360,7 @@
 
 
         ids = p - 2 + offset;
-        if ( ids < glyph_ids || ids + code_count*2 > table + length )
+        if ( ids < glyph_ids || ids + code_count * 2 > table + length )
           FT_INVALID_OFFSET;
 
         /* check glyph IDs */
@@ -375,7 +375,7 @@
             idx = TT_NEXT_USHORT( p );
             if ( idx != 0 )
             {
-              idx = ( idx + delta ) & 0xFFFFU;
+              idx = (FT_UInt)( (FT_Int)idx + delta ) & 0xFFFFU;
               if ( idx >= TT_VALID_GLYPH_COUNT( valid ) )
                 FT_INVALID_GLYPH_ID;
             }
@@ -472,7 +472,7 @@
         idx = TT_PEEK_USHORT( p );
 
         if ( idx != 0 )
-          result = (FT_UInt)( idx + delta ) & 0xFFFFU;
+          result = (FT_UInt)( (FT_Int)idx + delta ) & 0xFFFFU;
       }
     }
     return result;
@@ -524,7 +524,7 @@
 
           if ( idx != 0 )
           {
-            gindex = ( idx + delta ) & 0xFFFFU;
+            gindex = (FT_UInt)( (FT_Int)idx + delta ) & 0xFFFFU;
             if ( gindex != 0 )
             {
               result = charcode;
@@ -786,7 +786,7 @@
 
             if ( gindex != 0 )
             {
-              gindex = (FT_UInt)( ( gindex + delta ) & 0xFFFFU );
+              gindex = (FT_UInt)( (FT_Int)gindex + delta ) & 0xFFFFU;
               if ( gindex != 0 )
               {
                 cmap->cur_charcode = charcode;
@@ -800,7 +800,7 @@
         {
           do
           {
-            FT_UInt  gindex = (FT_UInt)( ( charcode + delta ) & 0xFFFFU );
+            FT_UInt  gindex = (FT_UInt)( (FT_Int)charcode + delta ) & 0xFFFFU;
 
 
             if ( gindex != 0 )
@@ -845,9 +845,6 @@
     p      = table + 2;           /* skip format */
     length = TT_NEXT_USHORT( p );
 
-    if ( length < 16 )
-      FT_INVALID_TOO_SHORT;
-
     /* in certain fonts, the `length' field is invalid and goes */
     /* out of bound.  We try to correct this here...            */
     if ( table + length > valid->limit )
@@ -857,6 +854,9 @@
 
       length = (FT_UInt)( valid->limit - table );
     }
+
+    if ( length < 16 )
+      FT_INVALID_TOO_SHORT;
 
     p        = table + 6;
     num_segs = TT_NEXT_USHORT( p );   /* read segCountX2 */
@@ -993,7 +993,7 @@
               idx = FT_NEXT_USHORT( p );
               if ( idx != 0 )
               {
-                idx = (FT_UInt)( idx + delta ) & 0xFFFFU;
+                idx = (FT_UInt)( (FT_Int)idx + delta ) & 0xFFFFU;
 
                 if ( idx >= TT_VALID_GLYPH_COUNT( valid ) )
                   FT_INVALID_GLYPH_ID;
@@ -1090,10 +1090,10 @@
             p += offset + ( charcode - start ) * 2;
             gindex = TT_PEEK_USHORT( p );
             if ( gindex != 0 )
-              gindex = (FT_UInt)( gindex + delta ) & 0xFFFFU;
+              gindex = (FT_UInt)( (FT_Int)gindex + delta ) & 0xFFFFU;
           }
           else
-            gindex = (FT_UInt)( charcode + delta ) & 0xFFFFU;
+            gindex = (FT_UInt)( (FT_Int)charcode + delta ) & 0xFFFFU;
 
           break;
         }
@@ -1294,10 +1294,10 @@
           p += offset + ( charcode - start ) * 2;
           gindex = TT_PEEK_USHORT( p );
           if ( gindex != 0 )
-            gindex = (FT_UInt)( gindex + delta ) & 0xFFFFU;
+            gindex = (FT_UInt)( (FT_Int)gindex + delta ) & 0xFFFFU;
         }
         else
-          gindex = (FT_UInt)( charcode + delta ) & 0xFFFFU;
+          gindex = (FT_UInt)( (FT_Int)charcode + delta ) & 0xFFFFU;
 
         break;
       }
@@ -1669,7 +1669,8 @@
     p          = is32  + 8192;          /* skip `is32' array */
     num_groups = TT_NEXT_ULONG( p );
 
-    if ( p + num_groups * 12 > valid->limit )
+    /* p + num_groups * 12 > valid->limit ? */
+    if ( num_groups > (FT_UInt32)( valid->limit - p ) / 12 )
       FT_INVALID_TOO_SHORT;
 
     /* check groups, they must be in increasing order */
@@ -1694,7 +1695,12 @@
 
         if ( valid->level >= FT_VALIDATE_TIGHT )
         {
-          if ( start_id + end - start >= TT_VALID_GLYPH_COUNT( valid ) )
+          FT_UInt32  d = end - start;
+
+
+          /* start_id + end - start >= TT_VALID_GLYPH_COUNT( valid ) ? */
+          if ( d > TT_VALID_GLYPH_COUNT( valid )             ||
+               start_id >= TT_VALID_GLYPH_COUNT( valid ) - d )
             FT_INVALID_GLYPH_ID;
 
           count = (FT_UInt32)( end - start + 1 );
@@ -1892,7 +1898,9 @@
     count  = TT_NEXT_ULONG( p );
 
     if ( length > (FT_ULong)( valid->limit - table ) ||
-         length < 20 + count * 2                     )
+         /* length < 20 + count * 2 ? */
+         length < 20                                 ||
+         ( length - 20 ) / 2 < count                 )
       FT_INVALID_TOO_SHORT;
 
     /* check glyph indices */
@@ -2079,7 +2087,9 @@
     num_groups = TT_NEXT_ULONG( p );
 
     if ( length > (FT_ULong)( valid->limit - table ) ||
-         length < 16 + 12 * num_groups               )
+         /* length < 16 + 12 * num_groups ? */
+         length < 16                                 ||
+         ( length - 16 ) / 12 < num_groups           )
       FT_INVALID_TOO_SHORT;
 
     /* check groups, they must be in increasing order */
@@ -2101,7 +2111,12 @@
 
         if ( valid->level >= FT_VALIDATE_TIGHT )
         {
-          if ( start_id + end - start >= TT_VALID_GLYPH_COUNT( valid ) )
+          FT_UInt32  d = end - start;
+
+
+          /* start_id + end - start >= TT_VALID_GLYPH_COUNT( valid ) ? */
+          if ( d > TT_VALID_GLYPH_COUNT( valid )             ||
+               start_id >= TT_VALID_GLYPH_COUNT( valid ) - d )
             FT_INVALID_GLYPH_ID;
         }
 
@@ -2401,7 +2416,9 @@
     num_groups = TT_NEXT_ULONG( p );
 
     if ( length > (FT_ULong)( valid->limit - table ) ||
-         length < 16 + 12 * num_groups               )
+         /* length < 16 + 12 * num_groups ? */
+         length < 16                                 ||
+         ( length - 16 ) / 12 < num_groups           )
       FT_INVALID_TOO_SHORT;
 
     /* check groups, they must be in increasing order */
@@ -2787,7 +2804,9 @@
     num_selectors = TT_NEXT_ULONG( p );
 
     if ( length > (FT_ULong)( valid->limit - table ) ||
-         length < 10 + 11 * num_selectors            )
+         /* length < 10 + 11 * num_selectors ? */
+         length < 10                                 ||
+         ( length - 10 ) / 11 < num_selectors        )
       FT_INVALID_TOO_SHORT;
 
     /* check selectors, they must be in increasing order */
@@ -2823,7 +2842,8 @@
           FT_ULong  lastBase  = 0;
 
 
-          if ( defp + numRanges * 4 > valid->limit )
+          /* defp + numRanges * 4 > valid->limit ? */
+          if ( numRanges > (FT_ULong)( valid->limit - defp ) / 4 )
             FT_INVALID_TOO_SHORT;
 
           for ( i = 0; i < numRanges; ++i )
@@ -2850,7 +2870,8 @@
           FT_ULong  i, lastUni  = 0;
 
 
-          if ( numMappings * 4 > (FT_ULong)( valid->limit - ndp ) )
+          /* numMappings * 4 > (FT_ULong)( valid->limit - ndp ) ? */
+          if ( numMappings > ( (FT_ULong)( valid->limit - ndp ) ) / 4 )
             FT_INVALID_TOO_SHORT;
 
           for ( i = 0; i < numMappings; ++i )
@@ -3475,19 +3496,11 @@
     {
       FT_ERROR(( "tt_face_build_cmaps:"
                  " unsupported `cmap' table format = %d\n",
-                 TT_PEEK_USHORT( p - 2) ));
+                 TT_PEEK_USHORT( p - 2 ) ));
       return FT_THROW( Invalid_Table );
     }
 
     num_cmaps = TT_NEXT_USHORT( p );
-
-#ifdef FT_MAX_CHARMAP_CACHEABLE
-    if ( num_cmaps > FT_MAX_CHARMAP_CACHEABLE )
-      FT_ERROR(( "tt_face_build_cmaps: too many cmap subtables (%d)\n"
-                 "                     subtable #%d and higher are loaded"
-                 "                     but cannot be searched\n",
-                 num_cmaps, FT_MAX_CHARMAP_CACHEABLE + 1 ));
-#endif
 
     for ( ; num_cmaps > 0 && p + 8 <= limit; num_cmaps-- )
     {
