@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    Arithmetic computations (body).                                      */
 /*                                                                         */
-/*  Copyright 1996-2006, 2008, 2012-2014 by                                */
+/*  Copyright 1996-2015 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -40,235 +40,7 @@
 #include FT_INTERNAL_OBJECTS_H
 
 
-#ifndef  FT_CONFIG_OPTION_NO_ASSEMBLER
-  /* Provide assembler fragments for performance-critical functions. */
-  /* These must be defined `static __inline__' with GCC.             */
-
-#if defined( __CC_ARM ) || defined( __ARMCC__ )  /* RVCT */
-
-#define FT_MULFIX_ASSEMBLER  FT_MulFix_arm
-
-  /* documentation is in freetype.h */
-
-  static __inline FT_Int32
-  FT_MulFix_arm( FT_Int32  a,
-                 FT_Int32  b )
-  {
-    register FT_Int32  t, t2;
-
-
-    __asm
-    {
-      smull t2, t,  b,  a           /* (lo=t2,hi=t) = a*b */
-      mov   a,  t,  asr #31         /* a   = (hi >> 31) */
-      add   a,  a,  #0x8000         /* a  += 0x8000 */
-      adds  t2, t2, a               /* t2 += a */
-      adc   t,  t,  #0              /* t  += carry */
-      mov   a,  t2, lsr #16         /* a   = t2 >> 16 */
-      orr   a,  a,  t,  lsl #16     /* a  |= t << 16 */
-    }
-    return a;
-  }
-
-#endif /* __CC_ARM || __ARMCC__ */
-
-
-#ifdef __GNUC__
-
-#if defined( __arm__ )                                 && \
-    ( !defined( __thumb__ ) || defined( __thumb2__ ) ) && \
-    !( defined( __CC_ARM ) || defined( __ARMCC__ ) )
-
-#define FT_MULFIX_ASSEMBLER  FT_MulFix_arm
-
-  /* documentation is in freetype.h */
-
-  static __inline__ FT_Int32
-  FT_MulFix_arm( FT_Int32  a,
-                 FT_Int32  b )
-  {
-    register FT_Int32  t, t2;
-
-
-    __asm__ __volatile__ (
-      "smull  %1, %2, %4, %3\n\t"       /* (lo=%1,hi=%2) = a*b */
-      "mov    %0, %2, asr #31\n\t"      /* %0  = (hi >> 31) */
-#if defined( __clang__ ) && defined( __thumb2__ )
-      "add.w  %0, %0, #0x8000\n\t"      /* %0 += 0x8000 */
-#else
-      "add    %0, %0, #0x8000\n\t"      /* %0 += 0x8000 */
-#endif
-      "adds   %1, %1, %0\n\t"           /* %1 += %0 */
-      "adc    %2, %2, #0\n\t"           /* %2 += carry */
-      "mov    %0, %1, lsr #16\n\t"      /* %0  = %1 >> 16 */
-      "orr    %0, %0, %2, lsl #16\n\t"  /* %0 |= %2 << 16 */
-      : "=r"(a), "=&r"(t2), "=&r"(t)
-      : "r"(a), "r"(b)
-      : "cc" );
-    return a;
-  }
-
-#endif /* __arm__                      && */
-       /* ( __thumb2__ || !__thumb__ ) && */
-       /* !( __CC_ARM || __ARMCC__ )      */
-
-
-#if defined( __i386__ )
-
-#define FT_MULFIX_ASSEMBLER  FT_MulFix_i386
-
-  /* documentation is in freetype.h */
-
-  static __inline__ FT_Int32
-  FT_MulFix_i386( FT_Int32  a,
-                  FT_Int32  b )
-  {
-    register FT_Int32  result;
-
-
-    __asm__ __volatile__ (
-      "imul  %%edx\n"
-      "movl  %%edx, %%ecx\n"
-      "sarl  $31, %%ecx\n"
-      "addl  $0x8000, %%ecx\n"
-      "addl  %%ecx, %%eax\n"
-      "adcl  $0, %%edx\n"
-      "shrl  $16, %%eax\n"
-      "shll  $16, %%edx\n"
-      "addl  %%edx, %%eax\n"
-      : "=a"(result), "=d"(b)
-      : "a"(a), "d"(b)
-      : "%ecx", "cc" );
-    return result;
-  }
-
-#endif /* i386 */
-
-#endif /* __GNUC__ */
-
-
-#ifdef _MSC_VER /* Visual C++ */
-
-#ifdef _M_IX86
-
-#define FT_MULFIX_ASSEMBLER  FT_MulFix_i386
-
-  /* documentation is in freetype.h */
-
-  static __inline FT_Int32
-  FT_MulFix_i386( FT_Int32  a,
-                  FT_Int32  b )
-  {
-    register FT_Int32  result;
-
-    __asm
-    {
-      mov eax, a
-      mov edx, b
-      imul edx
-      mov ecx, edx
-      sar ecx, 31
-      add ecx, 8000h
-      add eax, ecx
-      adc edx, 0
-      shr eax, 16
-      shl edx, 16
-      add eax, edx
-      mov result, eax
-    }
-    return result;
-  }
-
-#endif /* _M_IX86 */
-
-#endif /* _MSC_VER */
-
-
-#if defined( __GNUC__ ) && defined( __x86_64__ )
-
-#define FT_MULFIX_ASSEMBLER  FT_MulFix_x86_64
-
-  static __inline__ FT_Int32
-  FT_MulFix_x86_64( FT_Int32  a,
-                    FT_Int32  b )
-  {
-    /* Temporarily disable the warning that C90 doesn't support */
-    /* `long long'.                                             */
-#if ( __GNUC__ > 4 ) || ( ( __GNUC__ == 4 ) && ( __GNUC_MINOR__ >= 6 ) )
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wlong-long"
-#endif
-
-#if 1
-    /* Technically not an assembly fragment, but GCC does a really good */
-    /* job at inlining it and generating good machine code for it.      */
-    long long  ret, tmp;
-
-
-    ret  = (long long)a * b;
-    tmp  = ret >> 63;
-    ret += 0x8000 + tmp;
-
-    return (FT_Int32)( ret >> 16 );
-#else
-
-    /* For some reason, GCC 4.6 on Ubuntu 12.04 generates invalid machine  */
-    /* code from the lines below.  The main issue is that `wide_a' is not  */
-    /* properly initialized by sign-extending `a'.  Instead, the generated */
-    /* machine code assumes that the register that contains `a' on input   */
-    /* can be used directly as a 64-bit value, which is wrong most of the  */
-    /* time.                                                               */
-    long long  wide_a = (long long)a;
-    long long  wide_b = (long long)b;
-    long long  result;
-
-
-    __asm__ __volatile__ (
-      "imul %2, %1\n"
-      "mov %1, %0\n"
-      "sar $63, %0\n"
-      "lea 0x8000(%1, %0), %0\n"
-      "sar $16, %0\n"
-      : "=&r"(result), "=&r"(wide_a)
-      : "r"(wide_b)
-      : "cc" );
-
-    return (FT_Int32)result;
-#endif
-
-#if ( __GNUC__ > 4 ) || ( ( __GNUC__ == 4 ) && ( __GNUC_MINOR__ >= 6 ) )
-#pragma GCC diagnostic pop
-#endif
-  }
-
-#endif /* __GNUC__ && __x86_64__ */
-
-#if defined( __GNUC__ )
-#if ( __GNUC__ > 3 ) || ( ( __GNUC__ == 3 ) && ( __GNUC_MINOR__ >= 4 ) )
-
-#if FT_SIZEOF_INT == 4
-
-#define FT_MSB_BUILTIN( x )  ( 31 - __builtin_clz( x ) )
-
-#elif FT_SIZEOF_LONG == 4
-
-#define FT_MSB_BUILTIN( x )  ( 31 - __builtin_clzl( x ) )
-
-#endif
-
-#endif
-#endif /* __GNUC__ */
-
-#endif /* !FT_CONFIG_OPTION_NO_ASSEMBLER */
-
-
-#ifdef FT_CONFIG_OPTION_INLINE_MULFIX
 #ifdef FT_MULFIX_ASSEMBLER
-#define FT_MULFIX_INLINED  FT_MULFIX_ASSEMBLER
-#endif
-#endif
-
-#ifdef FT_MULFIX_INLINED
 #undef FT_MulFix
 #endif
 
@@ -296,6 +68,16 @@
 #define FT_COMPONENT  trace_calc
 
 
+  /* transfer sign leaving a positive number */
+#define FT_MOVE_SIGN( x, s ) \
+  FT_BEGIN_STMNT             \
+    if ( x < 0 )             \
+    {                        \
+      x = -x;                \
+      s = -s;                \
+    }                        \
+  FT_END_STMNT
+
   /* The following three functions are available regardless of whether */
   /* FT_LONG64 is defined.                                             */
 
@@ -304,8 +86,8 @@
   FT_EXPORT_DEF( FT_Fixed )
   FT_RoundFix( FT_Fixed  a )
   {
-    return ( a >= 0 ) ?   ( a + 0x8000L ) & ~0xFFFFL
-                      : -((-a + 0x8000L ) & ~0xFFFFL );
+    return a >= 0 ?   ( a + 0x8000L ) & ~0xFFFFL
+                  : -((-a + 0x8000L ) & ~0xFFFFL );
   }
 
 
@@ -314,8 +96,8 @@
   FT_EXPORT_DEF( FT_Fixed )
   FT_CeilFix( FT_Fixed  a )
   {
-    return ( a >= 0 ) ?   ( a + 0xFFFFL ) & ~0xFFFFL
-                      : -((-a + 0xFFFFL ) & ~0xFFFFL );
+    return a >= 0 ?   ( a + 0xFFFFL ) & ~0xFFFFL
+                  : -((-a + 0xFFFFL ) & ~0xFFFFL );
   }
 
 
@@ -324,53 +106,49 @@
   FT_EXPORT_DEF( FT_Fixed )
   FT_FloorFix( FT_Fixed  a )
   {
-    return ( a >= 0 ) ?   a & ~0xFFFFL
-                      : -((-a) & ~0xFFFFL );
+    return a >= 0 ?   a & ~0xFFFFL
+                  : -((-a) & ~0xFFFFL );
   }
 
+#ifndef FT_MSB
 
   FT_BASE_DEF ( FT_Int )
   FT_MSB( FT_UInt32 z )
   {
-#ifdef FT_MSB_BUILTIN
+    FT_Int  shift = 0;
 
-    return FT_MSB_BUILTIN( z );
-
-#else
-
-    FT_Int shift = 0;
 
     /* determine msb bit index in `shift' */
-    if ( z >= ( 1L << 16 ) )
+    if ( z & 0xFFFF0000UL )
     {
       z     >>= 16;
       shift  += 16;
     }
-    if ( z >= ( 1L << 8 ) )
+    if ( z & 0x0000FF00UL )
     {
       z     >>= 8;
       shift  += 8;
     }
-    if ( z >= ( 1L << 4 ) )
+    if ( z & 0x000000F0UL )
     {
       z     >>= 4;
       shift  += 4;
     }
-    if ( z >= ( 1L << 2 ) )
+    if ( z & 0x0000000CUL )
     {
       z     >>= 2;
       shift  += 2;
     }
-    if ( z >= ( 1L << 1 ) )
+    if ( z & 0x00000002UL )
     {
    /* z     >>= 1; */
       shift  += 1;
     }
 
     return shift;
-
-#endif /* FT_MSB_BUILTIN */
   }
+
+#endif /* !FT_MSB */
 
 
   /* documentation is in ftcalc.h */
@@ -395,80 +173,89 @@
   /* documentation is in freetype.h */
 
   FT_EXPORT_DEF( FT_Long )
-  FT_MulDiv( FT_Long  a,
-             FT_Long  b,
-             FT_Long  c )
+  FT_MulDiv( FT_Long  a_,
+             FT_Long  b_,
+             FT_Long  c_ )
   {
-    FT_Int   s;
-    FT_Long  d;
+    FT_Int     s = 1;
+    FT_UInt64  a, b, c, d;
+    FT_Long    d_;
 
 
-    s = 1;
-    if ( a < 0 ) { a = -a; s = -1; }
-    if ( b < 0 ) { b = -b; s = -s; }
-    if ( c < 0 ) { c = -c; s = -s; }
+    FT_MOVE_SIGN( a_, s );
+    FT_MOVE_SIGN( b_, s );
+    FT_MOVE_SIGN( c_, s );
 
-    d = (FT_Long)( c > 0 ? ( (FT_Int64)a * b + ( c >> 1 ) ) / c
-                         : 0x7FFFFFFFL );
+    a = (FT_UInt64)a_;
+    b = (FT_UInt64)b_;
+    c = (FT_UInt64)c_;
 
-    return ( s > 0 ) ? d : -d;
+    d = c > 0 ? ( a * b + ( c >> 1 ) ) / c
+              : 0x7FFFFFFFUL;
+
+    d_ = (FT_Long)d;
+
+    return s < 0 ? -d_ : d_;
   }
 
 
   /* documentation is in ftcalc.h */
 
   FT_BASE_DEF( FT_Long )
-  FT_MulDiv_No_Round( FT_Long  a,
-                      FT_Long  b,
-                      FT_Long  c )
+  FT_MulDiv_No_Round( FT_Long  a_,
+                      FT_Long  b_,
+                      FT_Long  c_ )
   {
-    FT_Int   s;
-    FT_Long  d;
+    FT_Int     s = 1;
+    FT_UInt64  a, b, c, d;
+    FT_Long    d_;
 
 
-    s = 1;
-    if ( a < 0 ) { a = -a; s = -1; }
-    if ( b < 0 ) { b = -b; s = -s; }
-    if ( c < 0 ) { c = -c; s = -s; }
+    FT_MOVE_SIGN( a_, s );
+    FT_MOVE_SIGN( b_, s );
+    FT_MOVE_SIGN( c_, s );
 
-    d = (FT_Long)( c > 0 ? (FT_Int64)a * b / c
-                         : 0x7FFFFFFFL );
+    a = (FT_UInt64)a_;
+    b = (FT_UInt64)b_;
+    c = (FT_UInt64)c_;
 
-    return ( s > 0 ) ? d : -d;
+    d = c > 0 ? a * b / c
+              : 0x7FFFFFFFUL;
+
+    d_ = (FT_Long)d;
+
+    return s < 0 ? -d_ : d_;
   }
 
 
   /* documentation is in freetype.h */
 
   FT_EXPORT_DEF( FT_Long )
-  FT_MulFix( FT_Long  a,
-             FT_Long  b )
+  FT_MulFix( FT_Long  a_,
+             FT_Long  b_ )
   {
 #ifdef FT_MULFIX_ASSEMBLER
 
-    return FT_MULFIX_ASSEMBLER( a, b );
+    return FT_MULFIX_ASSEMBLER( a_, b_ );
 
 #else
 
-    FT_Int   s = 1;
-    FT_Long  c;
+    FT_Int     s = 1;
+    FT_UInt64  a, b, c;
+    FT_Long    c_;
 
 
-    if ( a < 0 )
-    {
-      a = -a;
-      s = -1;
-    }
+    FT_MOVE_SIGN( a_, s );
+    FT_MOVE_SIGN( b_, s );
 
-    if ( b < 0 )
-    {
-      b = -b;
-      s = -s;
-    }
+    a = (FT_UInt64)a_;
+    b = (FT_UInt64)b_;
 
-    c = (FT_Long)( ( (FT_Int64)a * b + 0x8000L ) >> 16 );
+    c = ( a * b + 0x8000UL ) >> 16;
 
-    return ( s > 0 ) ? c : -c;
+    c_ = (FT_Long)c;
+
+    return s < 0 ? -c_ : c_;
 
 #endif /* FT_MULFIX_ASSEMBLER */
   }
@@ -477,33 +264,26 @@
   /* documentation is in freetype.h */
 
   FT_EXPORT_DEF( FT_Long )
-  FT_DivFix( FT_Long  a,
-             FT_Long  b )
+  FT_DivFix( FT_Long  a_,
+             FT_Long  b_ )
   {
-    FT_Int32   s;
-    FT_UInt32  q;
+    FT_Int     s = 1;
+    FT_UInt64  a, b, q;
+    FT_Long    q_;
 
 
-    s = 1;
-    if ( a < 0 )
-    {
-      a = -a;
-      s = -1;
-    }
-    if ( b < 0 )
-    {
-      b = -b;
-      s = -s;
-    }
+    FT_MOVE_SIGN( a_, s );
+    FT_MOVE_SIGN( b_, s );
 
-    if ( b == 0 )
-      /* check for division by 0 */
-      q = 0x7FFFFFFFL;
-    else
-      /* compute result directly */
-      q = (FT_UInt32)( ( ( (FT_UInt64)a << 16 ) + ( b >> 1 ) ) / b );
+    a = (FT_UInt64)a_;
+    b = (FT_UInt64)b_;
 
-    return ( s < 0 ? -(FT_Long)q : (FT_Long)q );
+    q = b > 0 ? ( ( a << 16 ) + ( b >> 1 ) ) / b
+              : 0x7FFFFFFFUL;
+
+    q_ = (FT_Long)q;
+
+    return s < 0 ? -q_ : q_;
   }
 
 
@@ -551,25 +331,30 @@
     FT_Int     i;
 
 
-    q = 0;
-    r = hi;
-
-    if ( r >= y )
+    if ( hi >= y )
       return (FT_UInt32)0x7FFFFFFFL;
 
-    i = 32;
+    /* We shift as many bits as we can into the high register, perform     */
+    /* 32-bit division with modulo there, then work through the remaining  */
+    /* bits with long division. This optimization is especially noticeable */
+    /* for smaller dividends that barely use the high register.            */
+
+    i = 31 - FT_MSB( hi );
+    r = ( hi << i ) | ( lo >> ( 32 - i ) ); lo <<= i; /* left 64-bit shift */
+    q = r / y;
+    r -= q * y;   /* remainder */
+
+    i = 32 - i;   /* bits remaining in low register */
     do
     {
-      r <<= 1;
       q <<= 1;
-      r  |= lo >> 31;
+      r   = ( r << 1 ) | ( lo >> 31 ); lo <<= 1;
 
       if ( r >= y )
       {
         r -= y;
         q |= 1;
       }
-      lo <<= 1;
     } while ( --i );
 
     return q;
@@ -581,7 +366,7 @@
             FT_Int64*  y,
             FT_Int64  *z )
   {
-    register FT_UInt32  lo, hi;
+    FT_UInt32  lo, hi;
 
 
     lo = x->lo + y->lo;
@@ -592,111 +377,161 @@
   }
 
 
-  /* documentation is in freetype.h */
-
-  /* The FT_MulDiv function has been optimized thanks to ideas from      */
-  /* Graham Asher and Alexei Podtelezhnikov.  The trick is to optimize   */
-  /* a rather common case when everything fits within 32-bits.           */
+  /*  The FT_MulDiv function has been optimized thanks to ideas from     */
+  /*  Graham Asher and Alexei Podtelezhnikov.  The trick is to optimize  */
+  /*  a rather common case when everything fits within 32-bits.          */
   /*                                                                     */
-  /*  We compute 'a*b+c/2', then divide it by 'c'. (positive values)     */
+  /*  We compute 'a*b+c/2', then divide it by 'c' (all positive values). */
   /*                                                                     */
   /*  The product of two positive numbers never exceeds the square of    */
-  /*  their mean.  Therefore, we always avoid the overflow by imposing   */
+  /*  its mean values.  Therefore, we always avoid the overflow by       */
+  /*  imposing                                                           */
   /*                                                                     */
-  /*  ( a + b ) / 2 <= sqrt( X - c/2 )                                   */
+  /*    (a + b) / 2 <= sqrt(X - c/2)    ,                                */
   /*                                                                     */
-  /*  where X = 2^31 - 1.  Now we replace sqrt with a linear function    */
-  /*  that is smaller or equal in the entire range of c from 0 to X;     */
-  /*  it should be equal to sqrt(X) and sqrt(X/2) at the range termini.  */
-  /*  Substituting the linear solution and explicit numbers we get       */
+  /*  where X = 2^32 - 1, the maximum unsigned 32-bit value, and using   */
+  /*  unsigned arithmetic.  Now we replace `sqrt' with a linear function */
+  /*  that is smaller or equal for all values of c in the interval       */
+  /*  [0;X/2]; it should be equal to sqrt(X) and sqrt(3X/4) at the       */
+  /*  endpoints.  Substituting the linear solution and explicit numbers  */
+  /*  we get                                                             */
   /*                                                                     */
-  /*  a + b <= 92681.9 - c / 79108.95                                    */
+  /*    a + b <= 131071.99 - c / 122291.84    .                          */
   /*                                                                     */
-  /*  In practice we use a faster and even stronger inequality           */
+  /*  In practice, we should use a faster and even stronger inequality   */
   /*                                                                     */
-  /*  a + b <= 92681 - (c >> 16)                                         */
+  /*    a + b <= 131071 - (c >> 16)                                      */
   /*                                                                     */
+  /*  or, alternatively,                                                 */
+  /*                                                                     */
+  /*    a + b <= 129894 - (c >> 17)    .                                 */
+  /*                                                                     */
+  /*  FT_MulFix, on the other hand, is optimized for a small value of    */
+  /*  the first argument, when the second argument can be much larger.   */
+  /*  This can be achieved by scaling the second argument and the limit  */
+  /*  in the above inequalities.  For example,                           */
+  /*                                                                     */
+  /*    a + (b >> 8) <= (131071 >> 4)                                    */
+  /*                                                                     */
+  /*  covers the practical range of use. The actual test below is a bit  */
+  /*  tighter to avoid the border case overflows.                        */
+  /*                                                                     */
+  /*  In the case of FT_DivFix, the exact overflow check                 */
+  /*                                                                     */
+  /*    a << 16 <= X - c/2                                               */
+  /*                                                                     */
+  /*  is scaled down by 2^16 and we use                                  */
+  /*                                                                     */
+  /*    a <= 65535 - (c >> 17)    .                                      */
+
+  /* documentation is in freetype.h */
 
   FT_EXPORT_DEF( FT_Long )
-  FT_MulDiv( FT_Long  a,
-             FT_Long  b,
-             FT_Long  c )
+  FT_MulDiv( FT_Long  a_,
+             FT_Long  b_,
+             FT_Long  c_ )
   {
-    long  s;
+    FT_Int     s = 1;
+    FT_UInt32  a, b, c;
 
 
     /* XXX: this function does not allow 64-bit arguments */
-    if ( a == 0 || b == c )
-      return a;
 
-    s  = a; a = FT_ABS( a );
-    s ^= b; b = FT_ABS( b );
-    s ^= c; c = FT_ABS( c );
+    if ( a_ == 0 || b_ == c_ )
+      return a_;
 
-    if ( (FT_ULong)a + (FT_ULong)b <= 92681UL - ( c >> 16 ) && c > 0 )
+    FT_MOVE_SIGN( a_, s );
+    FT_MOVE_SIGN( b_, s );
+    FT_MOVE_SIGN( c_, s );
+
+    a = (FT_UInt32)a_;
+    b = (FT_UInt32)b_;
+    c = (FT_UInt32)c_;
+
+    if ( c == 0 )
+      a = 0x7FFFFFFFUL;
+
+    else if ( a + b <= 129894UL - ( c >> 17 ) )
       a = ( a * b + ( c >> 1 ) ) / c;
 
-    else if ( (FT_Int32)c > 0 )
+    else
     {
       FT_Int64  temp, temp2;
 
 
-      ft_multo64( (FT_Int32)a, (FT_Int32)b, &temp );
+      ft_multo64( a, b, &temp );
 
       temp2.hi = 0;
-      temp2.lo = (FT_UInt32)(c >> 1);
-      FT_Add64( &temp, &temp2, &temp );
-      a = ft_div64by32( temp.hi, temp.lo, (FT_Int32)c );
-    }
-    else
-      a = 0x7FFFFFFFL;
+      temp2.lo = c >> 1;
 
-    return ( s < 0 ? -a : a );
+      FT_Add64( &temp, &temp2, &temp );
+
+      /* last attempt to ditch long division */
+      a = temp.hi == 0 ? temp.lo / c
+                       : ft_div64by32( temp.hi, temp.lo, c );
+    }
+
+    a_ = (FT_Long)a;
+
+    return s < 0 ? -a_ : a_;
   }
 
 
   FT_BASE_DEF( FT_Long )
-  FT_MulDiv_No_Round( FT_Long  a,
-                      FT_Long  b,
-                      FT_Long  c )
+  FT_MulDiv_No_Round( FT_Long  a_,
+                      FT_Long  b_,
+                      FT_Long  c_ )
   {
-    long  s;
+    FT_Int     s = 1;
+    FT_UInt32  a, b, c;
 
 
-    if ( a == 0 || b == c )
-      return a;
+    /* XXX: this function does not allow 64-bit arguments */
 
-    s  = a; a = FT_ABS( a );
-    s ^= b; b = FT_ABS( b );
-    s ^= c; c = FT_ABS( c );
+    if ( a_ == 0 || b_ == c_ )
+      return a_;
 
-    if ( (FT_ULong)a + (FT_ULong)b <= 92681UL && c > 0 )
+    FT_MOVE_SIGN( a_, s );
+    FT_MOVE_SIGN( b_, s );
+    FT_MOVE_SIGN( c_, s );
+
+    a = (FT_UInt32)a_;
+    b = (FT_UInt32)b_;
+    c = (FT_UInt32)c_;
+
+    if ( c == 0 )
+      a = 0x7FFFFFFFUL;
+
+    else if ( a + b <= 131071UL )
       a = a * b / c;
 
-    else if ( (FT_Int32)c > 0 )
+    else
     {
       FT_Int64  temp;
 
 
-      ft_multo64( (FT_Int32)a, (FT_Int32)b, &temp );
-      a = ft_div64by32( temp.hi, temp.lo, (FT_Int32)c );
-    }
-    else
-      a = 0x7FFFFFFFL;
+      ft_multo64( a, b, &temp );
 
-    return ( s < 0 ? -a : a );
+      /* last attempt to ditch long division */
+      a = temp.hi == 0 ? temp.lo / c
+                       : ft_div64by32( temp.hi, temp.lo, c );
+    }
+
+    a_ = (FT_Long)a;
+
+    return s < 0 ? -a_ : a_;
   }
 
 
   /* documentation is in freetype.h */
 
   FT_EXPORT_DEF( FT_Long )
-  FT_MulFix( FT_Long  a,
-             FT_Long  b )
+  FT_MulFix( FT_Long  a_,
+             FT_Long  b_ )
   {
 #ifdef FT_MULFIX_ASSEMBLER
 
-    return FT_MULFIX_ASSEMBLER( a, b );
+    return FT_MULFIX_ASSEMBLER( a_, b_ );
 
 #elif 0
 
@@ -707,12 +542,12 @@
      *  the leftmost bits by copying the sign bit, it might be faster.
      */
 
-    FT_Long   sa, sb;
-    FT_ULong  ua, ub;
+    FT_Long    sa, sb;
+    FT_UInt32  a, b;
 
 
-    if ( a == 0 || b == 0x10000L )
-      return a;
+    if ( a_ == 0 || b_ == 0x10000L )
+      return a_;
 
     /*
      *  This is a clever way of converting a signed number `a' into its
@@ -732,57 +567,61 @@
      *  with the value 1 rather than -1.  After that, everything else goes
      *  wrong.
      */
-    sa = ( a >> ( sizeof ( a ) * 8 - 1 ) );
-    a  = ( a ^ sa ) - sa;
-    sb = ( b >> ( sizeof ( b ) * 8 - 1 ) );
-    b  = ( b ^ sb ) - sb;
+    sa = ( a_ >> ( sizeof ( a_ ) * 8 - 1 ) );
+    a  = ( a_ ^ sa ) - sa;
+    sb = ( b_ >> ( sizeof ( b_ ) * 8 - 1 ) );
+    b  = ( b_ ^ sb ) - sb;
 
-    ua = (FT_ULong)a;
-    ub = (FT_ULong)b;
+    a = (FT_UInt32)a_;
+    b = (FT_UInt32)b_;
 
-    if ( ua <= 2048 && ub <= 1048576L )
-      ua = ( ua * ub + 0x8000U ) >> 16;
+    if ( a + ( b >> 8 ) <= 8190UL )
+      a = ( a * b + 0x8000U ) >> 16;
     else
     {
-      FT_ULong  al = ua & 0xFFFFU;
+      FT_UInt32  al = a & 0xFFFFUL;
 
 
-      ua = ( ua >> 16 ) * ub +  al * ( ub >> 16 ) +
-           ( ( al * ( ub & 0xFFFFU ) + 0x8000U ) >> 16 );
+      a = ( a >> 16 ) * b + al * ( b >> 16 ) +
+          ( ( al * ( b & 0xFFFFUL ) + 0x8000UL ) >> 16 );
     }
 
-    sa ^= sb,
-    ua  = (FT_ULong)(( ua ^ sa ) - sa);
+    sa ^= sb;
+    a   = ( a ^ sa ) - sa;
 
-    return (FT_Long)ua;
+    return (FT_Long)a;
 
 #else /* 0 */
 
-    FT_Long   s;
-    FT_ULong  ua, ub;
+    FT_Int     s = 1;
+    FT_UInt32  a, b;
 
 
-    if ( a == 0 || b == 0x10000L )
-      return a;
+    /* XXX: this function does not allow 64-bit arguments */
 
-    s  = a; a = FT_ABS( a );
-    s ^= b; b = FT_ABS( b );
+    if ( a_ == 0 || b_ == 0x10000L )
+      return a_;
 
-    ua = (FT_ULong)a;
-    ub = (FT_ULong)b;
+    FT_MOVE_SIGN( a_, s );
+    FT_MOVE_SIGN( b_, s );
 
-    if ( ua <= 2048 && ub <= 1048576L )
-      ua = ( ua * ub + 0x8000UL ) >> 16;
+    a = (FT_UInt32)a_;
+    b = (FT_UInt32)b_;
+
+    if ( a + ( b >> 8 ) <= 8190UL )
+      a = ( a * b + 0x8000UL ) >> 16;
     else
     {
-      FT_ULong  al = ua & 0xFFFFUL;
+      FT_UInt32  al = a & 0xFFFFUL;
 
 
-      ua = ( ua >> 16 ) * ub +  al * ( ub >> 16 ) +
-           ( ( al * ( ub & 0xFFFFUL ) + 0x8000UL ) >> 16 );
+      a = ( a >> 16 ) * b + al * ( b >> 16 ) +
+          ( ( al * ( b & 0xFFFFUL ) + 0x8000UL ) >> 16 );
     }
 
-    return ( s < 0 ? -(FT_Long)ua : (FT_Long)ua );
+    a_ = (FT_Long)a;
+
+    return s < 0 ? -a_ : a_;
 
 #endif /* 0 */
 
@@ -792,26 +631,31 @@
   /* documentation is in freetype.h */
 
   FT_EXPORT_DEF( FT_Long )
-  FT_DivFix( FT_Long  a,
-             FT_Long  b )
+  FT_DivFix( FT_Long  a_,
+             FT_Long  b_ )
   {
-    FT_Int32   s;
-    FT_UInt32  q;
+    FT_Int     s = 1;
+    FT_UInt32  a, b, q;
+    FT_Long    q_;
 
 
     /* XXX: this function does not allow 64-bit arguments */
-    s  = (FT_Int32)a; a = FT_ABS( a );
-    s ^= (FT_Int32)b; b = FT_ABS( b );
 
-    if ( (FT_UInt32)b == 0 )
+    FT_MOVE_SIGN( a_, s );
+    FT_MOVE_SIGN( b_, s );
+
+    a = (FT_UInt32)a_;
+    b = (FT_UInt32)b_;
+
+    if ( b == 0 )
     {
       /* check for division by 0 */
-      q = (FT_UInt32)0x7FFFFFFFL;
+      q = 0x7FFFFFFFUL;
     }
-    else if ( ( a >> 16 ) == 0 )
+    else if ( a <= 65535UL - ( b >> 17 ) )
     {
       /* compute result directly */
-      q = (FT_UInt32)( ( (FT_ULong)a << 16 ) + ( b >> 1 ) ) / (FT_UInt32)b;
+      q = ( ( a << 16 ) + ( b >> 1 ) ) / b;
     }
     else
     {
@@ -819,140 +663,22 @@
       FT_Int64  temp, temp2;
 
 
-      temp.hi  = (FT_Int32)( a >> 16 );
-      temp.lo  = (FT_UInt32)a << 16;
+      temp.hi  = a >> 16;
+      temp.lo  = a << 16;
       temp2.hi = 0;
-      temp2.lo = (FT_UInt32)( b >> 1 );
+      temp2.lo = b >> 1;
+
       FT_Add64( &temp, &temp2, &temp );
-      q = ft_div64by32( temp.hi, temp.lo, (FT_Int32)b );
+      q = ft_div64by32( temp.hi, temp.lo, b );
     }
 
-    return ( s < 0 ? -(FT_Int32)q : (FT_Int32)q );
+    q_ = (FT_Long)q;
+
+    return s < 0 ? -q_ : q_;
   }
 
 
-#if 0
-
-  /* documentation is in ftcalc.h */
-
-  FT_EXPORT_DEF( void )
-  FT_MulTo64( FT_Int32   x,
-              FT_Int32   y,
-              FT_Int64  *z )
-  {
-    FT_Int32  s;
-
-
-    s  = x; x = FT_ABS( x );
-    s ^= y; y = FT_ABS( y );
-
-    ft_multo64( x, y, z );
-
-    if ( s < 0 )
-    {
-      z->lo = (FT_UInt32)-(FT_Int32)z->lo;
-      z->hi = ~z->hi + !( z->lo );
-    }
-  }
-
-
-  /* apparently, the second version of this code is not compiled correctly */
-  /* on Mac machines with the MPW C compiler..  tsk, tsk, tsk...           */
-
-#if 1
-
-  FT_EXPORT_DEF( FT_Int32 )
-  FT_Div64by32( FT_Int64*  x,
-                FT_Int32   y )
-  {
-    FT_Int32   s;
-    FT_UInt32  q, r, i, lo;
-
-
-    s  = x->hi;
-    if ( s < 0 )
-    {
-      x->lo = (FT_UInt32)-(FT_Int32)x->lo;
-      x->hi = ~x->hi + !x->lo;
-    }
-    s ^= y;  y = FT_ABS( y );
-
-    /* Shortcut */
-    if ( x->hi == 0 )
-    {
-      if ( y > 0 )
-        q = x->lo / y;
-      else
-        q = 0x7FFFFFFFL;
-
-      return ( s < 0 ? -(FT_Int32)q : (FT_Int32)q );
-    }
-
-    r  = x->hi;
-    lo = x->lo;
-
-    if ( r >= (FT_UInt32)y ) /* we know y is to be treated as unsigned here */
-      return ( s < 0 ? 0x80000001UL : 0x7FFFFFFFUL );
-                             /* Return Max/Min Int32 if division overflow. */
-                             /* This includes division by zero!            */
-    q = 0;
-    for ( i = 0; i < 32; i++ )
-    {
-      r <<= 1;
-      q <<= 1;
-      r  |= lo >> 31;
-
-      if ( r >= (FT_UInt32)y )
-      {
-        r -= y;
-        q |= 1;
-      }
-      lo <<= 1;
-    }
-
-    return ( s < 0 ? -(FT_Int32)q : (FT_Int32)q );
-  }
-
-#else /* 0 */
-
-  FT_EXPORT_DEF( FT_Int32 )
-  FT_Div64by32( FT_Int64*  x,
-                FT_Int32   y )
-  {
-    FT_Int32   s;
-    FT_UInt32  q;
-
-
-    s  = x->hi;
-    if ( s < 0 )
-    {
-      x->lo = (FT_UInt32)-(FT_Int32)x->lo;
-      x->hi = ~x->hi + !x->lo;
-    }
-    s ^= y;  y = FT_ABS( y );
-
-    /* Shortcut */
-    if ( x->hi == 0 )
-    {
-      if ( y > 0 )
-        q = ( x->lo + ( y >> 1 ) ) / y;
-      else
-        q = 0x7FFFFFFFL;
-
-      return ( s < 0 ? -(FT_Int32)q : (FT_Int32)q );
-    }
-
-    q = ft_div64by32( x->hi, x->lo, y );
-
-    return ( s < 0 ? -(FT_Int32)q : (FT_Int32)q );
-  }
-
-#endif /* 0 */
-
-#endif /* 0 */
-
-
-#endif /* FT_LONG64 */
+#endif /* !FT_LONG64 */
 
 
   /* documentation is in ftglyph.h */
@@ -1075,7 +801,7 @@
     if ( x > 0 )
     {
       rem_hi = 0;
-      rem_lo = x;
+      rem_lo = (FT_UInt32)x;
       count  = 24;
       do
       {
@@ -1156,8 +882,8 @@
 
 
       /* XXX: this function does not allow 64-bit arguments */
-      ft_multo64( (FT_Int32)in_x, (FT_Int32)out_y, &z1 );
-      ft_multo64( (FT_Int32)in_y, (FT_Int32)out_x, &z2 );
+      ft_multo64( (FT_UInt32)in_x, (FT_UInt32)out_y, &z1 );
+      ft_multo64( (FT_UInt32)in_y, (FT_UInt32)out_x, &z2 );
 
       if ( z1.hi > z2.hi )
         result = +1;
@@ -1186,55 +912,40 @@
                      FT_Pos  out_x,
                      FT_Pos  out_y )
   {
-    FT_Pos  ax = in_x;
-    FT_Pos  ay = in_y;
+    FT_Pos  ax = in_x + out_x;
+    FT_Pos  ay = in_y + out_y;
 
-    FT_Pos  d_in, d_out, d_corner;
+    FT_Pos  d_in, d_out, d_hypot;
 
 
-    /* We approximate the Euclidean metric (sqrt(x^2 + y^2)) with */
-    /* the Taxicab metric (|x| + |y|), which can be computed much */
-    /* faster.  If one of the two vectors is much longer than the */
-    /* other one, the direction of the shorter vector doesn't     */
-    /* influence the result any more.                             */
-    /*                                                            */
-    /*                 corner                                     */
-    /*       x---------------------------x                        */
-    /*        \                      /                            */
-    /*         \                /                                 */
-    /*      in  \          /  out                                 */
-    /*           \    /                                           */
-    /*            o                                               */
-    /*              Point                                         */
-    /*                                                            */
+    /* The idea of this function is to compare the length of the */
+    /* hypotenuse with the `in' and `out' length.  The `corner'  */
+    /* represented by `in' and `out' is flat if the hypotenuse's */
+    /* length isn't too large.                                   */
+    /*                                                           */
+    /* This approach has the advantage that the angle between    */
+    /* `in' and `out' is not checked.  In case one of the two    */
+    /* vectors is `dominant', this is, much larger than the      */
+    /* other vector, we thus always have a flat corner.          */
+    /*                                                           */
+    /*                hypotenuse                                 */
+    /*       x---------------------------x                       */
+    /*        \                      /                           */
+    /*         \                /                                */
+    /*      in  \          /  out                                */
+    /*           \    /                                          */
+    /*            o                                              */
+    /*              Point                                        */
 
-    if ( ax < 0 )
-      ax = -ax;
-    if ( ay < 0 )
-      ay = -ay;
-    d_in = ax + ay;  /* d_in = || in || */
-
-    ax = out_x;
-    if ( ax < 0 )
-      ax = -ax;
-    ay = out_y;
-    if ( ay < 0 )
-      ay = -ay;
-    d_out = ax + ay;  /* d_out = || out || */
-
-    ax = out_x + in_x;
-    if ( ax < 0 )
-      ax = -ax;
-    ay = out_y + in_y;
-    if ( ay < 0 )
-      ay = -ay;
-    d_corner = ax + ay;  /* d_corner = || in + out || */
+    d_in    = FT_HYPOT(  in_x,  in_y );
+    d_out   = FT_HYPOT( out_x, out_y );
+    d_hypot = FT_HYPOT(    ax,    ay );
 
     /* now do a simple length comparison: */
     /*                                    */
-    /*   d_in + d_out < 17/16 d_corner    */
+    /*   d_in + d_out < 17/16 d_hypot     */
 
-    return ( d_in + d_out - d_corner ) < ( d_corner >> 4 );
+    return ( d_in + d_out - d_hypot ) < ( d_hypot >> 4 );
   }
 
 

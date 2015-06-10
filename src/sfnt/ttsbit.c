@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    TrueType and OpenType embedded bitmap support (body).                */
 /*                                                                         */
-/*  Copyright 2005-2009, 2013, 2014 by                                     */
+/*  Copyright 2005-2015 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  Copyright 2013 by Google, Inc.                                         */
@@ -101,10 +101,10 @@
 
         p = face->sbit_table;
 
-        version     = FT_NEXT_ULONG( p );
+        version     = FT_NEXT_LONG( p );
         num_strikes = FT_NEXT_ULONG( p );
 
-        if ( ( version & 0xFFFF0000UL ) != 0x00020000UL )
+        if ( ( (FT_ULong)version & 0xFFFF0000UL ) != 0x00020000UL )
         {
           error = FT_THROW( Unknown_File_Format );
           goto Exit;
@@ -150,11 +150,24 @@
           error = FT_THROW( Unknown_File_Format );
           goto Exit;
         }
-        if ( flags != 0x0001 || num_strikes >= 0x10000UL )
+
+        /* Bit 0 must always be `1'.                            */
+        /* Bit 1 controls the overlay of bitmaps with outlines. */
+        /* All other bits should be zero.                       */
+        if ( !( flags == 1 || flags == 3 ) ||
+             num_strikes >= 0x10000UL      )
         {
           error = FT_THROW( Invalid_File_Format );
           goto Exit;
         }
+
+        /* we currently don't support bit 1; however, it is better to */
+        /* draw at least something...                                 */
+        if ( flags == 3 )
+          FT_TRACE1(( "tt_face_load_sbit_strikes:"
+                      " sbix overlay not supported yet\n"
+                      "                          "
+                      " expect bad rendering results\n" ));
 
         /*
          *  Count the number of strikes available in the table.  We are a bit
@@ -260,6 +273,7 @@
         FT_UShort       ppem, resolution;
         TT_HoriHeader  *hori;
         FT_ULong        table_size;
+        FT_Pos          ppem_, upem_; /* to reduce casts */
 
         FT_Error  error;
         FT_Byte*  p;
@@ -292,12 +306,15 @@
         metrics->x_ppem = ppem;
         metrics->y_ppem = ppem;
 
-        metrics->ascender    = ppem * hori->Ascender * 64 / upem;
-        metrics->descender   = ppem * hori->Descender * 64 / upem;
-        metrics->height      = ppem * ( hori->Ascender -
-                                        hori->Descender +
-                                        hori->Line_Gap ) * 64 / upem;
-        metrics->max_advance = ppem * hori->advance_Width_Max * 64 / upem;
+        ppem_ = (FT_Pos)ppem;
+        upem_ = (FT_Pos)upem;
+
+        metrics->ascender    = ppem_ * hori->Ascender * 64 / upem_;
+        metrics->descender   = ppem_ * hori->Descender * 64 / upem_;
+        metrics->height      = ppem_ * ( hori->Ascender -
+                                         hori->Descender +
+                                         hori->Line_Gap ) * 64 / upem_;
+        metrics->max_advance = ppem_ * hori->advance_Width_Max * 64 / upem_;
 
         return error;
       }
@@ -381,9 +398,11 @@
       p                          += 34;
       decoder->bit_depth          = *p;
 
-      if ( decoder->strike_index_array > face->sbit_table_size             ||
-           decoder->strike_index_array + 8 * decoder->strike_index_count >
-             face->sbit_table_size                                         )
+      /* decoder->strike_index_array +                               */
+      /*   8 * decoder->strike_index_count > face->sbit_table_size ? */
+      if ( decoder->strike_index_array > face->sbit_table_size           ||
+           decoder->strike_index_count >
+             ( face->sbit_table_size - decoder->strike_index_array ) / 8 )
         error = FT_THROW( Invalid_File_Format );
     }
 
@@ -405,7 +424,7 @@
     FT_Error    error = FT_Err_Ok;
     FT_UInt     width, height;
     FT_Bitmap*  map = decoder->bitmap;
-    FT_Long     size;
+    FT_ULong    size;
 
 
     if ( !decoder->metrics_loaded )
@@ -417,38 +436,38 @@
     width  = decoder->metrics->width;
     height = decoder->metrics->height;
 
-    map->width = (int)width;
-    map->rows  = (int)height;
+    map->width = width;
+    map->rows  = height;
 
     switch ( decoder->bit_depth )
     {
     case 1:
       map->pixel_mode = FT_PIXEL_MODE_MONO;
-      map->pitch      = ( map->width + 7 ) >> 3;
+      map->pitch      = (int)( ( map->width + 7 ) >> 3 );
       map->num_grays  = 2;
       break;
 
     case 2:
       map->pixel_mode = FT_PIXEL_MODE_GRAY2;
-      map->pitch      = ( map->width + 3 ) >> 2;
+      map->pitch      = (int)( ( map->width + 3 ) >> 2 );
       map->num_grays  = 4;
       break;
 
     case 4:
       map->pixel_mode = FT_PIXEL_MODE_GRAY4;
-      map->pitch      = ( map->width + 1 ) >> 1;
+      map->pitch      = (int)( ( map->width + 1 ) >> 1 );
       map->num_grays  = 16;
       break;
 
     case 8:
       map->pixel_mode = FT_PIXEL_MODE_GRAY;
-      map->pitch      = map->width;
+      map->pitch      = (int)( map->width );
       map->num_grays  = 256;
       break;
 
     case 32:
       map->pixel_mode = FT_PIXEL_MODE_BGRA;
-      map->pitch      = map->width * 4;
+      map->pitch      = (int)( map->width * 4 );
       map->num_grays  = 256;
       break;
 
@@ -457,7 +476,7 @@
       goto Exit;
     }
 
-    size = map->rows * map->pitch;
+    size = map->rows * (FT_ULong)map->pitch;
 
     /* check that there is no empty image */
     if ( size == 0 )
@@ -505,13 +524,20 @@
 
       p += 3;
     }
+    else
+    {
+      /* avoid uninitialized data in case there is no vertical info -- */
+      metrics->vertBearingX = 0;
+      metrics->vertBearingY = 0;
+      metrics->vertAdvance  = 0;
+    }
 
     decoder->metrics_loaded = 1;
     *pp = p;
     return FT_Err_Ok;
 
   Fail:
-    FT_TRACE1(( "tt_sbit_decoder_load_metrics: broken table" ));
+    FT_TRACE1(( "tt_sbit_decoder_load_metrics: broken table\n" ));
     return FT_THROW( Invalid_Argument );
   }
 
@@ -539,7 +565,8 @@
   {
     FT_Error    error = FT_Err_Ok;
     FT_Byte*    line;
-    FT_Int      bit_height, bit_width, pitch, width, height, line_bits, h;
+    FT_Int      pitch, width, height, line_bits, h;
+    FT_UInt     bit_height, bit_width;
     FT_Bitmap*  bitmap;
 
 
@@ -555,8 +582,8 @@
 
     line_bits = width * decoder->bit_depth;
 
-    if ( x_pos < 0 || x_pos + width > bit_width   ||
-         y_pos < 0 || y_pos + height > bit_height )
+    if ( x_pos < 0 || (FT_UInt)( x_pos + width ) > bit_width   ||
+         y_pos < 0 || (FT_UInt)( y_pos + height ) > bit_height )
     {
       FT_TRACE1(( "tt_sbit_decoder_load_byte_aligned:"
                   " invalid bitmap dimensions\n" ));
@@ -677,7 +704,8 @@
   {
     FT_Error    error = FT_Err_Ok;
     FT_Byte*    line;
-    FT_Int      bit_height, bit_width, pitch, width, height, line_bits, h, nbits;
+    FT_Int      pitch, width, height, line_bits, h, nbits;
+    FT_UInt     bit_height, bit_width;
     FT_Bitmap*  bitmap;
     FT_UShort   rval;
 
@@ -694,8 +722,8 @@
 
     line_bits = width * decoder->bit_depth;
 
-    if ( x_pos < 0 || x_pos + width  > bit_width  ||
-         y_pos < 0 || y_pos + height > bit_height )
+    if ( x_pos < 0 || (FT_UInt)( x_pos + width ) > bit_width   ||
+         y_pos < 0 || (FT_UInt)( y_pos + height ) > bit_height )
     {
       FT_TRACE1(( "tt_sbit_decoder_load_bit_aligned:"
                   " invalid bitmap dimensions\n" ));
@@ -1148,7 +1176,8 @@
         num_glyphs = FT_NEXT_ULONG( p );
 
         /* overflow check for p + ( num_glyphs + 1 ) * 4 */
-        if ( num_glyphs > (FT_ULong)( ( ( p_limit - p ) >> 2 ) - 1 ) )
+        if ( p + 4 > p_limit                                         ||
+             num_glyphs > (FT_ULong)( ( ( p_limit - p ) >> 2 ) - 1 ) )
           goto NoBitmap;
 
         for ( mm = 0; mm < num_glyphs; mm++ )
@@ -1335,6 +1364,7 @@
 
     case FT_MAKE_TAG( 'j', 'p', 'g', ' ' ):
     case FT_MAKE_TAG( 't', 'i', 'f', 'f' ):
+    case FT_MAKE_TAG( 'r', 'g', 'b', 'l' ): /* used on iOS 7.1 */
       error = FT_THROW( Unknown_File_Format );
       break;
 
@@ -1355,9 +1385,9 @@
 
       metrics->horiBearingX = (FT_Short)originOffsetX;
       metrics->horiBearingY = (FT_Short)( -originOffsetY + metrics->height );
-      metrics->horiAdvance  = (FT_Short)( aadvance *
-                                          face->root.size->metrics.x_ppem /
-                                          face->header.Units_Per_EM );
+      metrics->horiAdvance  = (FT_UShort)( aadvance *
+                                           face->root.size->metrics.x_ppem /
+                                           face->header.Units_Per_EM );
     }
 
     return error;
@@ -1418,7 +1448,7 @@
       FT_Library  library = face->root.glyph->library;
 
 
-      FT_Bitmap_New( &new_map );
+      FT_Bitmap_Init( &new_map );
 
       /* Convert to 8bit grayscale. */
       error = FT_Bitmap_Convert( library, map, &new_map, 1 );
