@@ -1,10 +1,10 @@
 /***************************************************************************/
 /*                                                                         */
-/*  ftxf86.c                                                               */
+/*  ftcerror.h                                                             */
 /*                                                                         */
-/*    FreeType utility file for X11 support (body).                        */
+/*    Caching sub-system error codes (specification only).                 */
 /*                                                                         */
-/*  Copyright 2002, 2003, 2004 by                                          */
+/*  Copyright 2001-2015 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -16,25 +16,26 @@
 /***************************************************************************/
 
 
-#include <ft2build.h>
-#include FT_XFREE86_H
-#include FT_INTERNAL_OBJECTS_H
-#include FT_SERVICE_XFREE86_NAME_H
+  /*************************************************************************/
+  /*                                                                       */
+  /* This file is used to define the caching sub-system error enumeration  */
+  /* constants.                                                            */
+  /*                                                                       */
+  /*************************************************************************/
 
+#ifndef __FTCERROR_H__
+#define __FTCERROR_H__
 
-  /* documentation is in ftxf86.h */
+#include FT_MODULE_ERRORS_H
 
-  FT_EXPORT_DEF( const char* )
-  FT_Get_X11_Font_Format( FT_Face  face )
-  {
-    const char*  result = NULL;
+#undef __FTERRORS_H__
 
+#undef  FT_ERR_PREFIX
+#define FT_ERR_PREFIX  FTC_Err_
+#define FT_ERR_BASE    FT_Mod_Err_Cache
 
-    if ( face )
-      FT_FACE_FIND_SERVICE( face, result, XF86_NAME );
+#include FT_ERRORS_H
 
-    return result;
-  }
-
+#endif /* __FTCERROR_H__ */
 
 /* END */
