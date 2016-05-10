@@ -1,10 +1,10 @@
 /***************************************************************************/
 /*                                                                         */
-/*  svxf86nm.h                                                             */
+/*  hbshim.h                                                               */
 /*                                                                         */
-/*    The FreeType XFree86 services (specification only).                  */
+/*    HarfBuzz interface for accessing OpenType features (specification).  */
 /*                                                                         */
-/*  Copyright 2003 by                                                      */
+/*  Copyright 2013-2015 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -16,40 +16,41 @@
 /***************************************************************************/
 
 
-#ifndef __SVXF86NM_H__
-#define __SVXF86NM_H__
+#ifndef __HBSHIM_H__
+#define __HBSHIM_H__
 
-#include FT_INTERNAL_SERVICE_H
+
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
+
+#ifdef FT_CONFIG_OPTION_USE_HARFBUZZ
+
+#include <hb.h>
+#include <hb-ot.h>
+#include <hb-ft.h>
+
+#endif
 
 
 FT_BEGIN_HEADER
 
+  FT_Error
+  af_get_coverage( AF_FaceGlobals  globals,
+                   AF_StyleClass   style_class,
+                   FT_Byte*        gstyles );
 
-  /*
-   *  A trivial service used to return the name of a face's font driver,
-   *  according to the XFree86 nomenclature.  Note that the service data
-   *  is a simple constant string pointer.
-   */
+  FT_Error
+  af_get_char_index( AF_StyleMetrics  metrics,
+                     FT_ULong         charcode,
+                     FT_ULong        *codepoint,
+                     FT_Long         *y_offset );
 
-#define FT_SERVICE_ID_XF86_NAME  "xf86-driver-name"
-
-#define FT_XF86_FORMAT_TRUETYPE  "TrueType"
-#define FT_XF86_FORMAT_TYPE_1    "Type 1"
-#define FT_XF86_FORMAT_BDF       "BDF"
-#define FT_XF86_FORMAT_PCF       "PCF"
-#define FT_XF86_FORMAT_TYPE_42   "Type 42"
-#define FT_XF86_FORMAT_CID       "CID Type 1"
-#define FT_XF86_FORMAT_CFF       "CFF"
-#define FT_XF86_FORMAT_PFR       "PFR"
-#define FT_XF86_FORMAT_WINFNT    "Windows FNT"
-
-  /* */
-
+ /* */
 
 FT_END_HEADER
 
-
-#endif /* __SVXF86NM_H__ */
+#endif /* __HBSHIM_H__ */
 
 
 /* END */

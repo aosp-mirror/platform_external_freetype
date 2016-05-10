@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    The FreeType services (specification only).                          */
 /*                                                                         */
-/*  Copyright 2003-2007, 2009, 2012, 2013 by                               */
+/*  Copyright 2003-2015 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -33,14 +33,6 @@
 
 
 FT_BEGIN_HEADER
-
-#if defined( _MSC_VER )      /* Visual C++ (and Intel C++)  */
-  /* We disable the warning `conditional expression is      */
-  /* constant' in order to compile cleanly with the maximum */
-  /* level of warnings.                                     */
-#pragma warning( push )
-#pragma warning( disable : 4127 )
-#endif /* _MSC_VER */
 
   /*
    * @macro:
@@ -758,14 +750,10 @@ FT_BEGIN_HEADER
 #define FT_SERVICE_TRUETYPE_ENGINE_H    <freetype/internal/services/svtteng.h>
 #define FT_SERVICE_TT_CMAP_H            <freetype/internal/services/svttcmap.h>
 #define FT_SERVICE_WINFNT_H             <freetype/internal/services/svwinfnt.h>
-#define FT_SERVICE_XFREE86_NAME_H       <freetype/internal/services/svxf86nm.h>
+#define FT_SERVICE_FONT_FORMAT_H        <freetype/internal/services/svfntfmt.h>
 #define FT_SERVICE_TRUETYPE_GLYF_H      <freetype/internal/services/svttglyf.h>
 
  /* */
-
-#if defined( _MSC_VER )
-#pragma warning( pop )
-#endif
 
 FT_END_HEADER
 
