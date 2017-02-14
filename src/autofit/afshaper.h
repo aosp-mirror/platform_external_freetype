@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    HarfBuzz interface for accessing OpenType features (specification).  */
 /*                                                                         */
-/*  Copyright 2013-2015 by                                                 */
+/*  Copyright 2013-2016 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -16,8 +16,8 @@
 /***************************************************************************/
 
 
-#ifndef __AFSHAPER_H__
-#define __AFSHAPER_H__
+#ifndef AFSHAPER_H_
+#define AFSHAPER_H_
 
 
 #include <ft2build.h>
@@ -38,7 +38,8 @@ FT_BEGIN_HEADER
   FT_Error
   af_shaper_get_coverage( AF_FaceGlobals  globals,
                           AF_StyleClass   style_class,
-                          FT_UShort*      gstyles );
+                          FT_UShort*      gstyles,
+                          FT_Bool         default_script );
 
 
   void*
@@ -65,7 +66,7 @@ FT_BEGIN_HEADER
 
 FT_END_HEADER
 
-#endif /* __AFSHAPER_H__ */
+#endif /* AFSHAPER_H_ */
 
 
 /* END */
