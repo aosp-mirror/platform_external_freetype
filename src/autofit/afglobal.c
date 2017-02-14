@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    Auto-fitter routines to compute global hinting values (body).        */
 /*                                                                         */
-/*  Copyright 2003-2015 by                                                 */
+/*  Copyright 2003-2016 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -42,12 +42,13 @@
 
 
 #undef  SCRIPT
-#define SCRIPT( s, S, d, h, ss ) \
+#define SCRIPT( s, S, d, h, H, ss )         \
           AF_DEFINE_SCRIPT_CLASS(           \
             af_ ## s ## _script_class,      \
             AF_SCRIPT_ ## S,                \
             af_ ## s ## _uniranges,         \
             af_ ## s ## _nonbase_uniranges, \
+            AF_ ## H,                       \
             ss )
 
 #include "afscript.h"
@@ -83,7 +84,7 @@
 
 
 #undef  SCRIPT
-#define SCRIPT( s, S, d, h, ss ) \
+#define SCRIPT( s, S, d, h, H, ss )   \
           &af_ ## s ## _script_class,
 
   FT_LOCAL_ARRAY_DEF( AF_ScriptClass )
@@ -240,22 +241,22 @@
       else
       {
         /* get glyphs not directly addressable by cmap */
-        af_shaper_get_coverage( globals, style_class, gstyles );
+        af_shaper_get_coverage( globals, style_class, gstyles, 0 );
       }
     }
 
-    /* handle the default OpenType features of the default script ... */
-    af_shaper_get_coverage( globals, AF_STYLE_CLASSES_GET[dflt], gstyles );
-
-    /* ... and the remaining default OpenType features */
+    /* handle the remaining default OpenType features ... */
     for ( ss = 0; AF_STYLE_CLASSES_GET[ss]; ss++ )
     {
       AF_StyleClass  style_class = AF_STYLE_CLASSES_GET[ss];
 
 
-      if ( ss != dflt && style_class->coverage == AF_COVERAGE_DEFAULT )
-        af_shaper_get_coverage( globals, style_class, gstyles );
+      if ( style_class->coverage == AF_COVERAGE_DEFAULT )
+        af_shaper_get_coverage( globals, style_class, gstyles, 0 );
     }
+
+    /* ... and finally the default OpenType features of the default script */
+    af_shaper_get_coverage( globals, AF_STYLE_CLASSES_GET[dflt], gstyles, 1 );
 
     /* mark ASCII digits */
     for ( i = 0x30; i <= 0x39; i++ )

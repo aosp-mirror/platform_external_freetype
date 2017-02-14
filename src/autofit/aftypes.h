@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    Auto-fitter types (specification only).                              */
 /*                                                                         */
-/*  Copyright 2003-2015 by                                                 */
+/*  Copyright 2003-2016 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -22,15 +22,15 @@
    *  Its main feature is the ability to differentiate between different
    *  writing systems and scripts in order to apply specific rules.
    *
-   *  The code has also been compartmentized into several entities that
+   *  The code has also been compartmentalized into several entities that
    *  should make algorithmic experimentation easier than with the old
    *  code.
    *
    *************************************************************************/
 
 
-#ifndef __AFTYPES_H__
-#define __AFTYPES_H__
+#ifndef AFTYPES_H_
+#define AFTYPES_H_
 
 #include <ft2build.h>
 
@@ -255,7 +255,7 @@ extern void*  _af_debug_hints;
    *    outline according to the results of the glyph analyzer.
    */
 
-#define __AFWRTSYS_H__  /* don't load header files */
+#define AFWRTSYS_H_  /* don't load header files */
 #undef  WRITING_SYSTEM
 #define WRITING_SYSTEM( ws, WS )    \
           AF_WRITING_SYSTEM_ ## WS,
@@ -270,7 +270,7 @@ extern void*  _af_debug_hints;
 
   } AF_WritingSystem;
 
-#undef  __AFWRTSYS_H__
+#undef  AFWRTSYS_H_
 
 
   typedef struct  AF_WritingSystemClassRec_
@@ -309,7 +309,7 @@ extern void*  _af_debug_hints;
    */
 
 #undef  SCRIPT
-#define SCRIPT( s, S, d, h, ss ) \
+#define SCRIPT( s, S, d, h, H, ss ) \
           AF_SCRIPT_ ## S,
 
   /* The list of known scripts. */
@@ -342,6 +342,8 @@ extern void*  _af_debug_hints;
     /* last element in the ranges must be { 0, 0 } */
     AF_Script_UniRange  script_uni_ranges;
     AF_Script_UniRange  script_uni_nonbase_ranges;
+
+    FT_Bool  top_to_bottom_hinting;
 
     const char*  standard_charstring;      /* for default width and height */
 
@@ -479,6 +481,10 @@ extern void*  _af_debug_hints;
   } AF_StyleMetricsRec;
 
 
+#define AF_HINTING_BOTTOM_TO_TOP  0
+#define AF_HINTING_TOP_TO_BOTTOM  1
+
+
   /* Declare and define vtables for classes */
 #ifndef FT_CONFIG_OPTION_PIC
 
@@ -522,6 +528,7 @@ extern void*  _af_debug_hints;
           script,                         \
           ranges,                         \
           nonbase_ranges,                 \
+          top_to_bottom,                  \
           std_charstring )                \
   FT_CALLBACK_TABLE_DEF                   \
   const AF_ScriptClassRec  script_class = \
@@ -529,6 +536,7 @@ extern void*  _af_debug_hints;
     script,                               \
     ranges,                               \
     nonbase_ranges,                       \
+    top_to_bottom,                        \
     std_charstring,                       \
   };
 
@@ -595,6 +603,7 @@ extern void*  _af_debug_hints;
           script_,                                         \
           ranges,                                          \
           nonbase_ranges,                                  \
+          top_to_bottom,                                   \
           std_charstring )                                 \
   FT_LOCAL_DEF( void )                                     \
   FT_Init_Class_ ## script_class( AF_ScriptClassRec*  ac ) \
@@ -602,6 +611,7 @@ extern void*  _af_debug_hints;
     ac->script                    = script_;               \
     ac->script_uni_ranges         = ranges;                \
     ac->script_uni_nonbase_ranges = nonbase_ranges;        \
+    ac->top_to_bottom_hinting     = top_to_bottom;         \
     ac->standard_charstring       = std_charstring;        \
   }
 
@@ -634,7 +644,7 @@ extern void*  _af_debug_hints;
 
 FT_END_HEADER
 
-#endif /* __AFTYPES_H__ */
+#endif /* AFTYPES_H_ */
 
 
 /* END */

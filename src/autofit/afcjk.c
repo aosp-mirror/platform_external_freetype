@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    Auto-fitter hinting routines for CJK writing system (body).          */
 /*                                                                         */
-/*  Copyright 2006-2015 by                                                 */
+/*  Copyright 2006-2016 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -104,7 +104,7 @@
       const char*  p;
 
 #ifdef FT_DEBUG_LEVEL_TRACE
-      FT_ULong  ch;
+      FT_ULong  ch = 0;
 #endif
 
       p          = script_class->standard_charstring;
@@ -966,15 +966,12 @@
 
       if ( seg2 )
       {
-        seg2->num_linked++;
         if ( seg2->link != seg1 )
         {
           seg1->link = NULL;
 
           if ( seg2->score < dist_threshold || seg1->score < seg2->score * 4 )
             seg1->serif = seg2->link;
-          else
-            seg2->num_linked--;
         }
       }
     }
@@ -1091,7 +1088,7 @@
         /* insert a new edge in the list and */
         /* sort according to the position    */
         error = af_axis_hints_new_edge( axis, seg->pos,
-                                        (AF_Direction)seg->dir,
+                                        (AF_Direction)seg->dir, 0,
                                         memory, &edge );
         if ( error )
           goto Exit;
@@ -1528,7 +1525,7 @@
       }
 
       if ( dist < 54 )
-        dist += ( 54 - dist ) / 2 ;
+        dist += ( 54 - dist ) / 2;
       else if ( dist < 3 * 64 )
       {
         FT_Pos  delta;
