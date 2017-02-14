@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    HarfBuzz interface for accessing OpenType features (body).           */
 /*                                                                         */
-/*  Copyright 2013-2015 by                                                 */
+/*  Copyright 2013-2016 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -86,7 +86,7 @@
 
   /* load HarfBuzz script tags */
 #undef  SCRIPT
-#define SCRIPT( s, S, d, h, ss )  h,
+#define SCRIPT( s, S, d, h, H, ss )  h,
 
 
   static const hb_script_t  scripts[] =
@@ -98,7 +98,8 @@
   FT_Error
   af_shaper_get_coverage( AF_FaceGlobals  globals,
                           AF_StyleClass   style_class,
-                          FT_UShort*      gstyles )
+                          FT_UShort*      gstyles,
+                          FT_Bool         default_script )
   {
     hb_face_t*  face;
 
@@ -143,8 +144,7 @@
     /* `hb_ot_tags_from_script' usually returns HB_OT_TAG_DEFAULT_SCRIPT */
     /* as the second tag.  We change that to HB_TAG_NONE except for the  */
     /* default script.                                                   */
-    if ( style_class->script == globals->module->default_script &&
-         style_class->coverage == AF_COVERAGE_DEFAULT           )
+    if ( default_script )
     {
       if ( script_tags[0] == HB_TAG_NONE )
         script_tags[0] = HB_OT_TAG_DEFAULT_SCRIPT;
@@ -158,6 +158,11 @@
     }
     else
     {
+      /* we use non-standard tags like `khms' for special purposes;       */
+      /* HarfBuzz maps them to `DFLT', which we don't want to handle here */
+      if ( script_tags[0] == HB_OT_TAG_DEFAULT_SCRIPT )
+        goto Exit;
+
       if ( script_tags[1] == HB_OT_TAG_DEFAULT_SCRIPT )
         script_tags[1] = HB_TAG_NONE;
     }
@@ -571,11 +576,13 @@
   FT_Error
   af_shaper_get_coverage( AF_FaceGlobals  globals,
                           AF_StyleClass   style_class,
-                          FT_UShort*      gstyles )
+                          FT_UShort*      gstyles,
+                          FT_Bool         default_script )
   {
     FT_UNUSED( globals );
     FT_UNUSED( style_class );
     FT_UNUSED( gstyles );
+    FT_UNUSED( default_script );
 
     return FT_Err_Ok;
   }
