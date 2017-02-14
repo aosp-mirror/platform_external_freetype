@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    High-level SFNT driver interface (body).                             */
 /*                                                                         */
-/*  Copyright 1996-2007, 2009-2014 by                                      */
+/*  Copyright 1996-2016 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -75,36 +75,36 @@
 
     switch ( tag )
     {
-    case ft_sfnt_head:
+    case FT_SFNT_HEAD:
       table = &face->header;
       break;
 
-    case ft_sfnt_hhea:
+    case FT_SFNT_HHEA:
       table = &face->horizontal;
       break;
 
-    case ft_sfnt_vhea:
-      table = face->vertical_info ? &face->vertical : 0;
+    case FT_SFNT_VHEA:
+      table = face->vertical_info ? &face->vertical : NULL;
       break;
 
-    case ft_sfnt_os2:
-      table = face->os2.version == 0xFFFFU ? 0 : &face->os2;
+    case FT_SFNT_OS2:
+      table = face->os2.version == 0xFFFFU ? NULL : &face->os2;
       break;
 
-    case ft_sfnt_post:
+    case FT_SFNT_POST:
       table = &face->postscript;
       break;
 
-    case ft_sfnt_maxp:
+    case FT_SFNT_MAXP:
       table = &face->max_profile;
       break;
 
-    case ft_sfnt_pclt:
-      table = face->pclt.Version ? &face->pclt : 0;
+    case FT_SFNT_PCLT:
+      table = face->pclt.Version ? &face->pclt : NULL;
       break;
 
     default:
-      table = 0;
+      table = NULL;
     }
 
     return table;
@@ -139,9 +139,9 @@
 
   FT_DEFINE_SERVICE_SFNT_TABLEREC(
     sfnt_service_sfnt_table,
-    (FT_SFNT_TableLoadFunc)tt_face_load_any,
-    (FT_SFNT_TableGetFunc) get_sfnt_table,
-    (FT_SFNT_TableInfoFunc)sfnt_table_info )
+    (FT_SFNT_TableLoadFunc)tt_face_load_any,     /* load_table */
+    (FT_SFNT_TableGetFunc) get_sfnt_table,       /* get_table  */
+    (FT_SFNT_TableInfoFunc)sfnt_table_info )     /* table_info */
 
 
 #ifdef TT_CONFIG_OPTION_POSTSCRIPT_NAMES
@@ -205,8 +205,8 @@
 
   FT_DEFINE_SERVICE_GLYPHDICTREC(
     sfnt_service_glyph_dict,
-    (FT_GlyphDict_GetNameFunc)  sfnt_get_glyph_name,
-    (FT_GlyphDict_NameIndexFunc)sfnt_get_name_index )
+    (FT_GlyphDict_GetNameFunc)  sfnt_get_glyph_name,    /* get_name   */
+    (FT_GlyphDict_NameIndexFunc)sfnt_get_name_index )   /* name_index */
 
 
 #endif /* TT_CONFIG_OPTION_POSTSCRIPT_NAMES */
@@ -266,7 +266,7 @@
       {
         FT_Stream   stream = face->name_table.stream;
         FT_String*  r      = (FT_String*)result;
-        FT_Byte*    p;
+        FT_Char*    p;
 
 
         if ( FT_STREAM_SEEK( name->stringOffset ) ||
@@ -280,11 +280,11 @@
           goto Exit;
         }
 
-        p = (FT_Byte*)stream->cursor;
+        p = (FT_Char*)stream->cursor;
 
         for ( ; len > 0; len--, p += 2 )
         {
-          if ( p[0] == 0 && p[1] >= 32 && p[1] < 128 )
+          if ( p[0] == 0 && p[1] >= 32 )
             *r++ = p[1];
         }
         *r = '\0';
@@ -330,7 +330,7 @@
 
   FT_DEFINE_SERVICE_PSFONTNAMEREC(
     sfnt_service_ps_name,
-    (FT_PsName_GetFunc)sfnt_get_ps_name )
+    (FT_PsName_GetFunc)sfnt_get_ps_name )     /* get_ps_font_name */
 
 
   /*
@@ -338,7 +338,7 @@
    */
   FT_DEFINE_SERVICE_TTCMAPSREC(
     tt_service_get_cmap_info,
-    (TT_CMap_Info_GetFunc)tt_get_cmap_info )
+    (TT_CMap_Info_GetFunc)tt_get_cmap_info )  /* get_cmap_info */
 
 
 #ifdef TT_CONFIG_OPTION_BDF
@@ -381,8 +381,8 @@
 
   FT_DEFINE_SERVICE_BDFRec(
     sfnt_service_bdf,
-    (FT_BDF_GetCharsetIdFunc)sfnt_get_charset_id,
-    (FT_BDF_GetPropertyFunc) tt_face_find_bdf_prop )
+    (FT_BDF_GetCharsetIdFunc)sfnt_get_charset_id,     /* get_charset_id */
+    (FT_BDF_GetPropertyFunc) tt_face_find_bdf_prop )  /* get_property   */
 
 
 #endif /* TT_CONFIG_OPTION_BDF */
@@ -427,7 +427,7 @@
   sfnt_get_interface( FT_Module    module,
                       const char*  module_interface )
   {
-    /* SFNT_SERVICES_GET derefers `library' in PIC mode */
+    /* SFNT_SERVICES_GET dereferences `library' in PIC mode */
 #ifdef FT_CONFIG_OPTION_PIC
     FT_Library  library;
 
@@ -459,53 +459,62 @@
 
   FT_DEFINE_SFNT_INTERFACE(
     sfnt_interface,
-    tt_face_goto_table,
+    tt_face_goto_table,     /* TT_Loader_GotoTableFunc goto_table      */
 
-    sfnt_init_face,
-    sfnt_load_face,
-    sfnt_done_face,
-    sfnt_get_interface,
+    sfnt_init_face,         /* TT_Init_Face_Func       init_face       */
+    sfnt_load_face,         /* TT_Load_Face_Func       load_face       */
+    sfnt_done_face,         /* TT_Done_Face_Func       done_face       */
+    sfnt_get_interface,     /* FT_Module_Requester     get_interface   */
 
-    tt_face_load_any,
+    tt_face_load_any,       /* TT_Load_Any_Func        load_any        */
 
-    tt_face_load_head,
-    tt_face_load_hhea,
-    tt_face_load_cmap,
-    tt_face_load_maxp,
-    tt_face_load_os2,
-    tt_face_load_post,
+    tt_face_load_head,      /* TT_Load_Table_Func      load_head       */
+    tt_face_load_hhea,      /* TT_Load_Metrics_Func    load_hhea       */
+    tt_face_load_cmap,      /* TT_Load_Table_Func      load_cmap       */
+    tt_face_load_maxp,      /* TT_Load_Table_Func      load_maxp       */
+    tt_face_load_os2,       /* TT_Load_Table_Func      load_os2        */
+    tt_face_load_post,      /* TT_Load_Table_Func      load_post       */
 
-    tt_face_load_name,
-    tt_face_free_name,
+    tt_face_load_name,      /* TT_Load_Table_Func      load_name       */
+    tt_face_free_name,      /* TT_Free_Table_Func      free_name       */
 
-    tt_face_load_kern,
-    tt_face_load_gasp,
-    tt_face_load_pclt,
+    tt_face_load_kern,      /* TT_Load_Table_Func      load_kern       */
+    tt_face_load_gasp,      /* TT_Load_Table_Func      load_gasp       */
+    tt_face_load_pclt,      /* TT_Load_Table_Func      load_init       */
 
     /* see `ttload.h' */
     PUT_EMBEDDED_BITMAPS( tt_face_load_bhed ),
-
+                            /* TT_Load_Table_Func      load_bhed       */
     PUT_EMBEDDED_BITMAPS( tt_face_load_sbit_image ),
+                            /* TT_Load_SBit_Image_Func load_sbit_image */
 
     /* see `ttpost.h' */
     PUT_PS_NAMES( tt_face_get_ps_name   ),
+                            /* TT_Get_PS_Name_Func     get_psname      */
     PUT_PS_NAMES( tt_face_free_ps_names ),
+                            /* TT_Free_Table_Func      free_psnames    */
 
     /* since version 2.1.8 */
-    tt_face_get_kerning,
+    tt_face_get_kerning,    /* TT_Face_GetKerningFunc  get_kerning     */
 
     /* since version 2.2 */
-    tt_face_load_font_dir,
-    tt_face_load_hmtx,
+    tt_face_load_font_dir,  /* TT_Load_Table_Func      load_font_dir   */
+    tt_face_load_hmtx,      /* TT_Load_Metrics_Func    load_hmtx       */
 
     /* see `ttsbit.h' and `sfnt.h' */
     PUT_EMBEDDED_BITMAPS( tt_face_load_sbit ),
+                            /* TT_Load_Table_Func      load_eblc       */
     PUT_EMBEDDED_BITMAPS( tt_face_free_sbit ),
+                            /* TT_Free_Table_Func      free_eblc       */
 
     PUT_EMBEDDED_BITMAPS( tt_face_set_sbit_strike     ),
+                            /* TT_Set_SBit_Strike_Func set_sbit_strike */
     PUT_EMBEDDED_BITMAPS( tt_face_load_strike_metrics ),
+                    /* TT_Load_Strike_Metrics_Func load_strike_metrics */
 
-    tt_face_get_metrics
+    tt_face_get_metrics,    /* TT_Get_Metrics_Func     get_metrics     */
+
+    tt_face_get_name        /* TT_Get_Name_Func        get_name        */
   )
 
 

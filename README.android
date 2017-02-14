@@ -1,0 +1,21 @@
+Freetype
+
+The following modules are disabled in include/freetype/config/ftmodule.h:
+  t1
+  t1cid
+  pfr
+  t42
+  winfnt
+  pcf
+  psaux
+  bdf
+
+The following options are disabled in include/freetype/config/ftoption.h:
+
+  FT_CONFIG_OPTION_ENVIRONMENT_PROPERTIES
+  FT_CONFIG_OPTION_INCREMENTAL
+  TT_CONFIG_OPTION_SUBPIXEL_HINTING
+
+The following option is enabled to support color fonts.
+
+  FT_CONFIG_OPTION_USE_PNG
