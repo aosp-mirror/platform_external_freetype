@@ -5,7 +5,7 @@
 /*    FreeType API for controlling the TrueType driver                     */
 /*    (specification only).                                                */
 /*                                                                         */
-/*  Copyright 2013-2016 by                                                 */
+/*  Copyright 2013-2017 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -138,7 +138,6 @@ FT_BEGIN_HEADER
    *   interpreter-version
    *
    * @description:
-
    *   Currently, three versions are available, two representing the
    *   bytecode interpreter with subpixel hinting support (old `Infinality'
    *   code and new stripped-down and higher performance `minimal' code) and

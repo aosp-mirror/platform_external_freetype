@@ -19,17 +19,3 @@ The following options are disabled in include/freetype/config/ftoption.h:
 The following option is enabled to support color fonts.
 
   FT_CONFIG_OPTION_USE_PNG
-
-The following commits are cherry-picked from the upstream repository.
-
-  1c6fd994376c182f07cd59558a2f9bdd082b9509
-  Author: Werner Lemberg <wl@gnu.org>
-  [sfnt] Improve FT_LOAD_BITMAP_METRICS_ONLY for `sbix' format.
-
-  565db95b5cc87f8875576afb4282f443a5a10a8e
-  Author: Werner Lemberg <wl@gnu.org>
-  [sfnt] Speed up `sbix' lookup.
-
-  37e193e9357bdccbfb8a4437ddfdc06efd9e140c
-  Author: Werner Lemberg <wl@gnu.org>
-  Introduce a way of quickly retrieving (embedded) bitmap metrics.
