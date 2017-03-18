@@ -1,3 +1,203 @@
+2017-03-18  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Another limitation for bytecode loop count maximum.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=900
+
+	* src/truetype/ttinterp.c (TT_RunIns): Limit `loopcall_counter_max'
+	by number of glyphs also.
+
+2017-03-18  Werner Lemberg  <wl@gnu.org>
+
+	[ftfuzzer] Minor improvement.
+
+	* src/tools/ftfuzzer/ftfuzzer.cc: Don't set intermediate axis if
+	bitmap strikes are active.
+
+2017-03-18  Werner Lemberg  <wl@gnu.org>
+
+	Improve `make multi'.
+
+	* src/autofit/aflatin2.c: Guard file with FT_OPTION_AUTOFIT2.
+
+	* src/base/ftmac.c: Guard more parts of the file with FT_MACINTOSH.
+
+	* src/psaux/afmparse.c: Guard file with T1_CONFIG_OPTION_NO_AFM.
+
+	* src/sfnt/pngshim.c: Guard file with
+	TT_CONFIG_OPTION_EMBEDDED_BITMAPS also.
+
+	* src/sfnt/ttbdf.c: Avoid empty source file.
+	* src/sfnt/ttpost.c: Guard file with
+	TT_CONFIG_OPTION_POSTSCRIPT_NAMES.
+	* src/sfnt/ttsbit.c: Guard file with
+	TT_CONFIG_OPTION_EMBEDDED_BITMAPS.
+
+	* src/truetype/ttgxvar.c, src/truetype/ttinterp.c: Avoid empty
+	source file.
+
+	* src/truetype/ttsubpix.c: Guard file with
+	TT_USE_BYTECODE_INTERPRETER also.
+
+	* src/type1/t1afm.c: Guard file with T1_CONFIG_OPTION_NO_AFM.
+
+	* src/autofit/autofit.c, src/base/ftbase.c, src/cache/ftcache.c,
+	src/cff/cff.c, src/cid/type1cid.c, src/gxvalid/gxvalid.c,
+	src/pcf/pcf.c, src/pfr/pfr.c, src/psaux/psaux.c,
+	src/pshinter/pshinter.c, src/psnames/psnames.c, src/raster/raster.c,
+	src/sfnt/sfnt.c, src/smooth/smooth.c, src/truetype/truetype.c,
+	src/type1/type1.c, src/type42/type42.c: Remove conditionals; sort
+	entries.
+
+2017-03-17  Werner Lemberg  <wl@gnu.org>
+
+	Fixes for conditional compilation.
+
+	* src/autofit/afcjk.c, src/autofit/afindic.c: Include `afcjk.h'
+	earlier.
+
+	* src/sfnt/sfobjs.c (sfnt_init_face): Put `memory' variable into
+	TT_CONFIG_OPTION_GX_VAR_SUPPORT block.
+	(sfnt_done_face): Protect some code with
+	TT_CONFIG_OPTION_GX_VAR_SUPPORT.
+
+	* src/sfnt/ttsbit.c (tt_face_load_sbix_image): Remove compiler
+	warning.
+
+	* src/truetype/ttgload.c (TT_Load_Simple_Glyph): Put `tmp' variable
+	into TT_USE_BYTECODE_INTERPRETER block.
+
+	(tt_loader_init): Put `error' variable into
+	TT_USE_BYTECODE_INTERPRETER block.
+
+2017-03-17  Werner Lemberg  <wl@gnu.org>
+
+	Fix preprocessor warning.
+
+	* devel/ftoption.h, include/freetype/config/ftoption.h: Test whether
+	TT_CONFIG_OPTION_SUBPIXEL_HINTING is defined before checking its
+	value.
+
+2017-03-17  Werner Lemberg  <wl@gnu.org>
+
+	`make multi' fixes; compiler warnings.
+
+	* src/base/ftsnames.c: Include FT_INTERNAL_DEBUG_H.
+
+	* src/cff/cffobjs.c [TT_CONFIG_OPTION_GX_VAR_SUPPORT]: Include
+	FT_MULTIPLE_MASTERS_H and FT_SERVICE_MULTIPLE_MASTERS_H.
+
+	* src/sfnt/sfdriver.c [TT_CONFIG_OPTION_GX_VAR_SUPPORT]: Include
+	FT_MULTIPLE_MASTERS_H and FT_SERVICE_MULTIPLE_MASTERS_H.
+	(get_win_string, get_apple_string): Initialize `result'.
+
+2017-03-17  Dave Arnold <darnold@adobe.com>
+
+	[cff] Fix potential bugs in default NDV for CFF2.
+
+	* src/cff/cffload.c (cff_blend_build_vector): Explicitly build blend
+	vector when `lenNDV' is zero; don't rely on zero-init.
+	Save `lenNDV' as part of cache key even when `lenNDV' is zero.
+
+2017-03-17  Dave Arnold <darnold@adobe.com>
+
+	[cff] Fix CFF2 stack allocation.
+
+	* src/cff/cffparse.c (cff_parser_init) add 1 for operator.
+
+2017-03-16  Werner Lemberg  <wl@gnu.org>
+
+	* src/truetype/ttgxvar.c (tt_done_blend): Free `vvar_table'.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=883
+
+2017-03-15  Werner Lemberg  <wl@gnu.org>
+
+	Remove clang compiler warnings (#50548).
+
+	* include/freetype/internal/tttypes.h (TT_FaceRec): Make
+	`var_postscript_prefix_len' unsigned.
+
+	* src/autofit/afwarp.c (af_warper_compute_line_best): Remove
+	redundant assignment.
+
+	* src/cff/cffload.c (cff_subfont_load): Add casts.
+
+	* src/cff/cffparse.c (cff_parse_blend): Remove redundant assignment.
+
+	* src/sfnt/sfdriver.c (fmix32, murmur_hash_3_128): Add `static'
+	keyword.
+	Add casts.
+	(fixed2float): Add cast.
+	(sfnt_get_var_ps_name): Make `p' always initialized.
+	Add casts.
+
+	* src/truetype/ttgxvar.c (TT_Get_MM_Var): Add casts.
+
+2017-03-15  Werner Lemberg  <wl@gnu.org>
+
+	[ftfuzzer] Limit number of tested faces and instances.
+
+	This is inspired by the discussion in and analysis of
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=859
+
+	* src/tools/ftfuzzer/ftfuzzer.cc (LLVMFuzzerTestOneInput): Use only
+	up to 20 face indices.
+	Use only up to 20 instance indices.
+
+2017-03-15  Werner Lemberg  <wl@gnu.org>
+
+	* src/tools/ftfuzzer/ftfuzzer.cc: Improve readability; formatting.
+
+2017-03-14  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Implement PS names for font instances [3/3].
+
+	Everything is guarded with TT_CONFIG_OPTION_GX_VAR_SUPPORT.
+
+	* include/freetype/internal/tttypes.h (TT_FaceRec): New fields
+	`var_postscript_prefix' and `var_postscript_prefix_len'.
+
+	* src/sfnt/sfdriver.c: Include FT_TRUETYPE_IDS_H.
+	(sfnt_is_alphanumeric): New wrapperfunction for `ft_isalnum'.
+	(get_win_string, get_apple_string): Remove `const' from return
+	value.
+	(MAX_VALUE_DESCRIPTOR_LEN, MAX_PS_NAME_LEN): New macros.
+	(hexdigits): New array.
+	(sfnt_get_var_ps_name): New function, implementing Adobe TechNote
+	5902 to construct a PS name for a variation font instance.
+	(sfnt_get_ps_name): Call `sfnt_get_var_ps_name' for font instances.
+
+	* src/sfnt/sfobjs.c (sfnt_done_face): Updated.
+
+	* src/truetype/ttgxvar.c (tt_set_mm_blend): Reset
+	`face->postscript_name' to trigger recalculation for new instance
+	parameters.
+
+2017-03-14  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Implement PS names for font instances [2/3].
+
+	* src/sfnt/sfdriver.c (fix2float) [TT_CONFIG_OPTION_GX_VAR_SUPPORT]:
+	New function to find the shortest representation of a 16.16
+	fractional number.
+
+2017-03-14  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Implement PS names for font instances [1/3].
+
+	Add 128bit MurmurHash 3 function.
+
+	Everything is guarded with TT_CONFIG_OPTION_GX_VAR_SUPPORT.
+
+	* src/sfnt/sfdriver.c (ROTL32): New macro.
+	(fmix32, murmur_hash_3_128): New functions.
+
 2017-03-13  Werner Lemberg  <wl@gnu.org>
 
 	[truetype] Ignore invalid MVAR tags.
