@@ -8,7 +8,9 @@ The following modules are disabled in include/freetype/config/ftmodule.h:
   winfnt
   pcf
   psaux
+  psnames
   bdf
+  ft_raster1_renderer
 
 The following options are disabled in include/freetype/config/ftoption.h:
 
