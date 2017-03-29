@@ -29,6 +29,7 @@ cc_library_shared {
         "src/autofit/autofit.c",
         "src/truetype/truetype.c",
         "src/cff/cff.c",
+	"src/psnames/psnames.c",
         "src/pshinter/pshinter.c",
     ],
 
