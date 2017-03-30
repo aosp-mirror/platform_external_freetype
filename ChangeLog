@@ -1,3 +1,137 @@
+2017-03-30  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Fix HVAR and VVAR handling (#50678).
+
+	* src/truetype/ttgxvar.c (tt_hvadvance_adjust): Handle
+	glyph indices larger than `mapCount' as described in the
+	specification.
+
+2017-03-30  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Allow linear scaling for unhinted rendering (#50470).
+
+	* src/truetype/ttdriver.c (tt_size_request): Revert change from
+	2011-07-16; the intended metrics fix seems now to be implemented in
+	a different way, making the patch unnecessary.  Note that this
+	change was usually patched out by all major GNU/Linux distributions
+	due to heavy side effects.
+
+	* src/truetype/ttgload.c (compute_glyph_metrics, TT_Load_Glyph):
+	Refer to the metrics of the `TT_Size' object.
+
+2017-03-29  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Fix thinko related to PS name of default named instance.
+
+	* src/truetype/ttgxvar.c (TT_Get_MM_Var): `strid' and `psid' are
+	name ID values, not indices into the array of name entries.
+
+2017-03-27  Werner Lemberg  <wl@gnu.org>
+
+	[cid, truetype] Don't use `index' as a variable name.
+
+	At least on FreeBSD there is a global declaration of `index' in file
+	`/usr/include/strings.h'.
+
+	* src/cff/cf2intrp.c, src/truetype/ttgload.c: s/index/idx/ where
+	appropriate.
+
+2017-03-27  Wojciech Mamrak  <wmamrak@gmail.com>
+
+	[sfnt] Minor improvement for handling kern tables.
+
+	* src/sfnt/ttkern.c (tt_face_load_kern): Don't check for
+	cross-stream kerning tables since we reject format 2 tables later
+	on anyways.
+	Modify code for limit test...
+	(tt_face_get_kerning): ... to avoid a limit test here.
+
+2017-03-27  Werner Lemberg  <wl@gnu.org>
+
+	[pcf] Fix compiler warnings.
+
+	Reported by Alexander Hedges <ahedges@student.ethz.ch>.
+
+	* src/pcf/pcfdrivr.c (pcf_property_set, pcf_property_get): Tag
+	`property_name' with `FT_UNUSED' where necessary.
+
+2017-03-26  Werner Lemberg  <wl@gnu.org>
+
+	* src/psaux/psobjs.c (t1_builder_close_contour): Add safety guard.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=941
+
+2017-03-23  Werner Lemberg  <wl@gnu.org>
+
+	[psaux] Better protect `flex' handling.
+
+	Reported as
+
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=935
+
+	* src/psaux/t1decode.c (t1_decoder_parse_charstrings)
+	<callothersubr>: Since there is not a single flex operator but a
+	series of subroutine calls, malformed fonts can call arbitrary other
+	operators after the start of a flex, possibly adding points.  For
+	this reason we have to check the available number of points before
+	inserting a point.
+
+2017-03-23  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Fix check for default named instance.
+
+	* src/sfnt/sfobjs.c (sfnt_init_face): A `fixed' number needs four
+	bytes, not two...
+
+2017-03-23  Werner Lemberg  <wl@gnu.org>
+
+	Make MM fonts work (again).
+
+	* src/base/ftmm.c (FT_Set_Var_Design_Coordinates,
+	FT_Set_MM_Blend_Coordinates, FT_Set_Var_Blend_Coordinates): Ignore
+	return value of `ft_face_get_mvar_service'; instead, check whether a
+	service is actually returned.
+
+2017-03-20  Werner Lemberg  <wl@gnu.org>
+
+	[truetype] Some variable renamings.
+
+	Too much local variables holding different structures were called
+	`metrics'.
+
+	* src/truetype/ttdriver.c (tt_size_select): s/metrics/size_metrics/.
+
+	* src/truetype/ttgload.c (tt_get_metrics_incr_overrids,
+	compute_glyph_metrics): s/metrics/incr_metrics/.
+	(load_sbit_image): s/metrics/sbit_metrics/.
+
+	* src/truetype/ttobjs.c (tt_size_run_fpgm): s/metrics/size_metrics/.
+	(tt_size_init_bytecode): s/metrics/tt_metrics/.
+	(tt_size_reset): s/metrics/size_metrics/.
+
+2017-03-20  Werner Lemberg  <wl@gnu.org>
+
+	[sfnt] Don't add instances to non-variation fonts.
+
+	* src/sfnt/sfobjs.c (sfnt_init_face): Fix it.
+
+2017-03-20  Werner Lemberg  <wl@gnu.org>
+
+	* src/cff/cffgload.c (cff_builder_init): Add safety guard (#50578).
+
+2017-03-18  Werner Lemberg  <wl@gnu.org>
+
+	Introduce FT_UINT_TO_POINTER macro (#50560).
+
+	We have to make a separate case for Windows 64's LLP64 data model.
+
+	* builds/unix/ftconfig.in, builds/vms/ftconfig.h,
+	include/freetype/config/ftconfig.h (FT_UINT_TO_POINTER): New macro.
+
+	* src/truetype/ttgload.c (load_truetype_glyph): Use it.
+
 2017-03-18  Werner Lemberg  <wl@gnu.org>
 
 	* src/truetype/ttinterp.c (TT_RunIns): Adjust loop counter (#50573).
