@@ -1,16 +1,21 @@
-Name: FreeType
-Version: 2.6.2 + update
-Revision: a512b0fe7a8d9db0e5aa9c0a4db1e92cb861722d
+Freetype
 
-Local modifications:
+The following modules are disabled in include/freetype/config/ftmodule.h:
+  t1
+  t1cid
+  pfr
+  t42
+  winfnt
+  pcf
+  psaux
+  bdf
 
-1. Drop unused build files (Jamfiles, {module,rules}.mk) 
-2. Drop src directories for unused modules: 
-   bdf, cid, pcf, pfr, type1, type42, winfonts
-3. Drop src/{bzip2,tools,lzw,otvalid,gxvalid}
-4. Customize include/freetype/config/{ftmodule,ftoption}.h by applying
-   module_option.diff
+The following options are disabled in include/freetype/config/ftoption.h:
 
-To faciliate an easier update, all the files in src/{base,autofit} are kept
-even if some of them are for dropped modules/options. Android.mk can be used
-to control exactly what's built.
+  FT_CONFIG_OPTION_ENVIRONMENT_PROPERTIES
+  FT_CONFIG_OPTION_INCREMENTAL
+  TT_CONFIG_OPTION_SUBPIXEL_HINTING
+
+The following option is enabled to support color fonts.
+
+  FT_CONFIG_OPTION_USE_PNG
