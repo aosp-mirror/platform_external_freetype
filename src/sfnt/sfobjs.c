@@ -1001,7 +1001,10 @@
         face->variation_support |= TT_FACE_FLAG_VAR_FVAR;
 
       /* we don't support Multiple Master CFFs yet */
-      if ( !face->goto_table( face, TTAG_CFF, stream, 0 ) )
+      /* note that `glyf' or `CFF2' have precedence */
+      if ( face->goto_table( face, TTAG_glyf, stream, 0 ) &&
+           face->goto_table( face, TTAG_CFF2, stream, 0 ) &&
+           !face->goto_table( face, TTAG_CFF, stream, 0 ) )
         num_instances = 0;
 
       /* we support at most 2^15 - 1 instances */
