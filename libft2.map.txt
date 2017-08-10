@@ -1,0 +1,13 @@
+LIBFT2 {
+  global:
+    FT_Done_Face; # vndk
+    FT_Done_FreeType; # vndk
+    FT_Get_Char_Index; # vndk
+    FT_Init_FreeType; # vndk
+    FT_Load_Glyph; # vndk
+    FT_New_Face; # vndk
+    FT_New_Memory_Face; # vndk
+    FT_Set_Char_Size; # vndk
+  local:
+    *;
+};
