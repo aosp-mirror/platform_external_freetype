@@ -59,3 +59,9 @@ cc_library_shared {
         "libz",
     ],
 }
+
+llndk_library {
+    name: "libft2",
+    symbol_file: "libft2.map.txt",
+    export_include_dirs: ["include"],
+}
