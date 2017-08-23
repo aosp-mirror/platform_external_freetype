@@ -62,6 +62,7 @@ cc_library_shared {
 
 llndk_library {
     name: "libft2",
+    vendor_available: false,
     symbol_file: "libft2.map.txt",
     export_include_dirs: ["include"],
 }
