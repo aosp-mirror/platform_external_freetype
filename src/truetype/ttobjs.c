@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    Objects manager (body).                                              */
 /*                                                                         */
-/*  Copyright 1996-2016 by                                                 */
+/*  Copyright 1996-2017 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -117,7 +117,7 @@
     FT_Error  error;
 
 
-    FT_MEM_ZERO( zone, sizeof ( *zone ) );
+    FT_ZERO( zone );
     zone->memory = memory;
 
     if ( FT_NEW_ARRAY( zone->org,      maxPoints   ) ||
@@ -536,6 +536,7 @@
       goto Exit;
 
     /* check that we have a valid TrueType file */
+    FT_TRACE2(( "  " ));
     error = sfnt->init_face( stream, face, face_index, num_params, params );
 
     /* Stream may have changed. */
@@ -577,58 +578,50 @@
 
     if ( FT_IS_SCALABLE( ttface ) )
     {
-
 #ifdef FT_CONFIG_OPTION_INCREMENTAL
-
       if ( !ttface->internal->incremental_interface )
-        error = tt_face_load_loca( face, stream );
-      if ( !error )
-        error = tt_face_load_cvt( face, stream );
-      if ( !error )
-        error = tt_face_load_fpgm( face, stream );
-      if ( !error )
-        error = tt_face_load_prep( face, stream );
-
-      /* Check the scalable flag based on `loca'. */
-      if ( !ttface->internal->incremental_interface &&
-           ttface->num_fixed_sizes                  &&
-           face->glyph_locations                    &&
-           tt_check_single_notdef( ttface )         )
+#endif
       {
-        FT_TRACE5(( "tt_face_init:"
-                    " Only the `.notdef' glyph has an outline.\n"
-                    "             "
-                    " Resetting scalable flag to FALSE.\n" ));
+        error = tt_face_load_loca( face, stream );
 
-        ttface->face_flags &= ~FT_FACE_FLAG_SCALABLE;
+        /* having a (non-zero) `glyf' table without */
+        /* a `loca' table is not valid              */
+        if ( face->glyf_len && FT_ERR_EQ( error, Table_Missing ) )
+          goto Exit;
+        if ( error )
+          goto Exit;
       }
 
-#else /* !FT_CONFIG_OPTION_INCREMENTAL */
+      /* `fpgm', `cvt', and `prep' are optional */
+      error = tt_face_load_cvt( face, stream );
+      if ( error && FT_ERR_NEQ( error, Table_Missing ) )
+        goto Exit;
 
-      if ( !error )
-        error = tt_face_load_loca( face, stream );
-      if ( !error )
-        error = tt_face_load_cvt( face, stream );
-      if ( !error )
-        error = tt_face_load_fpgm( face, stream );
-      if ( !error )
-        error = tt_face_load_prep( face, stream );
+      error = tt_face_load_fpgm( face, stream );
+      if ( error && FT_ERR_NEQ( error, Table_Missing ) )
+        goto Exit;
+
+      error = tt_face_load_prep( face, stream );
+      if ( error && FT_ERR_NEQ( error, Table_Missing ) )
+        goto Exit;
 
       /* Check the scalable flag based on `loca'. */
-      if ( ttface->num_fixed_sizes          &&
-           face->glyph_locations            &&
-           tt_check_single_notdef( ttface ) )
+#ifdef FT_CONFIG_OPTION_INCREMENTAL
+      if ( !ttface->internal->incremental_interface )
+#endif
       {
-        FT_TRACE5(( "tt_face_init:"
-                    " Only the `.notdef' glyph has an outline.\n"
-                    "             "
-                    " Resetting scalable flag to FALSE.\n" ));
+        if ( ttface->num_fixed_sizes          &&
+             face->glyph_locations            &&
+             tt_check_single_notdef( ttface ) )
+        {
+          FT_TRACE5(( "tt_face_init:"
+                      " Only the `.notdef' glyph has an outline.\n"
+                      "             "
+                      " Resetting scalable flag to FALSE.\n" ));
 
-        ttface->face_flags &= ~FT_FACE_FLAG_SCALABLE;
+          ttface->face_flags &= ~FT_FACE_FLAG_SCALABLE;
+        }
       }
-
-#endif /* !FT_CONFIG_OPTION_INCREMENTAL */
-
     }
 
 #ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
@@ -671,6 +664,8 @@
                                      named_style->coords );
           if ( error )
             goto Exit;
+
+          tt_apply_mvar( face );
         }
       }
     }
@@ -739,7 +734,7 @@
     face->cvt_program_size  = 0;
 
 #ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
-    tt_done_blend( memory, face->blend );
+    tt_done_blend( face );
     face->blend = NULL;
 #endif
   }
@@ -827,6 +822,11 @@
 
       FT_TRACE4(( "Executing `fpgm' table.\n" ));
       error = face->interpreter( exec );
+#ifdef FT_DEBUG_LEVEL_TRACE
+      if ( error )
+        FT_TRACE4(( "  interpretation failed with error code 0x%x\n",
+                    error ));
+#endif
     }
     else
       error = FT_Err_Ok;
@@ -890,8 +890,12 @@
       TT_Goto_CodeRange( exec, tt_coderange_cvt, 0 );
 
       FT_TRACE4(( "Executing `prep' table.\n" ));
-
       error = face->interpreter( exec );
+#ifdef FT_DEBUG_LEVEL_TRACE
+      if ( error )
+        FT_TRACE4(( "  interpretation failed with error code 0x%x\n",
+                    error ));
+#endif
     }
     else
       error = FT_Err_Ok;
@@ -1083,8 +1087,10 @@
 
     if ( size->bytecode_ready < 0 )
       error = tt_size_init_bytecode( (FT_Size)size, pedantic );
+    else
+      error = size->bytecode_ready;
 
-    if ( error || size->bytecode_ready )
+    if ( error )
       goto Exit;
 
     /* rescale CVT when needed */
@@ -1116,6 +1122,8 @@
 
       error = tt_size_run_prep( size, pedantic );
     }
+    else
+      error = size->cvt_ready;
 
   Exit:
     return error;
@@ -1192,19 +1200,25 @@
   /*    have been changed.                                                 */
   /*                                                                       */
   /* <Input>                                                               */
-  /*    size :: A handle to the target size object.                        */
+  /*    size        :: A handle to the target size object.                 */
+  /*                                                                       */
+  /*    only_height :: Only recompute ascender, descender, and height.     */
   /*                                                                       */
   FT_LOCAL_DEF( FT_Error )
-  tt_size_reset( TT_Size  size )
+  tt_size_reset( TT_Size  size,
+                 FT_Bool  only_height )
   {
     TT_Face           face;
-    FT_Error          error = FT_Err_Ok;
     FT_Size_Metrics*  metrics;
 
 
-    size->ttmetrics.valid = FALSE;
-
     face = (TT_Face)size->root.face;
+
+    /* nothing to do for CFF2 */
+    if ( face->isCFF2 )
+      return FT_Err_Ok;
+
+    size->ttmetrics.valid = FALSE;
 
     metrics = &size->metrics;
 
@@ -1220,17 +1234,26 @@
     /*                                                               */
     if ( face->header.Flags & 8 )
     {
-      metrics->x_scale = FT_DivFix( metrics->x_ppem << 6,
-                                    face->root.units_per_EM );
-      metrics->y_scale = FT_DivFix( metrics->y_ppem << 6,
-                                    face->root.units_per_EM );
-
       metrics->ascender =
         FT_PIX_ROUND( FT_MulFix( face->root.ascender, metrics->y_scale ) );
       metrics->descender =
         FT_PIX_ROUND( FT_MulFix( face->root.descender, metrics->y_scale ) );
       metrics->height =
         FT_PIX_ROUND( FT_MulFix( face->root.height, metrics->y_scale ) );
+    }
+
+    size->ttmetrics.valid = TRUE;
+
+    if ( only_height )
+      return FT_Err_Ok;
+
+    if ( face->header.Flags & 8 )
+    {
+      metrics->x_scale = FT_DivFix( metrics->x_ppem << 6,
+                                    face->root.units_per_EM );
+      metrics->y_scale = FT_DivFix( metrics->y_ppem << 6,
+                                    face->root.units_per_EM );
+
       metrics->max_advance =
         FT_PIX_ROUND( FT_MulFix( face->root.max_advance_width,
                                  metrics->x_scale ) );
@@ -1258,10 +1281,7 @@
     size->cvt_ready = -1;
 #endif /* TT_USE_BYTECODE_INTERPRETER */
 
-    if ( !error )
-      size->ttmetrics.valid = TRUE;
-
-    return error;
+    return FT_Err_Ok;
   }
 
 

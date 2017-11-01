@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    TrueType bytecode interpreter (specification).                       */
 /*                                                                         */
-/*  Copyright 1996-2016 by                                                 */
+/*  Copyright 1996-2017 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -407,6 +407,14 @@ FT_BEGIN_HEADER
                                               /* special functions         */
 
 #endif /* TT_SUPPORT_SUBPIXEL_HINTING_INFINALITY */
+
+    /* We maintain two counters (in addition to the instruction counter) */
+    /* that act as loop detectors for LOOPCALL and jump opcodes with     */
+    /* negative arguments.                                               */
+    FT_ULong           loopcall_counter;
+    FT_ULong           loopcall_counter_max;
+    FT_ULong           neg_jump_counter;
+    FT_ULong           neg_jump_counter_max;
 
   } TT_ExecContextRec;
 

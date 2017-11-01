@@ -19,3 +19,24 @@ The following options are disabled in include/freetype/config/ftoption.h:
 The following option is enabled to support color fonts.
 
   FT_CONFIG_OPTION_USE_PNG
+
+The following commit is cherry-picked from the upstream:
+( http://git.savannah.gnu.org/cgit/freetype/freetype2.git/commit/?id=da38be8 )
+
+  commit da38be831d2c8ea5443c73d01ecfbc750bba7045 (patch)
+  author Werner Lemberg <wl@gnu.org>     2017-03-30 13:24:03 +0200
+  [truetype] Fix HVAR and VVAR handling (#50678).
+
+The following three commits are cherry-picked with some adjustment to apply:
+
+  commit 779309744222a736eba0f1731e8162fce6288d4e
+  Author: Werner Lemberg <wl@gnu.org> 2017-03-07 17:27:58 +0100
+  [sfnt] Improve handling for buggy variation fonts.
+
+  commit 7bbb91fbf47fc0775cc9705673caf0c47a81f94b
+  Author: Werner Lemberg <wl@gnu.org> 2017-03-08 15:09:41 +0100
+  [sfnt] Another fix for buggy variation fonts.
+
+  commit 447a0b62634802d8acdb56008cff5ff4e50be244
+  Author: Werner Lemberg <wl@gnu.org> 2017-03-13 07:42:34 +0100
+  [truetype] Ignore invalid MVAR tags.
