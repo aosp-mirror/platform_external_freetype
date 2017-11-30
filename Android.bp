@@ -40,6 +40,7 @@ cc_library_shared {
     cflags: [
         "-W",
         "-Wall",
+        "-Werror",
 
         "-fPIC",
         "-DPIC",
