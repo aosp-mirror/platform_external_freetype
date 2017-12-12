@@ -833,6 +833,7 @@
       {
         FT_UInt*  hinting_engine = (FT_UInt*)value;
 
+
         if ( *hinting_engine == FT_CFF_HINTING_ADOBE
 #ifdef CFF_CONFIG_OPTION_OLD_ENGINE
              || *hinting_engine == FT_CFF_HINTING_FREETYPE
@@ -854,12 +855,10 @@
         long         nsd = ft_strtol( s, NULL, 10 );
 
 
-        if ( nsd == 0 )
-          driver->no_stem_darkening = 0;
-        else if ( nsd == 1 )
-          driver->no_stem_darkening = 1;
+        if ( !nsd )
+          driver->no_stem_darkening = FALSE;
         else
-          return FT_THROW( Invalid_Argument );
+          driver->no_stem_darkening = TRUE;
       }
       else
 #endif
@@ -869,6 +868,30 @@
 
         driver->no_stem_darkening = *no_stem_darkening;
       }
+
+      return error;
+    }
+    else if ( !ft_strcmp( property_name, "random-seed" ) )
+    {
+      FT_Int32  random_seed;
+
+
+#ifdef FT_CONFIG_OPTION_ENVIRONMENT_PROPERTIES
+      if ( value_is_string )
+      {
+        const char*  s = (const char*)value;
+
+
+        random_seed = (FT_Int32)ft_strtol( s, NULL, 10 );
+      }
+      else
+#endif
+        random_seed = *(FT_Int32*)value;
+
+      if ( random_seed < 0 )
+        random_seed = 0;
+
+      driver->random_seed = random_seed;
 
       return error;
     }
