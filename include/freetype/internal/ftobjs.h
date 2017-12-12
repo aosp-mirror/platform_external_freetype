@@ -342,6 +342,20 @@ FT_BEGIN_HEADER
   /*      this data when first opened.  This field exists only if          */
   /*      @FT_CONFIG_OPTION_INCREMENTAL is defined.                        */
   /*                                                                       */
+  /*    no_stem_darkening ::                                               */
+  /*      Overrides the module-level default, see @stem-darkening[cff],    */
+  /*      for example.  FALSE and TRUE toggle stem darkening on and off,   */
+  /*      respectively, value~-1 means to use the module/driver default.   */
+  /*                                                                       */
+  /*    random_seed ::                                                     */
+  /*      If positive, override the seed value for the CFF `random'        */
+  /*      operator.  Value~0 means to use the font's value.  Value~-1      */
+  /*      means to use the CFF driver's default.                           */
+  /*                                                                       */
+  /*    lcd_weights ::                                                     */
+  /*      Overrides the library default with custom weights for the 5-tap  */
+  /*      FIR filter.  `{0, 0, 0, 0, 0}' means to use the library default. */
+  /*                                                                       */
   /*    refcount ::                                                        */
   /*      A counter initialized to~1 at the time an @FT_Face structure is  */
   /*      created.  @FT_Reference_Face increments this counter, and        */
@@ -350,9 +364,9 @@ FT_BEGIN_HEADER
   /*                                                                       */
   typedef struct  FT_Face_InternalRec_
   {
-    FT_Matrix           transform_matrix;
-    FT_Vector           transform_delta;
-    FT_Int              transform_flags;
+    FT_Matrix  transform_matrix;
+    FT_Vector  transform_delta;
+    FT_Int     transform_flags;
 
     FT_ServiceCacheRec  services;
 
@@ -360,7 +374,13 @@ FT_BEGIN_HEADER
     FT_Incremental_InterfaceRec*  incremental_interface;
 #endif
 
-    FT_Int              refcount;
+    FT_Char              no_stem_darkening;
+    FT_Int32             random_seed;
+#ifdef FT_CONFIG_OPTION_SUBPIXEL_RENDERING
+    FT_LcdFiveTapFilter  lcd_weights;  /* preset or custom filter weights */
+#endif
+
+    FT_Int  refcount;
 
   } FT_Face_InternalRec;
 
@@ -775,12 +795,19 @@ FT_BEGIN_HEADER
 
   /* This hook is used by the TrueType debugger.  It must be set to an */
   /* alternate truetype bytecode interpreter function.                 */
-#define FT_DEBUG_HOOK_TRUETYPE            0
+#define FT_DEBUG_HOOK_TRUETYPE  0
 
 
   typedef void  (*FT_Bitmap_LcdFilterFunc)( FT_Bitmap*      bitmap,
                                             FT_Render_Mode  render_mode,
-                                            FT_Library      library );
+                                            FT_Byte*        weights );
+
+
+  /* This is the default LCD filter, an in-place, 5-tap FIR filter. */
+  FT_BASE( void )
+  ft_lcd_filter_fir( FT_Bitmap*           bitmap,
+                     FT_Render_Mode       mode,
+                     FT_LcdFiveTapFilter  weights );
 
 
   /*************************************************************************/
@@ -821,14 +848,17 @@ FT_BEGIN_HEADER
   /*                        handle to the current renderer for the         */
   /*                        FT_GLYPH_FORMAT_OUTLINE format.                */
   /*                                                                       */
-  /*    auto_hinter      :: XXX                                            */
+  /*    auto_hinter      :: The auto-hinter module interface.              */
   /*                                                                       */
   /*    raster_pool      :: The raster object's render pool.  This can     */
   /*                        ideally be changed dynamically at run-time.    */
   /*                                                                       */
   /*    raster_pool_size :: The size of the render pool in bytes.          */
   /*                                                                       */
-  /*    debug_hooks      :: XXX                                            */
+  /*    debug_hooks      :: An array of four function pointers that allow  */
+  /*                        debuggers to hook into a font format's         */
+  /*                        interpreter.  Currently, only the TrueType     */
+  /*                        bytecode debugger uses this.                   */
   /*                                                                       */
   /*    lcd_filter       :: If subpixel rendering is activated, the        */
   /*                        selected LCD filter mode.                      */
@@ -876,7 +906,7 @@ FT_BEGIN_HEADER
 #ifdef FT_CONFIG_OPTION_SUBPIXEL_RENDERING
     FT_LcdFilter             lcd_filter;
     FT_Int                   lcd_extra;        /* number of extra pixels */
-    FT_Byte                  lcd_weights[5];   /* filter weights, if any */
+    FT_LcdFiveTapFilter      lcd_weights;      /* filter weights, if any */
     FT_Bitmap_LcdFilterFunc  lcd_filter_func;  /* filtering callback     */
 #endif
 
