@@ -102,6 +102,7 @@ FT_BEGIN_HEADER
   /*                       cff:no-stem-darkening=1 \                       */
   /*                       autofitter:warping=1                            */
   /*                                                                       */
+  /* ANDROID: disabled */
   /* #define FT_CONFIG_OPTION_ENVIRONMENT_PROPERTIES                       */
 
 
@@ -255,6 +256,7 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /*   Define this macro if you want to enable this `feature'.             */
   /*                                                                       */
+  /* ANDROID: enabled */
 #define FT_CONFIG_OPTION_USE_PNG
 
 
@@ -400,6 +402,7 @@ FT_BEGIN_HEADER
   /* supply font data incrementally as the document is parsed, such        */
   /* as the Ghostscript interpreter for the PostScript language.           */
   /*                                                                       */
+  /* ANDROID: disabled */
   /* #define FT_CONFIG_OPTION_INCREMENTAL                                  */
 
 
@@ -684,7 +687,10 @@ FT_BEGIN_HEADER
   /* [1] http://www.microsoft.com/typography/cleartype/truetypecleartype.aspx */
   /*                                                                       */
 /* #define TT_CONFIG_OPTION_SUBPIXEL_HINTING  1         */
+
+/* ANDROID: disabled */
 /* #define TT_CONFIG_OPTION_SUBPIXEL_HINTING  2         */
+
 /* #define TT_CONFIG_OPTION_SUBPIXEL_HINTING  ( 1 | 2 ) */
 
 

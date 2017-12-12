@@ -17,7 +17,7 @@ cc_library_shared {
         "src/base/ftfstype.c",
         "src/base/ftglyph.c",
         "src/base/ftlcdfil.c",
-	"src/base/ftstroke.c",
+        "src/base/ftstroke.c",
         "src/base/fttype1.c",
         "src/base/ftbase.c",
         "src/base/ftsystem.c",
@@ -25,13 +25,13 @@ cc_library_shared {
         "src/base/ftgasp.c",
         "src/base/ftmm.c",
         "src/gzip/ftgzip.c",
-	"src/raster/raster.c",
+        "src/raster/raster.c",
         "src/sfnt/sfnt.c",
         "src/smooth/smooth.c",
         "src/autofit/autofit.c",
         "src/truetype/truetype.c",
         "src/cff/cff.c",
-	"src/psnames/psnames.c",
+        "src/psnames/psnames.c",
         "src/pshinter/pshinter.c",
     ],
 
@@ -40,6 +40,7 @@ cc_library_shared {
     cflags: [
         "-W",
         "-Wall",
+        "-Werror",
 
         "-fPIC",
         "-DPIC",
@@ -49,6 +50,8 @@ cc_library_shared {
 
         "-O2",
 
+        // Upstream ignores unused parameter warning
+        "-Wno-unused-parameter",
         // the following is for testing only, and should not be used in final
         // builds of the product
         // "-DTT_CONFIG_OPTION_BYTECODE_INTERPRETER",
@@ -62,6 +65,7 @@ cc_library_shared {
 
 llndk_library {
     name: "libft2",
+    vendor_available: false,
     symbol_file: "libft2.map.txt",
     export_include_dirs: ["include"],
 }

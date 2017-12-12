@@ -856,6 +856,7 @@
                   FT_Parameter*  params )
   {
     FT_Error      error;
+    FT_Memory     memory = face->root.memory;
     FT_Library    library = face->root.driver->root.library;
     SFNT_Service  sfnt;
     FT_Int        face_index;
@@ -954,6 +955,9 @@
 
       FT_Int  instance_index;
 
+      FT_Byte*  default_values  = NULL;
+      FT_Byte*  instance_values = NULL;
+
 
       face->is_default_instance = 1;
 
@@ -964,7 +968,7 @@
            fvar_len < 20                                          ||
            FT_READ_ULONG( version )                               ||
            FT_READ_USHORT( offset )                               ||
-           FT_STREAM_SKIP( 2 ) /* count_size_pairs */             ||
+           FT_STREAM_SKIP( 2 ) /* reserved */                     ||
            FT_READ_USHORT( num_axes )                             ||
            FT_READ_USHORT( axis_size )                            ||
            FT_READ_USHORT( num_instances )                        ||
@@ -980,18 +984,13 @@
 
       /* check that the data is bound by the table length */
       if ( version != 0x00010000UL                    ||
-#if 0
-           /* fonts like `JamRegular.ttf' have an incorrect value for   */
-           /* `count_size_pairs'; since value 2 is hard-coded in `fvar' */
-           /* version 1.0, we simply ignore it                          */
-           count_size_pairs != 2                      ||
-#endif
            axis_size != 20                            ||
            num_axes == 0                              ||
            /* `num_axes' limit implied by 16-bit `instance_size' */
            num_axes > 0x3FFE                          ||
            !( instance_size == 4 + 4 * num_axes ||
               instance_size == 6 + 4 * num_axes )     ||
+           /* `num_instances' limit implied by limited range of name IDs */
            num_instances > 0x7EFF                     ||
            offset                          +
              axis_size * num_axes          +
@@ -1000,21 +999,71 @@
       else
         face->variation_support |= TT_FACE_FLAG_VAR_FVAR;
 
-      /* we don't support Multiple Master CFFs yet */
+      /*
+       *  As documented in the OpenType specification, an entry for the
+       *  default instance may be omitted in the named instance table.  In
+       *  particular this means that even if there is no named instance
+       *  table in the font we actually do have a named instance, namely the
+       *  default instance.
+       *
+       *  For consistency, we always want the default instance in our list
+       *  of named instances.  If it is missing, we try to synthesize it
+       *  later on.  Here, we have to adjust `num_instances' accordingly.
+       */
+
+      if ( !( FT_ALLOC( default_values, num_axes * 2 )  ||
+              FT_ALLOC( instance_values, num_axes * 2 ) ) )
+      {
+        /* the current stream position is 16 bytes after the table start */
+        FT_ULong  array_start = FT_STREAM_POS() - 16 + offset;
+        FT_ULong  default_value_offset, instance_offset;
+
+        FT_Byte*  p;
+        FT_UInt   i;
+
+
+        default_value_offset = array_start + 8;
+        p                    = default_values;
+
+        for ( i = 0; i < num_axes; i++ )
+        {
+          (void)FT_STREAM_READ_AT( default_value_offset, p, 2 );
+
+          default_value_offset += axis_size;
+          p                    += 2;
+        }
+
+        instance_offset = array_start + axis_size * num_axes + 4;
+
+        for ( i = 0; i < num_instances; i++ )
+        {
+          (void)FT_STREAM_READ_AT( instance_offset,
+                                   instance_values,
+                                   num_axes * 2 );
+
+          if ( !ft_memcmp( default_values, instance_values, num_axes * 2 ) )
+            break;
+
+          instance_offset += instance_size;
+        }
+
+        if ( i == num_instances )
+        {
+          /* no default instance in named instance table; */
+          /* we thus have to synthesize it                */
+          num_instances++;
+        }
+      }
+
+      FT_FREE( default_values );
+      FT_FREE( instance_values );
+
+      /* we don't support Multiple Master CFFs yet; */
       /* note that `glyf' or `CFF2' have precedence */
       if ( face->goto_table( face, TTAG_glyf, stream, 0 ) &&
            face->goto_table( face, TTAG_CFF2, stream, 0 ) &&
            !face->goto_table( face, TTAG_CFF, stream, 0 ) )
         num_instances = 0;
-
-      /* we support at most 2^15 - 1 instances */
-      if ( num_instances >= ( 1U << 15 ) - 1 )
-      {
-        if ( face_instance_index >= 0 )
-          return FT_THROW( Invalid_Argument );
-        else
-          num_instances = 0;
-      }
 
       /* instance indices in `face_instance_index' start with index 1, */
       /* thus `>' and not `>='                                         */

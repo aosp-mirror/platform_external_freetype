@@ -45,6 +45,7 @@
 #include FT_INTERNAL_STREAM_H
 #include FT_INTERNAL_SFNT_H
 #include FT_TRUETYPE_TAGS_H
+#include FT_TRUETYPE_IDS_H
 #include FT_MULTIPLE_MASTERS_H
 #include FT_LIST_H
 
@@ -319,7 +320,7 @@
 
     FT_TRACE2(( "AVAR " ));
 
-    blend->avar_checked = TRUE;
+    blend->avar_loaded = TRUE;
     error = face->goto_table( face, TTAG_avar, stream, &table_len );
     if ( error )
     {
@@ -1006,15 +1007,16 @@
 
     if ( table->widthMap.innerIndex )
     {
-      FT_UInt  idx = gindex;
-
-
-      if ( idx >= table->widthMap.mapCount )
-        idx = table->widthMap.mapCount - 1;
+      if ( gindex >= table->widthMap.mapCount )
+      {
+        FT_TRACE2(( "gindex %d out of range\n", gindex ));
+        error = FT_THROW( Invalid_Argument );
+        goto Exit;
+      }
 
       /* trust that HVAR parser has checked indices */
-      outerIndex = table->widthMap.outerIndex[idx];
-      innerIndex = table->widthMap.innerIndex[idx];
+      outerIndex = table->widthMap.outerIndex[gindex];
+      innerIndex = table->widthMap.innerIndex[gindex];
     }
     else
     {
@@ -1259,6 +1261,8 @@
     for ( ; value < limit; value++ )
     {
       FT_Short*  p = ft_var_get_value_pointer( face, value->tag );
+
+
       if ( p )
         value->unmodified = *p;
 #ifdef FT_DEBUG_LEVEL_TRACE
@@ -1692,6 +1696,190 @@
   }
 
 
+  /* convert from design coordinates to normalized coordinates */
+
+  static void
+  ft_var_to_normalized( TT_Face    face,
+                        FT_UInt    num_coords,
+                        FT_Fixed*  coords,
+                        FT_Fixed*  normalized )
+  {
+    GX_Blend        blend;
+    FT_MM_Var*      mmvar;
+    FT_UInt         i, j;
+    FT_Var_Axis*    a;
+    GX_AVarSegment  av;
+
+
+    blend = face->blend;
+    mmvar = blend->mmvar;
+
+    if ( num_coords > mmvar->num_axis )
+    {
+      FT_TRACE2(( "ft_var_to_normalized:"
+                  " only using first %d of %d coordinates\n",
+                  mmvar->num_axis, num_coords ));
+      num_coords = mmvar->num_axis;
+    }
+
+    /* Axis normalization is a two-stage process.  First we normalize */
+    /* based on the [min,def,max] values for the axis to be [-1,0,1]. */
+    /* Then, if there's an `avar' table, we renormalize this range.   */
+
+    FT_TRACE5(( "design coordinates:\n" ));
+
+    a = mmvar->axis;
+    for ( i = 0; i < num_coords; i++, a++ )
+    {
+      FT_Fixed  coord = coords[i];
+
+
+      FT_TRACE5(( "  %.5f\n", coord / 65536.0 ));
+      if ( coord > a->maximum || coord < a->minimum )
+      {
+        FT_TRACE1((
+          "ft_var_to_normalized: design coordinate %.5f\n"
+          "                      is out of range [%.5f;%.5f]; clamping\n",
+          coord / 65536.0,
+          a->minimum / 65536.0,
+          a->maximum / 65536.0 ));
+
+        if ( coord > a->maximum)
+          coord = a->maximum;
+        else
+          coord = a->minimum;
+      }
+
+      if ( coord < a->def )
+        normalized[i] = -FT_DivFix( coords[i] - a->def,
+                                    a->minimum - a->def );
+      else if ( coord > a->def )
+        normalized[i] = FT_DivFix( coords[i] - a->def,
+                                   a->maximum - a->def );
+      else
+        normalized[i] = 0;
+    }
+
+    FT_TRACE5(( "\n" ));
+
+    for ( ; i < mmvar->num_axis; i++ )
+      normalized[i] = 0;
+
+    if ( blend->avar_segment )
+    {
+      FT_TRACE5(( "normalized design coordinates"
+                  " before applying `avar' data:\n" ));
+
+      av = blend->avar_segment;
+      for ( i = 0; i < mmvar->num_axis; i++, av++ )
+      {
+        for ( j = 1; j < (FT_UInt)av->pairCount; j++ )
+        {
+          if ( normalized[i] < av->correspondence[j].fromCoord )
+          {
+            FT_TRACE5(( "  %.5f\n", normalized[i] / 65536.0 ));
+
+            normalized[i] =
+              FT_MulDiv( normalized[i] - av->correspondence[j - 1].fromCoord,
+                         av->correspondence[j].toCoord -
+                           av->correspondence[j - 1].toCoord,
+                         av->correspondence[j].fromCoord -
+                           av->correspondence[j - 1].fromCoord ) +
+              av->correspondence[j - 1].toCoord;
+            break;
+          }
+        }
+      }
+    }
+  }
+
+
+  /* convert from normalized coordinates to design coordinates */
+
+  static void
+  ft_var_to_design( TT_Face    face,
+                    FT_UInt    num_coords,
+                    FT_Fixed*  coords,
+                    FT_Fixed*  design )
+  {
+    GX_Blend      blend;
+    FT_MM_Var*    mmvar;
+    FT_Var_Axis*  a;
+
+    FT_UInt  i, j, nc;
+
+
+    blend = face->blend;
+
+    nc = num_coords;
+    if ( num_coords > blend->num_axis )
+    {
+      FT_TRACE2(( "ft_var_to_design:"
+                  " only using first %d of %d coordinates\n",
+                  blend->num_axis, num_coords ));
+      nc = blend->num_axis;
+    }
+
+    if ( face->doblend )
+    {
+      for ( i = 0; i < nc; i++ )
+        design[i] = coords[i];
+    }
+    else
+    {
+      for ( i = 0; i < nc; i++ )
+        design[i] = 0;
+    }
+
+    for ( ; i < num_coords; i++ )
+      design[i] = 0;
+
+    if ( blend->avar_segment )
+    {
+      GX_AVarSegment  av = blend->avar_segment;
+
+
+      FT_TRACE5(( "design coordinates"
+                  " after removing `avar' distortion:\n" ));
+
+      for ( i = 0; i < nc; i++, av++ )
+      {
+        for ( j = 1; j < (FT_UInt)av->pairCount; j++ )
+        {
+          if ( design[i] < av->correspondence[j].toCoord )
+          {
+            design[i] =
+              FT_MulDiv( design[i] - av->correspondence[j - 1].toCoord,
+                         av->correspondence[j].fromCoord -
+                           av->correspondence[j - 1].fromCoord,
+                         av->correspondence[j].toCoord -
+                           av->correspondence[j - 1].toCoord ) +
+              av->correspondence[j - 1].fromCoord;
+
+            FT_TRACE5(( "  %.5f\n", design[i] / 65536.0 ));
+            break;
+          }
+        }
+      }
+    }
+
+    mmvar = blend->mmvar;
+    a     = mmvar->axis;
+
+    for ( i = 0; i < nc; i++, a++ )
+    {
+      if ( design[i] < 0 )
+        design[i] = a->def + FT_MulFix( design[i],
+                                        a->def - a->minimum );
+      else if ( design[i] > 0 )
+        design[i] = a->def + FT_MulFix( design[i],
+                                        a->maximum - a->def );
+      else
+        design[i] = a->def;
+    }
+  }
+
+
   /*************************************************************************/
   /*************************************************************************/
   /*****                                                               *****/
@@ -1755,14 +1943,17 @@
     FT_ULong             table_len;
     FT_Error             error  = FT_Err_Ok;
     FT_ULong             fvar_start;
-    FT_Int               i, j;
+    FT_UInt              i, j;
     FT_MM_Var*           mmvar = NULL;
     FT_Fixed*            next_coords;
+    FT_Fixed*            nsc;
     FT_String*           next_name;
     FT_Var_Axis*         a;
+    FT_Fixed*            c;
     FT_Var_Named_Style*  ns;
     GX_FVar_Head         fvar_head;
     FT_Bool              usePsName;
+    FT_UInt              num_instances;
 
     static const FT_Frame_Field  fvar_fields[] =
     {
@@ -1843,12 +2034,18 @@
       if ( FT_NEW( face->blend ) )
         goto Exit;
 
-      /* cannot overflow 32-bit arithmetic because of limits above */
+      /* `num_instances' holds the number of all named instances, */
+      /* including the default instance which might be missing    */
+      /* in fvar's table of named instances                       */
+      num_instances = face->root.style_flags >> 16;
+
+      /* cannot overflow 32-bit arithmetic because of the size limits */
+      /* used in the `fvar' table validity check in `sfnt_init_face'  */
       face->blend->mmvar_len =
         sizeof ( FT_MM_Var ) +
         fvar_head.axisCount * sizeof ( FT_Var_Axis ) +
-        fvar_head.instanceCount * sizeof ( FT_Var_Named_Style ) +
-        fvar_head.instanceCount * fvar_head.axisCount * sizeof ( FT_Fixed ) +
+        num_instances * sizeof ( FT_Var_Named_Style ) +
+        num_instances * fvar_head.axisCount * sizeof ( FT_Fixed ) +
         5 * fvar_head.axisCount;
 
       if ( FT_ALLOC( mmvar, face->blend->mmvar_len ) )
@@ -1865,15 +2062,15 @@
                                /* may have a different number of designs  */
                                /* (or tuples, as called by Apple)         */
       mmvar->num_namedstyles =
-        fvar_head.instanceCount;
+        num_instances;
       mmvar->axis =
         (FT_Var_Axis*)&( mmvar[1] );
       mmvar->namedstyle =
         (FT_Var_Named_Style*)&( mmvar->axis[fvar_head.axisCount] );
 
       next_coords =
-        (FT_Fixed*)&( mmvar->namedstyle[fvar_head.instanceCount] );
-      for ( i = 0; i < fvar_head.instanceCount; i++ )
+        (FT_Fixed*)&( mmvar->namedstyle[num_instances] );
+      for ( i = 0; i < num_instances; i++ )
       {
         mmvar->namedstyle[i].coords  = next_coords;
         next_coords                 += fvar_head.axisCount;
@@ -1933,7 +2130,17 @@
 
       FT_TRACE5(( "\n" ));
 
-      ns = mmvar->namedstyle;
+      /* named instance coordinates are stored as design coordinates; */
+      /* we have to convert them to normalized coordinates also       */
+      if ( FT_NEW_ARRAY( face->blend->normalized_stylecoords,
+                         fvar_head.axisCount * num_instances ) )
+        goto Exit;
+
+      if ( fvar_head.instanceCount && !face->blend->avar_loaded )
+        ft_var_load_avar( face );
+
+      ns  = mmvar->namedstyle;
+      nsc = face->blend->normalized_stylecoords;
       for ( i = 0; i < fvar_head.instanceCount; i++, ns++ )
       {
         /* PostScript names add 2 bytes to the instance record size */
@@ -1944,13 +2151,69 @@
         ns->strid       =    FT_GET_USHORT();
         (void) /* flags = */ FT_GET_USHORT();
 
-        for ( j = 0; j < fvar_head.axisCount; j++ )
-          ns->coords[j] = FT_GET_LONG();
+        c = ns->coords;
+        for ( j = 0; j < fvar_head.axisCount; j++, c++ )
+          *c = FT_GET_LONG();
 
         if ( usePsName )
           ns->psid = FT_GET_USHORT();
 
+        ft_var_to_normalized( face,
+                              fvar_head.axisCount,
+                              ns->coords,
+                              nsc );
+        nsc += fvar_head.axisCount;
+
         FT_FRAME_EXIT();
+      }
+
+      if ( num_instances != fvar_head.instanceCount )
+      {
+        SFNT_Service  sfnt = (SFNT_Service)face->sfnt;
+
+        FT_Int  found, win, apple;
+
+
+        /* the default instance is missing in array the   */
+        /* of named instances; try to synthesize an entry */
+        found = sfnt->get_name_id( face,
+                                   TT_NAME_ID_TYPOGRAPHIC_SUBFAMILY,
+                                   &win,
+                                   &apple );
+        if ( !found )
+          found = sfnt->get_name_id( face,
+                                     TT_NAME_ID_FONT_SUBFAMILY,
+                                     &win,
+                                     &apple );
+
+        if ( found )
+        {
+          FT_Int  strid = win >= 0 ? win : apple;
+
+
+          found = sfnt->get_name_id( face,
+                                     TT_NAME_ID_PS_NAME,
+                                     &win,
+                                     &apple );
+          if ( found )
+          {
+            FT_Int  psid = win >= 0 ? win : apple;
+
+
+            FT_TRACE5(( "TT_Get_MM_Var:"
+                        " Adding default instance to named instances\n" ));
+
+            ns = &mmvar->namedstyle[fvar_head.instanceCount];
+
+            ns->strid = strid;
+            ns->psid  = psid;
+
+            a = mmvar->axis;
+            c = ns->coords;
+            for ( j = 0; j < fvar_head.axisCount; j++, a++, c++ )
+              *c = a->def;
+          }
+        }
       }
 
       ft_var_load_mvar( face );
@@ -2008,40 +2271,16 @@
   }
 
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* <Function>                                                            */
-  /*    TT_Set_MM_Blend                                                    */
-  /*                                                                       */
-  /* <Description>                                                         */
-  /*    Set the blend (normalized) coordinates for this instance of the    */
-  /*    font.  Check that the `gvar' table is reasonable and does some     */
-  /*    initial preparation.                                               */
-  /*                                                                       */
-  /* <InOut>                                                               */
-  /*    face       :: The font.                                            */
-  /*                  Initialize the blend structure with `gvar' data.     */
-  /*                                                                       */
-  /* <Input>                                                               */
-  /*    num_coords :: The number of available coordinates.  If it is       */
-  /*                  larger than the number of axes, ignore the excess    */
-  /*                  values.  If it is smaller than the number of axes,   */
-  /*                  use the default value (0) for the remaining axes.    */
-  /*                                                                       */
-  /*    coords     :: An array of `num_coords', each between [-1,1].       */
-  /*                                                                       */
-  /* <Return>                                                              */
-  /*    FreeType error code.  0 means success.                             */
-  /*                                                                       */
-  FT_LOCAL_DEF( FT_Error )
-  TT_Set_MM_Blend( TT_Face    face,
+  static FT_Error
+  tt_set_mm_blend( TT_Face    face,
                    FT_UInt    num_coords,
-                   FT_Fixed*  coords )
+                   FT_Fixed*  coords,
+                   FT_Bool    set_design_coords )
   {
     FT_Error    error = FT_Err_Ok;
     GX_Blend    blend;
     FT_MM_Var*  mmvar;
-    FT_UInt     i;
+    FT_UInt     i, j;
     FT_Bool     is_default_instance = 1;
     FT_Memory   memory = face->root.memory;
 
@@ -2067,7 +2306,8 @@
 
     if ( num_coords > mmvar->num_axis )
     {
-      FT_TRACE2(( "TT_Set_MM_Blend: only using first %d of %d coordinates\n",
+      FT_TRACE2(( "TT_Set_MM_Blend:"
+                  " only using first %d of %d coordinates\n",
                   mmvar->num_axis, num_coords ));
       num_coords = mmvar->num_axis;
     }
@@ -2092,9 +2332,15 @@
 
     FT_TRACE5(( "\n" ));
 
-    if ( !face->isCFF2 && !blend->glyphoffsets )
+    if ( !face->is_cff2 && !blend->glyphoffsets )
       if ( FT_SET_ERROR( ft_var_load_gvar( face ) ) )
         goto Exit;
+
+    if ( !blend->coords )
+    {
+      if ( FT_NEW_ARRAY( blend->coords, mmvar->num_axis ) )
+        goto Exit;
+    }
 
     if ( !blend->normalizedcoords )
     {
@@ -2140,6 +2386,12 @@
                  coords,
                  num_coords * sizeof ( FT_Fixed ) );
 
+    if ( set_design_coords )
+      ft_var_to_design( face,
+                        num_coords,
+                        blend->normalizedcoords,
+                        blend->coords );
+
     face->doblend = TRUE;
 
     if ( face->cvt )
@@ -2167,10 +2419,68 @@
       }
     }
 
+    /* check whether the current variation tuple coincides */
+    /* with a named instance                               */
+
+    for ( i = 0; i < blend->mmvar->num_namedstyles; i++ )
+    {
+      FT_Fixed*  nsc = blend->normalized_stylecoords + i * blend->num_axis;
+      FT_Fixed*  ns  = blend->normalizedcoords;
+
+
+      for ( j = 0; j < blend->num_axis; j++, nsc++, ns++ )
+      {
+        if ( *nsc != *ns )
+          break;
+      }
+
+      if ( j == blend->num_axis )
+        break;
+    }
+
+    /* adjust named instance index */
+    face->root.face_index &= 0xFFFF;
+    if ( i < blend->mmvar->num_namedstyles )
+      face->root.face_index |= ( i + 1 ) << 16;
+
     face->is_default_instance = is_default_instance;
 
   Exit:
     return error;
+  }
+
+
+  /*************************************************************************/
+  /*                                                                       */
+  /* <Function>                                                            */
+  /*    TT_Set_MM_Blend                                                    */
+  /*                                                                       */
+  /* <Description>                                                         */
+  /*    Set the blend (normalized) coordinates for this instance of the    */
+  /*    font.  Check that the `gvar' table is reasonable and does some     */
+  /*    initial preparation.                                               */
+  /*                                                                       */
+  /* <InOut>                                                               */
+  /*    face       :: The font.                                            */
+  /*                  Initialize the blend structure with `gvar' data.     */
+  /*                                                                       */
+  /* <Input>                                                               */
+  /*    num_coords :: The number of available coordinates.  If it is       */
+  /*                  larger than the number of axes, ignore the excess    */
+  /*                  values.  If it is smaller than the number of axes,   */
+  /*                  use the default value (0) for the remaining axes.    */
+  /*                                                                       */
+  /*    coords     :: An array of `num_coords', each between [-1,1].       */
+  /*                                                                       */
+  /* <Return>                                                              */
+  /*    FreeType error code.  0 means success.                             */
+  /*                                                                       */
+  FT_LOCAL_DEF( FT_Error )
+  TT_Set_MM_Blend( TT_Face    face,
+                   FT_UInt    num_coords,
+                   FT_Fixed*  coords )
+  {
+    return tt_set_mm_blend( face, num_coords, coords, 1 );
   }
 
 
@@ -2218,7 +2528,8 @@
     nc = num_coords;
     if ( num_coords > blend->num_axis )
     {
-      FT_TRACE2(( "TT_Get_MM_Blend: only using first %d of %d coordinates\n",
+      FT_TRACE2(( "TT_Get_MM_Blend:"
+                  " only using first %d of %d coordinates\n",
                   blend->num_axis, num_coords ));
       nc = blend->num_axis;
     }
@@ -2271,14 +2582,16 @@
                      FT_UInt    num_coords,
                      FT_Fixed*  coords )
   {
-    FT_Error        error      = FT_Err_Ok;
-    FT_Fixed*       normalized = NULL;
-    GX_Blend        blend;
-    FT_MM_Var*      mmvar;
-    FT_UInt         i, j;
-    FT_Var_Axis*    a;
-    GX_AVarSegment  av;
-    FT_Memory       memory = face->root.memory;
+    FT_Error    error  = FT_Err_Ok;
+    GX_Blend    blend;
+    FT_MM_Var*  mmvar;
+    FT_UInt     i;
+    FT_Memory   memory = face->root.memory;
+
+    FT_Var_Axis*  a;
+    FT_Fixed*     c;
+
+    FT_Fixed*  normalized = NULL;
 
 
     if ( !face->blend )
@@ -2298,83 +2611,30 @@
       num_coords = mmvar->num_axis;
     }
 
-    /* Axis normalization is a two-stage process.  First we normalize */
-    /* based on the [min,def,max] values for the axis to be [-1,0,1]. */
-    /* Then, if there's an `avar' table, we renormalize this range.   */
+    if ( !blend->coords )
+    {
+      if ( FT_NEW_ARRAY( blend->coords, mmvar->num_axis ) )
+        goto Exit;
+    }
+
+    FT_MEM_COPY( blend->coords,
+                 coords,
+                 num_coords * sizeof ( FT_Fixed ) );
+
+    a = mmvar->axis + num_coords;
+    c = coords + num_coords;
+    for ( i = num_coords; i < mmvar->num_axis; i++, a++, c++ )
+      *c = a->def;
 
     if ( FT_NEW_ARRAY( normalized, mmvar->num_axis ) )
       goto Exit;
 
-    FT_TRACE5(( "design coordinates:\n" ));
-
-    a = mmvar->axis;
-    for ( i = 0; i < num_coords; i++, a++ )
-    {
-      FT_Fixed  coord = coords[i];
-
-
-      FT_TRACE5(( "  %.5f\n", coord / 65536.0 ));
-      if ( coord > a->maximum || coord < a->minimum )
-      {
-        FT_TRACE1((
-          "TT_Set_Var_Design: design coordinate %.5f\n"
-          "                   is out of range [%.5f;%.5f]; clamping\n",
-          coord / 65536.0,
-          a->minimum / 65536.0,
-          a->maximum / 65536.0 ));
-
-        if ( coord > a->maximum)
-          coord = a->maximum;
-        else
-          coord = a->minimum;
-      }
-
-      if ( coord < a->def )
-        normalized[i] = -FT_DivFix( coords[i] - a->def,
-                                    a->minimum - a->def );
-      else if ( coord > a->def )
-        normalized[i] = FT_DivFix( coords[i] - a->def,
-                                   a->maximum - a->def );
-      else
-        normalized[i] = 0;
-    }
-
-    FT_TRACE5(( "\n" ));
-
-    for ( ; i < mmvar->num_axis; i++ )
-      normalized[i] = 0;
-
-    if ( !blend->avar_checked )
+    if ( !face->blend->avar_loaded )
       ft_var_load_avar( face );
 
-    if ( blend->avar_segment )
-    {
-      FT_TRACE5(( "normalized design coordinates"
-                  " before applying `avar' data:\n" ));
+    ft_var_to_normalized( face, num_coords, coords, normalized );
 
-      av = blend->avar_segment;
-      for ( i = 0; i < mmvar->num_axis; i++, av++ )
-      {
-        for ( j = 1; j < (FT_UInt)av->pairCount; j++ )
-        {
-          if ( normalized[i] < av->correspondence[j].fromCoord )
-          {
-            FT_TRACE5(( "  %.5f\n", normalized[i] / 65536.0 ));
-
-            normalized[i] =
-              FT_MulDiv( normalized[i] - av->correspondence[j - 1].fromCoord,
-                         av->correspondence[j].toCoord -
-                           av->correspondence[j - 1].toCoord,
-                         av->correspondence[j].fromCoord -
-                           av->correspondence[j - 1].fromCoord ) +
-              av->correspondence[j - 1].toCoord;
-            break;
-          }
-        }
-      }
-    }
-
-    error = TT_Set_MM_Blend( face, mmvar->num_axis, normalized );
+    error = tt_set_mm_blend( face, mmvar->num_axis, normalized, 0 );
 
   Exit:
     FT_FREE( normalized );
@@ -2410,12 +2670,8 @@
                      FT_Fixed*  coords )
   {
     FT_Error  error = FT_Err_Ok;
-
-    GX_Blend      blend;
-    FT_MM_Var*    mmvar;
-    FT_Var_Axis*  a;
-
-    FT_UInt  i, j, nc;
+    GX_Blend  blend;
+    FT_UInt   i, nc;
 
 
     if ( !face->blend )
@@ -2429,7 +2685,8 @@
     nc = num_coords;
     if ( num_coords > blend->num_axis )
     {
-      FT_TRACE2(( "TT_Get_Var_Design: only using first %d of %d coordinates\n",
+      FT_TRACE2(( "TT_Get_Var_Design:"
+                  " only using first %d of %d coordinates\n",
                   blend->num_axis, num_coords ));
       nc = blend->num_axis;
     }
@@ -2437,7 +2694,7 @@
     if ( face->doblend )
     {
       for ( i = 0; i < nc; i++ )
-        coords[i] = blend->normalizedcoords[i];
+        coords[i] = blend->coords[i];
     }
     else
     {
@@ -2447,53 +2704,6 @@
 
     for ( ; i < num_coords; i++ )
       coords[i] = 0;
-
-    if ( !blend->avar_checked )
-      ft_var_load_avar( face );
-
-    if ( blend->avar_segment )
-    {
-      GX_AVarSegment  av = blend->avar_segment;
-
-
-      FT_TRACE5(( "design coordinates"
-                  " after removing `avar' distortion:\n" ));
-
-      for ( i = 0; i < nc; i++, av++ )
-      {
-        for ( j = 1; j < (FT_UInt)av->pairCount; j++ )
-        {
-          if ( coords[i] < av->correspondence[j].toCoord )
-          {
-            coords[i] =
-              FT_MulDiv( coords[i] - av->correspondence[j - 1].toCoord,
-                         av->correspondence[j].fromCoord -
-                           av->correspondence[j - 1].fromCoord,
-                         av->correspondence[j].toCoord -
-                           av->correspondence[j - 1].toCoord ) +
-              av->correspondence[j - 1].fromCoord;
-
-            FT_TRACE5(( "  %.5f\n", coords[i] / 65536.0 ));
-            break;
-          }
-        }
-      }
-    }
-
-    mmvar = blend->mmvar;
-    a     = mmvar->axis;
-
-    for ( i = 0; i < nc; i++, a++ )
-    {
-      if ( coords[i] < 0 )
-        coords[i] = a->def + FT_MulFix( coords[i],
-                                        a->def - a->minimum );
-      else if ( coords[i] > 0 )
-        coords[i] = a->def + FT_MulFix( coords[i],
-                                        a->maximum - a->def );
-      else
-        coords[i] = a->def;
-    }
 
     return FT_Err_Ok;
   }
@@ -3380,16 +3590,19 @@
   tt_get_var_blend( TT_Face      face,
                     FT_UInt     *num_coords,
                     FT_Fixed*   *coords,
+                    FT_Fixed*   *normalizedcoords,
                     FT_MM_Var*  *mm_var )
   {
     if ( face->blend )
     {
       if ( num_coords )
-        *num_coords = face->blend->num_axis;
+        *num_coords       = face->blend->num_axis;
       if ( coords )
-        *coords     = face->blend->normalizedcoords;
+        *coords           = face->blend->coords;
+      if ( normalizedcoords )
+        *normalizedcoords = face->blend->normalizedcoords;
       if ( mm_var )
-        *mm_var     = face->blend->mmvar;
+        *mm_var           = face->blend->mmvar;
     }
     else
     {
@@ -3457,7 +3670,9 @@
       /* blend->num_axis might not be set up yet */
       num_axes = blend->mmvar->num_axis;
 
+      FT_FREE( blend->coords );
       FT_FREE( blend->normalizedcoords );
+      FT_FREE( blend->normalized_stylecoords );
       FT_FREE( blend->mmvar );
 
       if ( blend->avar_segment )
