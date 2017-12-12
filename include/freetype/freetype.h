@@ -175,6 +175,7 @@ FT_BEGIN_HEADER
   /*    FT_Done_Face                                                       */
   /*    FT_Reference_Face                                                  */
   /*    FT_New_Memory_Face                                                 */
+  /*    FT_Face_Properties                                                 */
   /*    FT_Open_Face                                                       */
   /*    FT_Open_Args                                                       */
   /*    FT_Parameter                                                       */
@@ -676,7 +677,7 @@ FT_BEGIN_HEADER
   /*    FT_ENCODING_JOHAB ::                                               */
   /*      The Korean standard character set (KS~C 5601-1992), which        */
   /*      corresponds to MS Windows code page 1361.  This character set    */
-  /*      includes all possible Hangeul character combinations.            */
+  /*      includes all possible Hangul character combinations.             */
   /*                                                                       */
   /*    FT_ENCODING_ADOBE_LATIN_1 ::                                       */
   /*      Corresponds to a Latin-1 encoding as defined in a Type~1         */
@@ -910,7 +911,10 @@ FT_BEGIN_HEADER
   /*                           available for the current face if we have a */
   /*                           GX or OpenType variation (sub)font.  Bit 31 */
   /*                           is always zero (this is, `style_flags' is   */
-  /*                           always a positive value).                   */
+  /*                           always a positive value).  Note that a      */
+  /*                           variation font has always at least one      */
+  /*                           named instance, namely the default          */
+  /*                           instance.                                   */
   /*                                                                       */
   /*    num_glyphs          :: The number of glyphs in the face.  If the   */
   /*                           face is scalable and has sbits (see         */
@@ -1925,7 +1929,7 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /* <Description>                                                         */
   /*    A simple structure to pass more or less generic parameters to      */
-  /*    @FT_Open_Face.                                                     */
+  /*    @FT_Open_Face and @FT_Face_Properties.                             */
   /*                                                                       */
   /* <Fields>                                                              */
   /*    tag  :: A four-byte identification tag.                            */
@@ -3610,6 +3614,102 @@ FT_BEGIN_HEADER
   FT_Get_Next_Char( FT_Face    face,
                     FT_ULong   char_code,
                     FT_UInt   *agindex );
+
+
+  /*************************************************************************
+   *
+   * @function:
+   *   FT_Face_Properties
+   *
+   * @description:
+   *   Set or override certain (library or module-wide) properties on a
+   *   face-by-face basis.  Useful for finer-grained control and avoiding
+   *   locks on shared structures (threads can modify their own faces as
+   *   they see fit).
+   *
+   *   Contrary to @FT_Property_Set, this function uses @FT_Parameter so
+   *   that you can pass multiple properties to the target face in one call.
+   *   Note that only a subset of the available properties can be
+   *   controlled.
+   *
+   *   * Stem darkening (@FT_PARAM_TAG_STEM_DARKENING, corresponding to the
+   *     property `no-stem-darkening' provided by the `autofit' and `cff'
+   *     modules; see @no-stem-darkening[autofit] and
+   *     @no-stem-darkening[cff]).
+   *
+   *   * LCD filter weights (@FT_PARAM_TAG_LCD_FILTER_WEIGHTS, corresponding
+   *     to function @FT_Library_SetLcdFilterWeights).
+   *
+   *   * Seed value for the CFF `random' operator
+   *     (@FT_PARAM_TAG_RANDOM_SEED, corresponding to the `random-seed'
+   *     property provided by the `cff' module; see @random-seed).
+   *
+   *   Pass NULL as `data' in @FT_Parameter for a given tag to reset the
+   *   option and use the library or module default again.
+   *
+   * @input:
+   *   face ::
+   *     A handle to the source face object.
+   *
+   *   num_properties ::
+   *     The number of properties that follow.
+   *
+   *   properties ::
+   *     A handle to an @FT_Parameter array with `num_properties' elements.
+   *
+   * @return:
+   *   FreeType error code.  0~means success.
+   *
+   * @note:
+   *   Here an example that sets three properties.  You must define
+   *   FT_CONFIG_OPTION_SUBPIXEL_RENDERING to make the LCD filter examples
+   *   work.
+   *
+   *   {
+   *     FT_Parameter         property1;
+   *     FT_Bool              darken_stems = 1;
+   *
+   *     FT_Parameter         property2;
+   *     FT_LcdFiveTapFilter  custom_weight =
+   *                            { 0x11, 0x44, 0x56, 0x44, 0x11 };
+   *
+   *     FT_Parameter         property3;
+   *     FT_Int32             random_seed = 314159265;
+   *
+   *     FT_Parameter         properties[3] = { property1,
+   *                                            property2,
+   *                                            property3 };
+   *
+   *
+   *     property1.tag  = FT_PARAM_TAG_STEM_DARKENING;
+   *     property1.data = &darken_stems;
+   *
+   *     property2.tag  = FT_PARAM_TAG_LCD_FILTER_WEIGHTS;
+   *     property2.data = custom_weight;
+   *
+   *     property3.tag  = FT_PARAM_TAG_RANDOM_SEED;
+   *     property3.data = &random_seed;
+   *
+   *     FT_Face_Properties( face, 3, properties );
+   *   }
+   *
+   *   The next example resets a single property to its default value.
+   *
+   *   {
+   *     FT_Parameter  property;
+   *
+   *
+   *     property.tag  = FT_PARAM_TAG_LCD_FILTER_WEIGHTS;
+   *     property.data = NULL;
+   *
+   *     FT_Face_Properties( face, 1, &property );
+   *   }
+   *
+   */
+  FT_EXPORT( FT_Error )
+  FT_Face_Properties( FT_Face        face,
+                      FT_UInt        num_properties,
+                      FT_Parameter*  properties );
 
 
   /*************************************************************************/
