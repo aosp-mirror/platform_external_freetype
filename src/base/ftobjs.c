@@ -37,6 +37,9 @@
 #include FT_SERVICE_KERNING_H
 #include FT_SERVICE_TRUETYPE_ENGINE_H
 
+#include FT_AUTOHINTER_H
+#include FT_CFF_DRIVER_H
+
 #ifdef FT_CONFIG_OPTION_MAC_FONTS
 #include "ftbase.h"
 #endif
@@ -1185,6 +1188,8 @@
             (FT_Incremental_Interface)params[i].data;
     }
 #endif
+
+    face->internal->random_seed = -1;
 
     if ( clazz->init_face )
       error = clazz->init_face( *astream,
@@ -2424,6 +2429,12 @@
       internal->transform_delta.y = 0;
 
       internal->refcount = 1;
+
+      internal->no_stem_darkening = -1;
+
+#ifdef FT_CONFIG_OPTION_SUBPIXEL_RENDERING
+      ft_memset( internal->lcd_weights, 0, FT_LCD_FILTER_FIVE_TAPS );
+#endif
     }
 
     if ( aface )
@@ -3586,6 +3597,90 @@
       *agindex = gindex;
 
     return result;
+  }
+
+
+  /* documentation is in freetype.h */
+
+  FT_EXPORT_DEF( FT_Error )
+  FT_Face_Properties( FT_Face        face,
+                      FT_UInt        num_properties,
+                      FT_Parameter*  properties )
+  {
+    FT_Error  error = FT_Err_Ok;
+
+
+    if ( num_properties > 0 && !properties )
+    {
+      error = FT_THROW( Invalid_Argument );
+      goto Exit;
+    }
+
+    for ( ; num_properties > 0; num_properties-- )
+    {
+      if ( properties->tag == FT_PARAM_TAG_STEM_DARKENING )
+      {
+        if ( properties->data )
+        {
+          if ( *( (FT_Bool*)properties->data ) == TRUE )
+            face->internal->no_stem_darkening = FALSE;
+          else
+            face->internal->no_stem_darkening = TRUE;
+        }
+        else
+        {
+          /* use module default */
+          face->internal->no_stem_darkening = -1;
+        }
+      }
+      else if ( properties->tag == FT_PARAM_TAG_LCD_FILTER_WEIGHTS )
+      {
+#ifdef FT_CONFIG_OPTION_SUBPIXEL_RENDERING
+        if ( properties->data )
+          ft_memcpy( face->internal->lcd_weights,
+                     properties->data,
+                     FT_LCD_FILTER_FIVE_TAPS );
+        else
+        {
+          /* Value NULL indicates `no custom weights, use library        */
+          /* defaults', signaled by filling the weight field with zeros. */
+          ft_memset( face->internal->lcd_weights,
+                     0,
+                     FT_LCD_FILTER_FIVE_TAPS );
+        }
+#else
+        error = FT_THROW( Unimplemented_Feature );
+        goto Exit;
+#endif
+      }
+      else if ( properties->tag == FT_PARAM_TAG_RANDOM_SEED )
+      {
+        if ( properties->data )
+        {
+          face->internal->random_seed = *( (FT_Int32*)properties->data );
+          if ( face->internal->random_seed < 0 )
+            face->internal->random_seed = 0;
+        }
+        else
+        {
+          /* use module default */
+          face->internal->random_seed = -1;
+        }
+      }
+      else
+      {
+        error = FT_THROW( Invalid_Argument );
+        goto Exit;
+      }
+
+      if ( error )
+        break;
+
+      properties++;
+    }
+
+  Exit:
+    return error;
   }
 
 
