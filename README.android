@@ -9,7 +9,6 @@ The following modules are disabled in include/freetype/config/ftmodule.h:
   t42
   winfnt
   pcf
-  psaux
   bdf
 
 The following options are disabled in include/freetype/config/ftoption.h:
