@@ -3,7 +3,7 @@
 #
 
 
-# Copyright 1996-2017 by
+# Copyright 1996-2018 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # This file is part of the FreeType project, and may only be used, modified,
@@ -30,6 +30,9 @@
 #
 # We also remove `$(includedir)/ft2build.h' for the same reason.
 #
+# Note that some header files get handled twice for simplicity; a special,
+# configured version overwrites the generic one.
+#
 install: $(PROJECT_LIBRARY)
 	-$(DELDIR) $(DESTDIR)$(includedir)/freetype2
 	-$(DELETE) $(DESTDIR)$(includedir)/ft2build.h
@@ -55,6 +58,8 @@ install: $(PROJECT_LIBRARY)
           $(DESTDIR)$(includedir)/freetype2/freetype/config/ftconfig.h
 	$(INSTALL_DATA) $(OBJ_DIR)/ftmodule.h                          \
           $(DESTDIR)$(includedir)/freetype2/freetype/config/ftmodule.h
+	$(INSTALL_DATA) $(OBJ_BUILD)/ftoption.h                        \
+          $(DESTDIR)$(includedir)/freetype2/freetype/config/ftoption.h
 	$(INSTALL_SCRIPT) -m 755 $(OBJ_BUILD)/freetype-config \
           $(DESTDIR)$(bindir)/freetype-config
 	$(INSTALL_SCRIPT) -m 644 $(BUILD_DIR)/freetype2.m4 \
@@ -83,13 +88,11 @@ check:
 # Unix cleaning and distclean rules.
 #
 clean_project_unix:
-	-$(DELETE) $(BASE_OBJECTS) $(OBJ_M) $(OBJ_S)
-	-$(DELETE) $(patsubst %.$O,%.$(SO),$(BASE_OBJECTS) $(OBJ_M) $(OBJ_S)) \
-                   $(CLEAN)
+	-$(LIBTOOL) --mode=clean $(RM) $(OBJECTS_LIST)
+	-$(DELETE) $(CLEAN)
 
 distclean_project_unix: clean_project_unix
-	-$(DELETE) $(PROJECT_LIBRARY)
-	-$(DELDIR) $(OBJ_DIR)/.libs
+	-$(LIBTOOL) --mode=clean $(RM) $(PROJECT_LIBRARY)
 	-$(DELETE) *.orig *~ core *.core $(DISTCLEAN)
 
 # EOF
