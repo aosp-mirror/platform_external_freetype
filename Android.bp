@@ -34,6 +34,8 @@ cc_library_shared {
         "src/psnames/psnames.c",
         "src/pshinter/pshinter.c",
         "src/psaux/psaux.c",
+        "src/type1/type1.c",
+        "src/cid/type1cid.c",
     ],
 
     export_include_dirs: ["include"],
