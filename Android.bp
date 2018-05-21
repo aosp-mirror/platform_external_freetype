@@ -33,6 +33,9 @@ cc_library_shared {
         "src/cff/cff.c",
         "src/psnames/psnames.c",
         "src/pshinter/pshinter.c",
+        "src/psaux/psaux.c",
+        "src/type1/type1.c",
+        "src/cid/type1cid.c",
     ],
 
     export_include_dirs: ["include"],
@@ -52,6 +55,8 @@ cc_library_shared {
 
         // Upstream ignores unused parameter warning
         "-Wno-unused-parameter",
+        // Disabling some of modules results in warnings
+        "-Wno-unused-variable",
         // the following is for testing only, and should not be used in final
         // builds of the product
         // "-DTT_CONFIG_OPTION_BYTECODE_INTERPRETER",

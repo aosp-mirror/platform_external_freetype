@@ -9,7 +9,6 @@ The following modules are disabled in include/freetype/config/ftmodule.h:
   t42
   winfnt
   pcf
-  psaux
   bdf
 
 The following options are disabled in include/freetype/config/ftoption.h:
@@ -21,3 +20,14 @@ The following options are disabled in include/freetype/config/ftoption.h:
 The following option is enabled to support color fonts.
 
   FT_CONFIG_OPTION_USE_PNG
+
+HOW TO UPDATE
+* Check out external/freetype to <checkout_dir>
+  ex: git clone https://android.googlesource.com/platform/external/freetype
+* Locate the commit you'd like to move.
+  ex: for 2.8.1: http://git.savannah.gnu.org/cgit/freetype/freetype2.git/commit/?h=VER-2-8-1&id=39ce3ac499d4cd7371031a062f410953c8ecce29
+* In <checkout_dir>, run git merge <commit_sha>
+  i.e. git merge 39ce3ac499d4cd7371031a062f410953c8ecce29
+* Upload the changes.
+  ex: git push origin HEAD:refs/for/master
+* Gerrit will run the text related tests.
