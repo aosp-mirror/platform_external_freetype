@@ -3,8 +3,6 @@ Freetype
 There are the following local modifications:
 
 The following modules are disabled in include/freetype/config/ftmodule.h:
-  t1
-  t1cid
   pfr
   t42
   winfnt
@@ -31,3 +29,8 @@ HOW TO UPDATE
 * Upload the changes.
   ex: git push origin HEAD:refs/for/master
 * Gerrit will run the text related tests.
+
+NOTE:
+ Since Chromium updates FreeType more frequently, you can check the following URL for their changes
+ and latest merges:
+ https://chromium.googlesource.com/chromium/src/+log/master/third_party/freetype
