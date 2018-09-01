@@ -35,6 +35,10 @@
 #
 #   cmake -E chdir build cmake -G Xcode -D IOS_PLATFORM=SIMULATOR ..
 #
+# or
+#
+#   cmake -E chdir build cmake -G Xcode -D IOS_PLATFORM=SIMULATOR64 ..
+#
 # Finally, build the project with:
 #
 #   cmake --build build
@@ -96,9 +100,10 @@ include(CheckIncludeFile)
 if (APPLE)
   if (DEFINED IOS_PLATFORM)
     if (NOT "${IOS_PLATFORM}" STREQUAL "OS"
-        AND NOT "${IOS_PLATFORM}" STREQUAL "SIMULATOR")
+        AND NOT "${IOS_PLATFORM}" STREQUAL "SIMULATOR"
+        AND NOT "${IOS_PLATFORM}" STREQUAL "SIMULATOR64")
       message(FATAL_ERROR
-        "IOS_PLATFORM must be set to either OS or SIMULATOR")
+        "IOS_PLATFORM must be set to either OS, SIMULATOR, or SIMULATOR64")
     endif ()
     if (NOT "${CMAKE_GENERATOR}" STREQUAL "Xcode")
       message(AUTHOR_WARNING
@@ -153,7 +158,7 @@ option(FT_WITH_HARFBUZZ "Improve auto-hinting of OpenType fonts." OFF)
 
 
 # Disallow in-source builds
-if ("${PROJECT_BINARY_DIR}" STREQUAL "${PROJECT_SOURCE_DIR}")
+if ("${CMAKE_BINARY_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
   message(FATAL_ERROR
     "In-source builds are not permitted!  Make a separate folder for"
     " building, e.g.,\n"
@@ -229,9 +234,12 @@ if (UNIX)
   endif ()
   string(REPLACE "/undef " "#undef "
     FTCONFIG_H "${FTCONFIG_H}")
-  file(WRITE "${PROJECT_BINARY_DIR}/include/freetype/config/ftconfig.h"
-    "${FTCONFIG_H}")
+else()
+  file(READ "${PROJECT_SOURCE_DIR}/include/freetype/config/ftconfig.h"
+    FTCONFIG_H)
 endif ()
+file(WRITE "${PROJECT_BINARY_DIR}/include/freetype/config/ftconfig.h"
+  "${FTCONFIG_H}")
 
 
 # Create the options file
@@ -345,6 +353,10 @@ target_compile_definitions(
 if (WIN32)
   target_compile_definitions(
     freetype PRIVATE _CRT_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_WARNINGS)
+  if (BUILD_SHARED_LIBS)
+    target_compile_definitions(
+      freetype PRIVATE DLL_EXPORT)
+  endif ()
 endif ()
 
 if (BUILD_SHARED_LIBS)
@@ -353,17 +365,17 @@ if (BUILD_SHARED_LIBS)
     SOVERSION ${LIBRARY_SOVERSION})
 endif ()
 
-target_include_directories(
-  freetype BEFORE  # Pick up ftconfig.h and ftoption.h generated above.
-    PRIVATE "${PROJECT_BINARY_DIR}/include")
-
+# Pick up ftconfig.h and ftoption.h generated above, first.
 target_include_directories(
   freetype
-    PRIVATE "${PROJECT_SOURCE_DIR}/include")
+    PUBLIC
+      $<INSTALL_INTERFACE:include/freetype2>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    PRIVATE 
+      ${CMAKE_CURRENT_BINARY_DIR}/include
+      ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-target_include_directories(
-  freetype
-    PUBLIC $<INSTALL_INTERFACE:include/freetype2>)
 
 if (BUILD_FRAMEWORK)
   set_property(SOURCE ${PUBLIC_CONFIG_HEADERS}
