@@ -1,5 +1,6 @@
 cc_library_shared {
     name: "libft2",
+    host_supported: true,
 
     // compile in ARM mode, since the glyph loader/renderer is a hotspot
     // when loading complex pages in the browser
