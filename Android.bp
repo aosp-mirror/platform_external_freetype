@@ -45,9 +45,6 @@ cc_library_shared {
         "-Wall",
         "-Werror",
 
-        "-fPIC",
-        "-DPIC",
-
         "-DDARWIN_NO_CARBON",
         "-DFT2_BUILD_LIBRARY",
 
@@ -66,6 +63,24 @@ cc_library_shared {
         "libpng",
         "libz",
     ],
+
+    target: {
+        android: {
+            cflags: [
+                "-fPIC",
+                "-DPIC",
+            ],
+        },
+        not_windows: {
+            cflags: [
+                "-fPIC",
+                "-DPIC",
+            ],
+        },
+        windows: {
+            enabled: true,
+        },
+    },
 }
 
 llndk_library {
