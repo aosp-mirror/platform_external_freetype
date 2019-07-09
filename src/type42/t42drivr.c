@@ -4,7 +4,7 @@
  *
  *   High-level Type 42 driver interface (body).
  *
- * Copyright 2002-2018 by
+ * Copyright (C) 2002-2019 by
  * Roberto Alameda.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -47,7 +47,7 @@
 #include FT_SERVICE_POSTSCRIPT_INFO_H
 
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_t42
+#define FT_COMPONENT  t42
 
 
   /*
@@ -69,8 +69,8 @@
 
 
   static FT_UInt
-  t42_get_name_index( T42_Face    face,
-                      FT_String*  glyph_name )
+  t42_get_name_index( T42_Face          face,
+                      const FT_String*  glyph_name )
   {
     FT_Int  i;
 

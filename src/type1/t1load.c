@@ -4,7 +4,7 @@
  *
  *   Type 1 font loader (body).
  *
- * Copyright 1996-2018 by
+ * Copyright (C) 1996-2019 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -73,7 +73,7 @@
 
 
 #ifdef FT_CONFIG_OPTION_INCREMENTAL
-#define IS_INCREMENTAL  (FT_Bool)( face->root.internal->incremental_interface != 0 )
+#define IS_INCREMENTAL  FT_BOOL( face->root.internal->incremental_interface )
 #else
 #define IS_INCREMENTAL  0
 #endif
@@ -86,7 +86,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_t1load
+#define FT_COMPONENT  t1load
 
 
 #ifndef T1_CONFIG_OPTION_NO_MM_SUPPORT
@@ -384,23 +384,30 @@
     for ( n = 0; n < blend->num_designs; n++ )
     {
       FT_Fixed  result = 0x10000L;  /* 1.0 fixed */
+      FT_Fixed  factor;
 
 
       for ( m = 0; m < blend->num_axis; m++ )
       {
-        FT_Fixed  factor;
-
-
-        /* get current blend axis position;                  */
         /* use a default value if we don't have a coordinate */
-        factor = m < num_coords ? coords[m] : 0x8000;
-        if ( factor < 0 )
-          factor = 0;
-        if ( factor > 0x10000L )
-          factor = 0x10000L;
+        if ( m >= num_coords )
+        {
+          result >>= 1;
+          continue;
+        }
 
+        /* get current blend axis position */
+        factor = coords[m];
         if ( ( n & ( 1 << m ) ) == 0 )
           factor = 0x10000L - factor;
+
+        if ( factor <= 0 )
+        {
+          result = 0;
+          break;
+        }
+        else if ( factor >= 0x10000L )
+          continue;
 
         result = FT_MulFix( result, factor );
       }
@@ -468,6 +475,75 @@
       coords[i] = axiscoords[i];
     for ( ; i < num_coords; i++ )
       coords[i] = 0x8000;
+
+    return FT_Err_Ok;
+  }
+
+
+  FT_LOCAL_DEF( FT_Error )
+  T1_Set_MM_WeightVector( T1_Face    face,
+                          FT_UInt    len,
+                          FT_Fixed*  weightvector )
+  {
+    PS_Blend  blend = face->blend;
+    FT_UInt   i, n;
+
+
+    if ( !blend )
+     return FT_THROW( Invalid_Argument );
+
+    if ( !len && !weightvector )
+    {
+      for ( i = 0; i < blend->num_designs; i++ )
+        blend->weight_vector[i] = blend->default_weight_vector[i];
+    }
+    else
+    {
+      if ( !weightvector )
+        return FT_THROW( Invalid_Argument );
+
+      n = len < blend->num_designs ? len : blend->num_designs;
+
+      for ( i = 0; i < n; i++ )
+        blend->weight_vector[i] = weightvector[i];
+
+      for ( ; i < blend->num_designs; i++ )
+        blend->weight_vector[i] = (FT_Fixed)0;
+
+      if ( len )
+        face->root.face_flags |= FT_FACE_FLAG_VARIATION;
+      else
+        face->root.face_flags &= ~FT_FACE_FLAG_VARIATION;
+    }
+
+    return FT_Err_Ok;
+  }
+
+
+  FT_LOCAL_DEF( FT_Error )
+  T1_Get_MM_WeightVector( T1_Face    face,
+                          FT_UInt*   len,
+                          FT_Fixed*  weightvector )
+  {
+    PS_Blend  blend = face->blend;
+    FT_UInt   i;
+
+
+    if ( !blend )
+      return FT_THROW( Invalid_Argument );
+
+    if ( *len < blend->num_designs )
+    {
+      *len = blend->num_designs;
+      return FT_THROW( Invalid_Argument );
+    }
+
+    for ( i = 0; i < blend->num_designs; i++ )
+      weightvector[i] = blend->weight_vector[i];
+    for ( ; i < *len; i++ )
+      weightvector[i] = (FT_Fixed)0;
+
+    *len = blend->num_designs;
 
     return FT_Err_Ok;
   }
@@ -1062,16 +1138,22 @@
   parse_buildchar( T1_Face    face,
                    T1_Loader  loader )
   {
-    FT_UInt  i;
-
-
     face->len_buildchar = (FT_UInt)T1_ToFixedArray( &loader->parser,
                                                     0, NULL, 0 );
-    FT_TRACE4(( " [" ));
-    for ( i = 0; i < face->len_buildchar; i++ )
-      FT_TRACE4(( " 0" ));
 
-    FT_TRACE4(( "]\n" ));
+#ifdef FT_DEBUG_LEVEL_TRACE
+    {
+      FT_UInt  i;
+
+
+      FT_TRACE4(( " [" ));
+      for ( i = 0; i < face->len_buildchar; i++ )
+        FT_TRACE4(( " 0" ));
+
+      FT_TRACE4(( "]\n" ));
+    }
+#endif
+
     return;
   }
 
@@ -1425,12 +1507,7 @@
 
       /* We need to `zero' out encoding_table.elements */
       for ( n = 0; n < array_size; n++ )
-      {
-        char*  notdef = (char *)".notdef";
-
-
-        (void)T1_Add_Table( char_table, n, notdef, 8 );
-      }
+        (void)T1_Add_Table( char_table, n, ".notdef", 8 );
 
       /* Now we need to read records of the form                */
       /*                                                        */
@@ -2065,7 +2142,6 @@
 
       /* 0 333 hsbw endchar */
       FT_Byte  notdef_glyph[] = { 0x8B, 0xF7, 0xE1, 0x0D, 0x0E };
-      char*    notdef_name    = (char *)".notdef";
 
 
       error = T1_Add_Table( swap_table, 0,
@@ -2080,7 +2156,7 @@
       if ( error )
         goto Fail;
 
-      error = T1_Add_Table( name_table, 0, notdef_name, 8 );
+      error = T1_Add_Table( name_table, 0, ".notdef", 8 );
       if ( error )
         goto Fail;
 
@@ -2551,8 +2627,7 @@
     /* we must now build type1.encoding when we have a custom array */
     if ( type1->encoding_type == T1_ENCODING_TYPE_ARRAY )
     {
-      FT_Int    charcode, idx, min_char, max_char;
-      FT_Byte*  glyph_name;
+      FT_Int  charcode, idx, min_char, max_char;
 
 
       /* OK, we do the following: for each element in the encoding  */
@@ -2566,27 +2641,27 @@
       charcode = 0;
       for ( ; charcode < loader.encoding_table.max_elems; charcode++ )
       {
-        FT_Byte*  char_name;
+        const FT_String*  char_name =
+              (const FT_String*)loader.encoding_table.elements[charcode];
 
 
         type1->encoding.char_index[charcode] = 0;
-        type1->encoding.char_name [charcode] = (char *)".notdef";
+        type1->encoding.char_name [charcode] = ".notdef";
 
-        char_name = loader.encoding_table.elements[charcode];
         if ( char_name )
           for ( idx = 0; idx < type1->num_glyphs; idx++ )
           {
-            glyph_name = (FT_Byte*)type1->glyph_names[idx];
-            if ( ft_strcmp( (const char*)char_name,
-                            (const char*)glyph_name ) == 0 )
+            const FT_String*  glyph_name = type1->glyph_names[idx];
+
+
+            if ( ft_strcmp( char_name, glyph_name ) == 0 )
             {
               type1->encoding.char_index[charcode] = (FT_UShort)idx;
-              type1->encoding.char_name [charcode] = (char*)glyph_name;
+              type1->encoding.char_name [charcode] = glyph_name;
 
               /* Change min/max encoded char only if glyph name is */
               /* not /.notdef                                      */
-              if ( ft_strcmp( (const char*)".notdef",
-                              (const char*)glyph_name ) != 0 )
+              if ( ft_strcmp( ".notdef", glyph_name ) != 0 )
               {
                 if ( charcode < min_char )
                   min_char = charcode;
