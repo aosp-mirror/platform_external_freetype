@@ -4,7 +4,7 @@
  *
  *   FreeType font driver for Windows FNT/FON files
  *
- * Copyright 1996-2018 by
+ * Copyright (C) 1996-2019 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  * Copyright 2007 Dmitry Timoshkov for Codeweavers
  *
@@ -149,9 +149,6 @@ FT_BEGIN_HEADER
   {
     FT_FaceRec     root;
     FNT_Font       font;
-
-    FT_CharMap     charmap_handle;
-    FT_CharMapRec  charmap;  /* a single charmap per face */
 
   } FNT_FaceRec, *FNT_Face;
 

@@ -4,7 +4,7 @@
  *
  *   TrueType and OpenType embedded BDF properties (body).
  *
- * Copyright 2005-2018 by
+ * Copyright (C) 2005-2019 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -34,7 +34,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_ttbdf
+#define FT_COMPONENT  ttbdf
 
 
   FT_LOCAL_DEF( void )
