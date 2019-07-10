@@ -4,7 +4,7 @@
  *
  *   TrueType and OpenType colored glyph layer support (body).
  *
- * Copyright 2018 by
+ * Copyright (C) 2018-2019 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * Originally written by Shao Yu Zhang <shaozhang@fb.com>.
@@ -77,7 +77,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_ttcolr
+#define FT_COMPONENT  ttcolr
 
 
   FT_LOCAL_DEF( FT_Error )

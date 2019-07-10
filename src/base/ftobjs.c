@@ -4,7 +4,7 @@
  *
  *   The FreeType private base classes (body).
  *
- * Copyright 1996-2018 by
+ * Copyright (C) 1996-2019 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -278,7 +278,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_objs
+#define FT_COMPONENT  objs
 
 
   /*************************************************************************/
@@ -342,7 +342,9 @@
   }
 
 
-  FT_BASE_DEF( void )
+  /* overflow-resistant presetting of bitmap position and dimensions; */
+  /* also check whether the size is too large for rendering           */
+  FT_BASE_DEF( FT_Bool )
   ft_glyphslot_preset_bitmap( FT_GlyphSlot      slot,
                               FT_Render_Mode    mode,
                               const FT_Vector*  origin )
@@ -352,15 +354,15 @@
 
     FT_Pixel_Mode  pixel_mode;
 
-    FT_BBox  cbox;
+    FT_BBox  cbox, pbox;
     FT_Pos   x_shift = 0;
     FT_Pos   y_shift = 0;
     FT_Pos   x_left, y_top;
     FT_Pos   width, height, pitch;
 
 
-    if ( slot->internal && ( slot->internal->flags & FT_GLYPH_OWN_BITMAP ) )
-      return;
+    if ( slot->format != FT_GLYPH_FORMAT_OUTLINE )
+      return 1;
 
     if ( origin )
     {
@@ -372,70 +374,89 @@
     /* taking into account the origin shift      */
     FT_Outline_Get_CBox( outline, &cbox );
 
-    cbox.xMin += x_shift;
-    cbox.yMin += y_shift;
-    cbox.xMax += x_shift;
-    cbox.yMax += y_shift;
+    /* rough estimate of pixel box */
+    pbox.xMin = ( cbox.xMin >> 6 ) + ( x_shift >> 6 );
+    pbox.yMin = ( cbox.yMin >> 6 ) + ( y_shift >> 6 );
+    pbox.xMax = ( cbox.xMax >> 6 ) + ( x_shift >> 6 );
+    pbox.yMax = ( cbox.yMax >> 6 ) + ( y_shift >> 6 );
+
+    /* tiny remainder box */
+    cbox.xMin = ( cbox.xMin & 63 ) + ( x_shift & 63 );
+    cbox.yMin = ( cbox.yMin & 63 ) + ( y_shift & 63 );
+    cbox.xMax = ( cbox.xMax & 63 ) + ( x_shift & 63 );
+    cbox.yMax = ( cbox.yMax & 63 ) + ( y_shift & 63 );
 
     switch ( mode )
     {
     case FT_RENDER_MODE_MONO:
       pixel_mode = FT_PIXEL_MODE_MONO;
 #if 1
-      /* undocumented but confirmed: bbox values get rounded    */
-      /* unless the rounded box can collapse for a narrow glyph */
-      if ( cbox.xMax - cbox.xMin < 64 )
+      /* x */
+
+      /* undocumented but confirmed: bbox values get rounded;    */
+      /* we do asymmetric rounding so that the center of a pixel */
+      /* gets always included                                    */
+
+      pbox.xMin += ( cbox.xMin + 31 ) >> 6;
+      pbox.xMax += ( cbox.xMax + 32 ) >> 6;
+
+      /* if the bbox collapsed, we add a pixel based on the total */
+      /* rounding remainder to cover most of the original cbox    */
+
+      if ( pbox.xMin == pbox.xMax )
       {
-        cbox.xMin = ( cbox.xMin + cbox.xMax ) / 2 - 32;
-        cbox.xMax = cbox.xMin + 64;
+        if ( ( ( cbox.xMin + 31 ) & 63 ) - 31 +
+             ( ( cbox.xMax + 32 ) & 63 ) - 32 < 0 )
+          pbox.xMin -= 1;
+        else
+          pbox.xMax += 1;
       }
 
-      cbox.xMin = FT_PIX_ROUND_LONG( cbox.xMin );
-      cbox.xMax = FT_PIX_ROUND_LONG( cbox.xMax );
+      /* y */
 
-      if ( cbox.yMax - cbox.yMin < 64 )
+      pbox.yMin += ( cbox.yMin + 31 ) >> 6;
+      pbox.yMax += ( cbox.yMax + 32 ) >> 6;
+
+      if ( pbox.yMin == pbox.yMax )
       {
-        cbox.yMin = ( cbox.yMin + cbox.yMax ) / 2 - 32;
-        cbox.yMax = cbox.yMin + 64;
+        if ( ( ( cbox.yMin + 31 ) & 63 ) - 31 +
+             ( ( cbox.yMax + 32 ) & 63 ) - 32 < 0 )
+          pbox.yMin -= 1;
+        else
+          pbox.yMax += 1;
       }
-
-      cbox.yMin = FT_PIX_ROUND_LONG( cbox.yMin );
-      cbox.yMax = FT_PIX_ROUND_LONG( cbox.yMax );
 
       break;
 #else
-      goto Round;
+      goto Adjust;
 #endif
 
     case FT_RENDER_MODE_LCD:
       pixel_mode = FT_PIXEL_MODE_LCD;
       ft_lcd_padding( &cbox, slot, mode );
-      goto Round;
+      goto Adjust;
 
     case FT_RENDER_MODE_LCD_V:
       pixel_mode = FT_PIXEL_MODE_LCD_V;
       ft_lcd_padding( &cbox, slot, mode );
-      goto Round;
+      goto Adjust;
 
     case FT_RENDER_MODE_NORMAL:
     case FT_RENDER_MODE_LIGHT:
     default:
       pixel_mode = FT_PIXEL_MODE_GRAY;
-    Round:
-      cbox.xMin = FT_PIX_FLOOR( cbox.xMin );
-      cbox.yMin = FT_PIX_FLOOR( cbox.yMin );
-      cbox.xMax = FT_PIX_CEIL_LONG( cbox.xMax );
-      cbox.yMax = FT_PIX_CEIL_LONG( cbox.yMax );
+    Adjust:
+      pbox.xMin += cbox.xMin >> 6;
+      pbox.yMin += cbox.yMin >> 6;
+      pbox.xMax += ( cbox.xMax + 63 ) >> 6;
+      pbox.yMax += ( cbox.yMax + 63 ) >> 6;
     }
 
-    x_shift = SUB_LONG( x_shift, cbox.xMin );
-    y_shift = SUB_LONG( y_shift, cbox.yMin );
+    x_left = pbox.xMin;
+    y_top  = pbox.yMax;
 
-    x_left = cbox.xMin >> 6;
-    y_top  = cbox.yMax >> 6;
-
-    width  = ( (FT_ULong)cbox.xMax - (FT_ULong)cbox.xMin ) >> 6;
-    height = ( (FT_ULong)cbox.yMax - (FT_ULong)cbox.yMin ) >> 6;
+    width  = pbox.xMax - pbox.xMin;
+    height = pbox.yMax - pbox.yMin;
 
     switch ( pixel_mode )
     {
@@ -465,6 +486,16 @@
     bitmap->width      = (unsigned int)width;
     bitmap->rows       = (unsigned int)height;
     bitmap->pitch      = pitch;
+
+    if ( pbox.xMin < -0x8000 || pbox.xMax > 0x7FFF ||
+         pbox.yMin < -0x8000 || pbox.yMax > 0x7FFF )
+    {
+      FT_TRACE3(( "ft_glyphslot_preset_bitmap: [%ld %ld %ld %ld]\n",
+                  pbox.xMin, pbox.yMin, pbox.xMax, pbox.yMax ));
+      return 1;
+    }
+
+    return 0;
   }
 
 
@@ -813,7 +844,7 @@
      * - Do only auto-hinting if we have
      *
      *   - a hinter module,
-     *   - a scalable font format dealing with outlines,
+     *   - a scalable font,
      *   - not a tricky font, and
      *   - no transforms except simple slants and/or rotations by
      *     integer multiples of 90 degrees.
@@ -831,8 +862,7 @@
     if ( hinter                                           &&
          !( load_flags & FT_LOAD_NO_HINTING )             &&
          !( load_flags & FT_LOAD_NO_AUTOHINT )            &&
-         FT_DRIVER_IS_SCALABLE( driver )                  &&
-         FT_DRIVER_USES_OUTLINES( driver )                &&
+         FT_IS_SCALABLE( face )                           &&
          !FT_IS_TRICKY( face )                            &&
          ( ( load_flags & FT_LOAD_IGNORE_TRANSFORM )    ||
            ( face->internal->transform_matrix.yx == 0 &&
@@ -852,7 +882,7 @@
         /* only the new Adobe engine (for both CFF and Type 1) is `light'; */
         /* we use `strstr' to catch both `Type 1' and `CID Type 1'         */
         is_light_type1 =
-          ft_strstr( FT_Get_Font_Format( face ), "Type 1" ) != NULL   &&
+          ft_strstr( FT_Get_Font_Format( face ), "Type 1" ) != NULL &&
           ((PS_Driver)driver)->hinting_engine == FT_HINTING_ADOBE;
 
         /* the check for `num_locations' assures that we actually    */
@@ -932,8 +962,9 @@
 
 #ifdef GRID_FIT_METRICS
         if ( !( load_flags & FT_LOAD_NO_HINTING ) )
-          ft_glyphslot_grid_fit_metrics( slot,
-              FT_BOOL( load_flags & FT_LOAD_VERTICAL_LAYOUT ) );
+          ft_glyphslot_grid_fit_metrics(
+            slot,
+            FT_BOOL( load_flags & FT_LOAD_VERTICAL_LAYOUT ) );
 #endif
       }
     }
@@ -2189,7 +2220,7 @@
   {
 
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_raccess
+#define FT_COMPONENT  raccess
 
     FT_Memory  memory = library->memory;
     FT_Error   error  = FT_ERR( Unknown_File_Format );
@@ -2267,7 +2298,7 @@
     return error;
 
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_objs
+#define FT_COMPONENT  objs
 
   }
 
@@ -2295,7 +2326,7 @@
     {
 
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_raccess
+#define FT_COMPONENT  raccess
 
 #ifdef FT_DEBUG_LEVEL_TRACE
       FT_TRACE3(( "Try as dfont: " ));
@@ -2308,7 +2339,7 @@
       FT_TRACE3(( "%s\n", error ? "failed" : "successful" ));
 
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_objs
+#define FT_COMPONENT  objs
 
     }
 
@@ -2706,8 +2737,8 @@
 
     /* close the attached stream */
     FT_Stream_Free( stream,
-                    (FT_Bool)( parameters->stream &&
-                               ( parameters->flags & FT_OPEN_STREAM ) ) );
+                    FT_BOOL( parameters->stream                     &&
+                             ( parameters->flags & FT_OPEN_STREAM ) ) );
 
   Exit:
     return error;
@@ -4028,8 +4059,8 @@
   /* documentation is in freetype.h */
 
   FT_EXPORT_DEF( FT_UInt )
-  FT_Get_Name_Index( FT_Face     face,
-                     FT_String*  glyph_name )
+  FT_Get_Name_Index( FT_Face           face,
+                     const FT_String*  glyph_name )
   {
     FT_UInt  result = 0;
 
@@ -4617,7 +4648,7 @@
 #ifdef FT_DEBUG_LEVEL_TRACE
 
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_checksum
+#define FT_COMPONENT  checksum
 
     /*
      * Computing the MD5 checksum is expensive, unnecessarily distorting a
@@ -4731,7 +4762,7 @@
     }
 
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_objs
+#define FT_COMPONENT  objs
 
 #endif /* FT_DEBUG_LEVEL_TRACE */
 
@@ -5124,9 +5155,9 @@
     service = (FT_Service_Properties)interface;
 
     if ( set )
-      missing_func = (FT_Bool)( !service->set_property );
+      missing_func = FT_BOOL( !service->set_property );
     else
-      missing_func = (FT_Bool)( !service->get_property );
+      missing_func = FT_BOOL( !service->get_property );
 
     if ( missing_func )
     {

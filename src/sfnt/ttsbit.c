@@ -4,7 +4,7 @@
  *
  *   TrueType and OpenType embedded bitmap support (body).
  *
- * Copyright 2005-2018 by
+ * Copyright (C) 2005-2019 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * Copyright 2013 by Google, Inc.
@@ -43,7 +43,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_ttsbit
+#define FT_COMPONENT  ttsbit
 
 
   FT_LOCAL_DEF( FT_Error )
@@ -1014,8 +1014,8 @@
     for ( nn = 0; nn < num_components; nn++ )
     {
       FT_UInt  gindex = FT_NEXT_USHORT( p );
-      FT_Byte  dx     = FT_NEXT_BYTE( p );
-      FT_Byte  dy     = FT_NEXT_BYTE( p );
+      FT_Char  dx     = FT_NEXT_CHAR( p );
+      FT_Char  dy     = FT_NEXT_CHAR( p );
 
 
       /* NB: a recursive call */

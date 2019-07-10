@@ -4,7 +4,7 @@
  *
  *   The FreeType glyph loader (specification).
  *
- * Copyright 2002-2018 by
+ * Copyright (C) 2002-2019 by
  * David Turner, Robert Wilhelm, and Werner Lemberg
  *
  * This file is part of the FreeType project, and may only be used,
@@ -137,11 +137,6 @@ FT_BEGIN_HEADER
   /* add the current glyph to the base glyph */
   FT_BASE( void )
   FT_GlyphLoader_Add( FT_GlyphLoader  loader );
-
-  /* copy points from one glyph loader to another */
-  FT_BASE( FT_Error )
-  FT_GlyphLoader_CopyPoints( FT_GlyphLoader  target,
-                             FT_GlyphLoader  source );
 
  /* */
 
