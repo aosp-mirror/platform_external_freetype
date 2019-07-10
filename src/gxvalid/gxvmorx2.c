@@ -5,7 +5,7 @@
  *   TrueTypeGX/AAT morx table validation
  *   body for type2 (Ligature Substitution) subtable.
  *
- * Copyright 2005-2018 by
+ * Copyright (C) 2005-2019 by
  * suzuki toshiya, Masatake YAMATO, Red Hat K.K.,
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
@@ -36,7 +36,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_gxvmorx
+#define FT_COMPONENT  gxvmorx
 
 
   typedef struct  GXV_morx_subtable_type2_StateOptRec_

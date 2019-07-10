@@ -4,7 +4,7 @@
  *
  *   The FreeType font format service (specification only).
  *
- * Copyright 2003-2018 by
+ * Copyright (C) 2003-2019 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -27,8 +27,8 @@ FT_BEGIN_HEADER
 
   /*
    * A trivial service used to return the name of a face's font driver,
-   * according to the XFree86 nomenclature.  Note that the service data
-   * is a simple constant string pointer.
+   * according to the XFree86 nomenclature.  Note that the service data is a
+   * simple constant string pointer.
    */
 
 #define FT_SERVICE_ID_FONT_FORMAT  "font-format"

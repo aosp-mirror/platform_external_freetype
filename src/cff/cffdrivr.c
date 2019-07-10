@@ -4,7 +4,7 @@
  *
  *   OpenType font driver implementation (body).
  *
- * Copyright 1996-2018 by
+ * Copyright (C) 1996-2019 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -56,7 +56,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_cffdriver
+#define FT_COMPONENT  cffdriver
 
 
   /*************************************************************************/
@@ -348,7 +348,7 @@
         FT_ERROR(( "cff_get_glyph_name:"
                    " cannot get glyph name from a CFF2 font\n"
                    "                   "
-                   " without the `PSNames' module\n" ));
+                   " without the `psnames' module\n" ));
         error = FT_THROW( Missing_Module );
         goto Exit;
       }
@@ -359,7 +359,7 @@
       FT_ERROR(( "cff_get_glyph_name:"
                  " cannot get glyph name from CFF & CEF fonts\n"
                  "                   "
-                 " without the `PSNames' module\n" ));
+                 " without the `psnames' module\n" ));
       error = FT_THROW( Missing_Module );
       goto Exit;
     }
@@ -381,8 +381,8 @@
 
 
   static FT_UInt
-  cff_get_name_index( CFF_Face    face,
-                      FT_String*  glyph_name )
+  cff_get_name_index( CFF_Face          face,
+                      const FT_String*  glyph_name )
   {
     CFF_Font            cff;
     CFF_Charset         charset;
@@ -415,7 +415,7 @@
         FT_ERROR(( "cff_get_name_index:"
                    " cannot get glyph index from a CFF2 font\n"
                    "                   "
-                   " without the `PSNames' module\n" ));
+                   " without the `psnames' module\n" ));
         return 0;
       }
     }
@@ -868,6 +868,30 @@
 
 
   static FT_Error
+  cff_set_mm_weightvector( CFF_Face   face,
+                           FT_UInt    len,
+                           FT_Fixed*  weightvector )
+  {
+    FT_Service_MultiMasters  mm = (FT_Service_MultiMasters)face->mm;
+
+
+    return mm->set_mm_weightvector( FT_FACE( face ), len, weightvector );
+  }
+
+
+  static FT_Error
+  cff_get_mm_weightvector( CFF_Face   face,
+                           FT_UInt*   len,
+                           FT_Fixed*  weightvector )
+  {
+    FT_Service_MultiMasters  mm = (FT_Service_MultiMasters)face->mm;
+
+
+    return mm->get_mm_weightvector( FT_FACE( face ), len, weightvector );
+  }
+
+
+  static FT_Error
   cff_get_mm_var( CFF_Face     face,
                   FT_MM_Var*  *master )
   {
@@ -916,17 +940,19 @@
   FT_DEFINE_SERVICE_MULTIMASTERSREC(
     cff_service_multi_masters,
 
-    (FT_Get_MM_Func)        NULL,                   /* get_mm         */
-    (FT_Set_MM_Design_Func) NULL,                   /* set_mm_design  */
-    (FT_Set_MM_Blend_Func)  cff_set_mm_blend,       /* set_mm_blend   */
-    (FT_Get_MM_Blend_Func)  cff_get_mm_blend,       /* get_mm_blend   */
-    (FT_Get_MM_Var_Func)    cff_get_mm_var,         /* get_mm_var     */
-    (FT_Set_Var_Design_Func)cff_set_var_design,     /* set_var_design */
-    (FT_Get_Var_Design_Func)cff_get_var_design,     /* get_var_design */
-    (FT_Set_Instance_Func)  cff_set_instance,       /* set_instance   */
+    (FT_Get_MM_Func)             NULL,                    /* get_mm              */
+    (FT_Set_MM_Design_Func)      NULL,                    /* set_mm_design       */
+    (FT_Set_MM_Blend_Func)       cff_set_mm_blend,        /* set_mm_blend        */
+    (FT_Get_MM_Blend_Func)       cff_get_mm_blend,        /* get_mm_blend        */
+    (FT_Get_MM_Var_Func)         cff_get_mm_var,          /* get_mm_var          */
+    (FT_Set_Var_Design_Func)     cff_set_var_design,      /* set_var_design      */
+    (FT_Get_Var_Design_Func)     cff_get_var_design,      /* get_var_design      */
+    (FT_Set_Instance_Func)       cff_set_instance,        /* set_instance        */
+    (FT_Set_MM_WeightVector_Func)cff_set_mm_weightvector, /* set_mm_weightvector */
+    (FT_Get_MM_WeightVector_Func)cff_get_mm_weightvector, /* get_mm_weightvector */
 
-    (FT_Get_Var_Blend_Func) cff_get_var_blend,      /* get_var_blend  */
-    (FT_Done_Blend_Func)    cff_done_blend          /* done_blend     */
+    (FT_Get_Var_Blend_Func)      cff_get_var_blend,       /* get_var_blend       */
+    (FT_Done_Blend_Func)         cff_done_blend           /* done_blend          */
   )
 
 

@@ -4,7 +4,7 @@
  *
  *   High-level SFNT driver interface (body).
  *
- * Copyright 1996-2018 by
+ * Copyright (C) 1996-2019 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -68,7 +68,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_sfdriver
+#define FT_COMPONENT  sfdriver
 
 
   /*
@@ -182,8 +182,8 @@
 
 
   static FT_UInt
-  sfnt_get_name_index( FT_Face     face,
-                       FT_String*  glyph_name )
+  sfnt_get_name_index( FT_Face           face,
+                       const FT_String*  glyph_name )
   {
     TT_Face  ttface = (TT_Face)face;
 
@@ -375,47 +375,61 @@
       {
       case 15:
         k4 ^= (FT_UInt32)tail[14] << 16;
+        /* fall through */
       case 14:
         k4 ^= (FT_UInt32)tail[13] << 8;
+        /* fall through */
       case 13:
         k4 ^= (FT_UInt32)tail[12];
         k4 *= c4;
         k4  = ROTL32( k4, 18 );
         k4 *= c1;
         h4 ^= k4;
+        /* fall through */
 
       case 12:
         k3 ^= (FT_UInt32)tail[11] << 24;
+        /* fall through */
       case 11:
         k3 ^= (FT_UInt32)tail[10] << 16;
+        /* fall through */
       case 10:
         k3 ^= (FT_UInt32)tail[9] << 8;
+        /* fall through */
       case 9:
         k3 ^= (FT_UInt32)tail[8];
         k3 *= c3;
         k3  = ROTL32( k3, 17 );
         k3 *= c4;
         h3 ^= k3;
+        /* fall through */
 
       case 8:
         k2 ^= (FT_UInt32)tail[7] << 24;
+        /* fall through */
       case 7:
         k2 ^= (FT_UInt32)tail[6] << 16;
+        /* fall through */
       case 6:
         k2 ^= (FT_UInt32)tail[5] << 8;
+        /* fall through */
       case 5:
         k2 ^= (FT_UInt32)tail[4];
         k2 *= c2;
         k2  = ROTL32( k2, 16 );
         k2 *= c3;
         h2 ^= k2;
+        /* fall through */
 
       case 4:
         k1 ^= (FT_UInt32)tail[3] << 24;
+        /* fall through */
       case 3:
         k1 ^= (FT_UInt32)tail[2] << 16;
+        /* fall through */
       case 2:
         k1 ^= (FT_UInt32)tail[1] << 8;
+        /* fall through */
       case 1:
         k1 ^= (FT_UInt32)tail[0];
         k1 *= c1;
@@ -464,14 +478,12 @@
   typedef int (*char_type_func)( int  c );
 
 
-  /* handling of PID/EID 3/0 and 3/1 is the same */
+  /* Handling of PID/EID 3/0 and 3/1 is the same. */
 #define IS_WIN( n )  ( (n)->platformID == 3                             && \
-                       ( (n)->encodingID == 1 || (n)->encodingID == 0 ) && \
-                       (n)->languageID == 0x409                         )
+                       ( (n)->encodingID == 1 || (n)->encodingID == 0 ) )
 
 #define IS_APPLE( n )  ( (n)->platformID == 1 && \
-                         (n)->encodingID == 0 && \
-                         (n)->languageID == 0 )
+                         (n)->encodingID == 0 )
 
   static char*
   get_win_string( FT_Memory       memory,
@@ -495,42 +507,40 @@
 
     if ( FT_STREAM_SEEK( entry->stringOffset ) ||
          FT_FRAME_ENTER( entry->stringLength ) )
-    {
-      FT_FREE( result );
-      entry->stringLength = 0;
-      entry->stringOffset = 0;
-      FT_FREE( entry->string );
-
-      return NULL;
-    }
+      goto get_win_string_error;
 
     r = (FT_String*)result;
     p = (FT_Char*)stream->cursor;
 
     for ( len = entry->stringLength / 2; len > 0; len--, p += 2 )
     {
-      if ( p[0] == 0 )
+      if ( p[0] == 0 && char_type( p[1] ) )
+        *r++ = p[1];
+      else
       {
-        if ( char_type( p[1] ) )
-          *r++ = p[1];
-        else
-        {
-          if ( report_invalid_characters )
-          {
-            FT_TRACE0(( "get_win_string:"
-                        " Character `%c' (0x%X) invalid in PS name string\n",
-                        p[1], p[1] ));
-            /* it's not the job of FreeType to correct PS names... */
-            *r++ = p[1];
-          }
-        }
+        if ( report_invalid_characters )
+          FT_TRACE0(( "get_win_string:"
+                      " Character 0x%X invalid in PS name string\n",
+                      ((unsigned)p[0])*256 + (unsigned)p[1] ));
+        break;
       }
     }
-    *r = '\0';
+    if ( !len )
+      *r = '\0';
 
     FT_FRAME_EXIT();
 
-    return result;
+    if ( !len )
+      return result;
+
+  get_win_string_error:
+    FT_FREE( result );
+
+    entry->stringLength = 0;
+    entry->stringOffset = 0;
+    FT_FREE( entry->string );
+
+    return NULL;
   }
 
 
@@ -556,14 +566,7 @@
 
     if ( FT_STREAM_SEEK( entry->stringOffset ) ||
          FT_FRAME_ENTER( entry->stringLength ) )
-    {
-      FT_FREE( result );
-      entry->stringOffset = 0;
-      entry->stringLength = 0;
-      FT_FREE( entry->string );
-
-      return NULL;
-    }
+      goto get_apple_string_error;
 
     r = (FT_String*)result;
     p = (FT_Char*)stream->cursor;
@@ -575,20 +578,28 @@
       else
       {
         if ( report_invalid_characters )
-        {
           FT_TRACE0(( "get_apple_string:"
                       " Character `%c' (0x%X) invalid in PS name string\n",
                       *p, *p ));
-          /* it's not the job of FreeType to correct PS names... */
-          *r++ = *p;
-        }
+        break;
       }
     }
-    *r = '\0';
+    if ( !len )
+      *r = '\0';
 
     FT_FRAME_EXIT();
 
-    return result;
+    if ( !len )
+      return result;
+
+  get_apple_string_error:
+    FT_FREE( result );
+
+    entry->stringOffset = 0;
+    entry->stringLength = 0;
+    FT_FREE( entry->string );
+
+    return NULL;
   }
 
 
@@ -611,10 +622,10 @@
 
       if ( name->nameID == id && name->stringLength > 0 )
       {
-        if ( IS_WIN( name ) )
+        if ( IS_WIN( name ) && ( name->languageID == 0x409 || *win == -1 ) )
           *win = n;
 
-        if ( IS_APPLE( name ) )
+        if ( IS_APPLE( name ) && ( name->languageID == 0 || *apple == -1 ) )
           *apple = n;
       }
     }
@@ -832,12 +843,19 @@
                                  face->name_table.names + win,
                                  sfnt_is_alphanumeric,
                                  0 );
-      else
+      if ( !result && apple != -1 )
         result = get_apple_string( face->root.memory,
                                    face->name_table.stream,
                                    face->name_table.names + apple,
                                    sfnt_is_alphanumeric,
                                    0 );
+
+      if ( !result )
+      {
+        FT_TRACE0(( "sfnt_get_var_ps_name:"
+                    " No valid PS name prefix for font instances found\n" ));
+        return NULL;
+      }
 
       len = ft_strlen( result );
 
@@ -1056,7 +1074,7 @@
                                face->name_table.names + win,
                                sfnt_is_postscript,
                                1 );
-    else
+    if ( !result && apple != -1 )
       result = get_apple_string( face->root.memory,
                                  face->name_table.stream,
                                  face->name_table.names + apple,
