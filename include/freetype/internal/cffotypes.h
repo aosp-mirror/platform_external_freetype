@@ -4,7 +4,7 @@
  *
  *   Basic OpenType/CFF object type definitions (specification).
  *
- * Copyright 2017-2018 by
+ * Copyright (C) 2017-2019 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -76,7 +76,7 @@ FT_BEGIN_HEADER
    *   CFF_Internal
    *
    * @description:
-   *   The interface to the `internal' field of `FT_Size'.
+   *   The interface to the 'internal' field of `FT_Size`.
    */
   typedef struct  CFF_InternalRec_
   {

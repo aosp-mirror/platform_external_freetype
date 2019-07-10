@@ -5,7 +5,7 @@
  *   PostScript name table processing for TrueType and OpenType fonts
  *   (body).
  *
- * Copyright 1996-2018 by
+ * Copyright (C) 1996-2019 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -45,10 +45,10 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_ttpost
+#define FT_COMPONENT  ttpost
 
 
-  /* If this configuration macro is defined, we rely on the `PSNames' */
+  /* If this configuration macro is defined, we rely on the `psnames' */
   /* module to grab the glyph names.                                  */
 
 #ifdef FT_CONFIG_OPTION_POSTSCRIPT_NAMES
@@ -62,9 +62,9 @@
 #else /* FT_CONFIG_OPTION_POSTSCRIPT_NAMES */
 
 
-   /* Otherwise, we ignore the `PSNames' module, and provide our own  */
+   /* Otherwise, we ignore the `psnames' module, and provide our own  */
    /* table of Mac names.  Thus, it is possible to build a version of */
-   /* FreeType without the Type 1 driver & PSNames module.            */
+   /* FreeType without the Type 1 driver & psnames module.            */
 
 #define MAC_NAME( x )  (FT_String*)tt_post_default_names[x]
 

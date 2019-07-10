@@ -4,7 +4,7 @@
  *
  *   FreeType API for validating OpenType tables (specification).
  *
- * Copyright 2004-2018 by
+ * Copyright (C) 2004-2019 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -55,8 +55,8 @@ FT_BEGIN_HEADER
    *   An API to validate OpenType tables.
    *
    * @description:
-   *   This section contains the declaration of functions to validate
-   *   some OpenType tables (BASE, GDEF, GPOS, GSUB, JSTF, MATH).
+   *   This section contains the declaration of functions to validate some
+   *   OpenType tables (BASE, GDEF, GPOS, GSUB, JSTF, MATH).
    *
    * @order:
    *   FT_OpenType_Validate
@@ -67,7 +67,7 @@ FT_BEGIN_HEADER
    */
 
 
-  /**********************************************************************
+  /**************************************************************************
    *
    * @enum:
    *    FT_VALIDATE_OTXXX
@@ -114,7 +114,7 @@ FT_BEGIN_HEADER
                           FT_VALIDATE_MATH )
 
 
-  /**********************************************************************
+  /**************************************************************************
    *
    * @function:
    *    FT_OpenType_Validate
@@ -122,8 +122,8 @@ FT_BEGIN_HEADER
    * @description:
    *    Validate various OpenType tables to assure that all offsets and
    *    indices are valid.  The idea is that a higher-level library that
-   *    actually does the text layout can access those tables without
-   *    error checking (which can be quite time consuming).
+   *    actually does the text layout can access those tables without error
+   *    checking (which can be quite time consuming).
    *
    * @input:
    *    face ::
@@ -157,7 +157,7 @@ FT_BEGIN_HEADER
    *   otherwise.
    *
    *   After use, the application should deallocate the five tables with
-   *   @FT_OpenType_Free.  A NULL value indicates that the table either
+   *   @FT_OpenType_Free.  A `NULL` value indicates that the table either
    *   doesn't exist in the font, or the application hasn't asked for
    *   validation.
    */
@@ -171,7 +171,7 @@ FT_BEGIN_HEADER
                         FT_Bytes  *JSTF_table );
 
 
-  /**********************************************************************
+  /**************************************************************************
    *
    * @function:
    *    FT_OpenType_Free

@@ -4,7 +4,7 @@
  *
  *   Auto-fitter module implementation (body).
  *
- * Copyright 2003-2018 by
+ * Copyright (C) 2003-2019 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -66,7 +66,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_afmodule
+#define FT_COMPONENT  afmodule
 
 
   static FT_Error
@@ -507,7 +507,7 @@
                                   glyph_index, load_flags );
 
 #ifdef FT_DEBUG_LEVEL_TRACE
-    if ( ft_trace_levels[FT_COMPONENT] )
+    if ( ft_trace_levels[FT_TRACE_COMP( FT_COMPONENT )] )
     {
 #endif
       af_glyph_hints_dump_points( hints, 0 );

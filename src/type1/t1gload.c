@@ -4,7 +4,7 @@
  *
  *   Type 1 Glyph Loader (body).
  *
- * Copyright 1996-2018 by
+ * Copyright (C) 1996-2019 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -36,7 +36,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_t1gload
+#define FT_COMPONENT  t1gload
 
 
   static FT_Error
@@ -402,9 +402,9 @@
     t1glyph->outline.n_points   = 0;
     t1glyph->outline.n_contours = 0;
 
-    hinting = FT_BOOL( ( load_flags & FT_LOAD_NO_SCALE   ) == 0 &&
-                       ( load_flags & FT_LOAD_NO_HINTING ) == 0 );
-    scaled  = FT_BOOL( ( load_flags & FT_LOAD_NO_SCALE   ) == 0 );
+    hinting = FT_BOOL( !( load_flags & FT_LOAD_NO_SCALE   ) &&
+                       !( load_flags & FT_LOAD_NO_HINTING ) );
+    scaled  = FT_BOOL( !( load_flags & FT_LOAD_NO_SCALE   ) );
 
     glyph->hint     = hinting;
     glyph->scaled   = scaled;
@@ -416,7 +416,7 @@
                                  t1glyph,
                                  (FT_Byte**)type1->glyph_names,
                                  face->blend,
-                                 FT_BOOL( hinting ),
+                                 hinting,
                                  FT_LOAD_TARGET_MODE( load_flags ),
                                  T1_Parse_Glyph );
     if ( error )
@@ -424,8 +424,7 @@
 
     must_finish_decoder = TRUE;
 
-    decoder.builder.no_recurse = FT_BOOL(
-                                   ( load_flags & FT_LOAD_NO_RECURSE ) != 0 );
+    decoder.builder.no_recurse = FT_BOOL( load_flags & FT_LOAD_NO_RECURSE );
 
     decoder.num_subrs     = type1->num_subrs;
     decoder.subrs         = type1->subrs;
@@ -546,7 +545,7 @@
 
 
           /* First of all, scale the points, if we are not hinting */
-          if ( !hinting || ! decoder.builder.hints_funcs )
+          if ( !hinting || !decoder.builder.hints_funcs )
             for ( n = cur->n_points; n > 0; n--, vec++ )
             {
               vec->x = FT_MulFix( vec->x, x_scale );
