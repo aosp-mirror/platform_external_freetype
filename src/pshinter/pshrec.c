@@ -4,7 +4,7 @@
  *
  *   FreeType PostScript hints recorder (body).
  *
- * Copyright 2001-2018 by
+ * Copyright (C) 2001-2019 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -28,7 +28,7 @@
 #include "pshnterr.h"
 
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_pshrec
+#define FT_COMPONENT  pshrec
 
 #ifdef DEBUG_HINTER
   PS_Hints  ps_debug_hints         = NULL;
@@ -666,7 +666,7 @@
       if ( len == -21 )
       {
         flags |= PS_HINT_FLAG_BOTTOM;
-        pos   += len;
+        pos    = ADD_INT( pos, len );
       }
       len = 0;
     }
@@ -1187,7 +1187,7 @@
       /* compute integer stem positions in font units */
       for ( n = 0; n < count * 2; n++ )
       {
-        y       += coords[n];
+        y        = ADD_LONG( y, coords[n] );
         stems[n] = FIXED_TO_INT( y );
       }
 

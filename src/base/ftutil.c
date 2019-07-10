@@ -4,7 +4,7 @@
  *
  *   FreeType utility file for memory and list management (body).
  *
- * Copyright 2002-2018 by
+ * Copyright (C) 2002-2019 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -30,7 +30,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_memory
+#define FT_COMPONENT  memory
 
 
   /*************************************************************************/
@@ -236,7 +236,7 @@
   /*************************************************************************/
 
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_list
+#define FT_COMPONENT  list
 
   /* documentation is in ftlist.h */
 
