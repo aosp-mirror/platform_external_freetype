@@ -5,7 +5,7 @@
  *   Load the basic TrueType tables, i.e., tables that can be either in
  *   TTF or OTF fonts (body).
  *
- * Copyright 1996-2018 by
+ * Copyright (C) 1996-2019 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -33,7 +33,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_ttload
+#define FT_COMPONENT  ttload
 
 
   /**************************************************************************
@@ -638,10 +638,10 @@
         FT_FRAME_LONG  ( Magic_Number ),
         FT_FRAME_USHORT( Flags ),
         FT_FRAME_USHORT( Units_Per_EM ),
-        FT_FRAME_LONG  ( Created[0] ),
-        FT_FRAME_LONG  ( Created[1] ),
-        FT_FRAME_LONG  ( Modified[0] ),
-        FT_FRAME_LONG  ( Modified[1] ),
+        FT_FRAME_ULONG ( Created[0] ),
+        FT_FRAME_ULONG ( Created[1] ),
+        FT_FRAME_ULONG ( Modified[0] ),
+        FT_FRAME_ULONG ( Modified[1] ),
         FT_FRAME_SHORT ( xMin ),
         FT_FRAME_SHORT ( yMin ),
         FT_FRAME_SHORT ( xMax ),

@@ -4,7 +4,7 @@
  *
  *   HarfBuzz interface for accessing OpenType features (body).
  *
- * Copyright 2013-2018 by
+ * Copyright (C) 2013-2019 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -33,7 +33,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_afshaper
+#define FT_COMPONENT  afshaper
 
 
   /*

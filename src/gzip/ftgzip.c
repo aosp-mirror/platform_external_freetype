@@ -8,7 +8,7 @@
  * parse compressed PCF fonts, as found with many X11 server
  * distributions.
  *
- * Copyright 2002-2018 by
+ * Copyright (C) 2002-2019 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -731,7 +731,7 @@
 
     /* check for `input' delayed to `inflate' */
 
-    if ( !memory || ! output_len || !output )
+    if ( !memory || !output_len || !output )
       return FT_THROW( Invalid_Argument );
 
     /* this function is modeled after zlib's `uncompress' function */
@@ -746,7 +746,7 @@
     stream.zfree  = (free_func) ft_gzip_free;
     stream.opaque = memory;
 
-    err = inflateInit2( &stream, MAX_WBITS );
+    err = inflateInit2( &stream, MAX_WBITS|32 );
     if ( err != Z_OK )
       return FT_THROW( Invalid_Argument );
 
