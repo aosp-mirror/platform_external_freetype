@@ -4,7 +4,7 @@
  *
  *   Auto-fitter hinting routines for latin writing system (body).
  *
- * Copyright 2003-2018 by
+ * Copyright (C) 2003-2019 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -37,7 +37,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_aflatin
+#define FT_COMPONENT  aflatin
 
 
   /* needed for computation of round vs. flat segments */
@@ -149,7 +149,11 @@
       af_shaper_buf_destroy( face, shaper_buf );
 
       if ( !glyph_index )
+      {
+        FT_TRACE5(( "standard character missing;"
+                    " using fallback stem widths\n" ));
         goto Exit;
+      }
 
       FT_TRACE5(( "standard character: U+%04lX (glyph index %d)\n",
                   ch, glyph_index ));
@@ -312,7 +316,7 @@
   /* Find all blue zones.  Flat segments give the reference points, */
   /* round segments the overshoot positions.                        */
 
-  static void
+  static int
   af_latin_metrics_init_blues( AF_LatinMetrics  metrics,
                                FT_Face          face )
   {
@@ -981,10 +985,11 @@
 
     af_shaper_buf_destroy( face, shaper_buf );
 
-    /* we finally check whether blue zones are ordered; */
-    /* `ref' and `shoot' values of two blue zones must not overlap */
     if ( axis->blue_count )
     {
+      /* we finally check whether blue zones are ordered;            */
+      /* `ref' and `shoot' values of two blue zones must not overlap */
+
       FT_UInt       i;
       AF_LatinBlue  blue_sorted[AF_BLUE_STRINGSET_MAX_LEN + 2];
 
@@ -1033,11 +1038,34 @@
                       *a ));
         }
       }
+
+      FT_TRACE5(( "\n" ));
+
+      return 0;
     }
+    else
+    {
+      /* disable hinting for the current style if there are no blue zones */
 
-    FT_TRACE5(( "\n" ));
+      AF_FaceGlobals  globals = metrics->root.globals;
+      FT_UShort*      gstyles = globals->glyph_styles;
 
-    return;
+      FT_Long  i;
+
+
+      FT_TRACE5(( "no blue zones found:"
+                  " hinting disabled for this style\n" ));
+
+      for ( i = 0; i < globals->glyph_count; i++ )
+      {
+        if ( ( gstyles[i] & AF_STYLE_MASK ) == sc->style )
+          gstyles[i] = AF_STYLE_NONE_DFLT;
+      }
+
+      FT_TRACE5(( "\n" ));
+
+      return 1;
+    }
   }
 
 
@@ -1116,6 +1144,8 @@
   af_latin_metrics_init( AF_LatinMetrics  metrics,
                          FT_Face          face )
   {
+    FT_Error  error = FT_Err_Ok;
+
     FT_CharMap  oldmap = face->charmap;
 
 
@@ -1124,12 +1154,18 @@
     if ( !FT_Select_Charmap( face, FT_ENCODING_UNICODE ) )
     {
       af_latin_metrics_init_widths( metrics, face );
-      af_latin_metrics_init_blues( metrics, face );
+      if ( af_latin_metrics_init_blues( metrics, face ) )
+      {
+        /* use internal error code to indicate missing blue zones */
+        error = -1;
+        goto Exit;
+      }
       af_latin_metrics_check_digits( metrics, face );
     }
 
+  Exit:
     FT_Set_Charmap( face, oldmap );
-    return FT_Err_Ok;
+    return error;
   }
 
 
@@ -1307,7 +1343,7 @@
     /* an extra-light axis corresponds to a standard width that is */
     /* smaller than 5/8 pixels                                     */
     axis->extra_light =
-      (FT_Bool)( FT_MulFix( axis->standard_width, scale ) < 32 + 8 );
+      FT_BOOL( FT_MulFix( axis->standard_width, scale ) < 32 + 8 );
 
 #ifdef FT_DEBUG_LEVEL_TRACE
     if ( axis->extra_light )
@@ -1443,13 +1479,13 @@
                     nn,
                     blue->ref.org,
                     blue->ref.fit / 64.0,
-                    blue->flags & AF_LATIN_BLUE_ACTIVE ? ""
-                                                       : " (inactive)",
+                    ( blue->flags & AF_LATIN_BLUE_ACTIVE ) ? ""
+                                                           : " (inactive)",
                     nn,
                     blue->shoot.org,
                     blue->shoot.fit / 64.0,
-                    blue->flags & AF_LATIN_BLUE_ACTIVE ? ""
-                                                       : " (inactive)" ));
+                    ( blue->flags & AF_LATIN_BLUE_ACTIVE ) ? ""
+                                                           : " (inactive)" ));
       }
 #endif
     }
@@ -2328,9 +2364,9 @@
 
           /* check for links -- if seg->serif is set, then seg->link must */
           /* be ignored                                                   */
-          is_serif = (FT_Bool)( seg->serif               &&
-                                seg->serif->edge         &&
-                                seg->serif->edge != edge );
+          is_serif = FT_BOOL( seg->serif               &&
+                              seg->serif->edge         &&
+                              seg->serif->edge != edge );
 
           if ( ( seg->link && seg->link->edge ) || is_serif )
           {
