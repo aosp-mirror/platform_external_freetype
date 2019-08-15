@@ -5,7 +5,7 @@
  *   Basic Type1/Type2 type definitions and interface (specification
  *   only).
  *
- * Copyright 1996-2018 by
+ * Copyright (C) 1996-2019 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -55,16 +55,14 @@ FT_BEGIN_HEADER
    *
    * @fields:
    *   num_chars ::
-   *     The number of character codes in the encoding.
-   *     Usually 256.
+   *     The number of character codes in the encoding.  Usually 256.
    *
    *   code_first ::
    *     The lowest valid character code in the encoding.
    *
    *   code_last ::
-   *     The highest valid character code in the encoding
-   *     + 1. When equal to code_first there are no valid
-   *     character codes.
+   *     The highest valid character code in the encoding + 1. When equal to
+   *     code_first there are no valid character codes.
    *
    *   char_index ::
    *     An array of corresponding glyph indices.
@@ -78,8 +76,8 @@ FT_BEGIN_HEADER
     FT_Int       code_first;
     FT_Int       code_last;
 
-    FT_UShort*   char_index;
-    FT_String**  char_name;
+    FT_UShort*         char_index;
+    const FT_String**  char_name;
 
   } T1_EncodingRec, *T1_Encoding;
 
