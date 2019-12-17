@@ -48,6 +48,12 @@ cc_library {
         "-DDARWIN_NO_CARBON",
         "-DFT2_BUILD_LIBRARY",
 
+        // Usually these are defined in include/freetype/config/ftoption.h
+        // we have commented them and defined them here to allow for the
+        // no dependency variant libft2.nodep below.
+        "-DFT_CONFIG_OPTION_USE_PNG",
+        "-DFT_CONFIG_OPTION_USE_ZLIB",
+
         "-O2",
 
         // Upstream ignores unused parameter warning
@@ -88,4 +94,58 @@ llndk_library {
     vendor_available: false,
     symbol_file: "libft2.map.txt",
     export_include_dirs: ["include"],
+}
+
+// variant of libft2 without any library dependencies.
+cc_library_static {
+    name: "libft2.nodep",
+    host_supported: true,
+
+    // compile in ARM mode, since the glyph loader/renderer is a hotspot
+    // when loading complex pages in the browser
+    arch: {
+        arm: {
+            instruction_set: "arm",
+        },
+    },
+
+    srcs: [
+        "src/autofit/autofit.c",
+        "src/base/ftbase.c",
+        "src/base/ftbbox.c",
+        "src/base/ftbitmap.c",
+        "src/base/ftdebug.c",
+        "src/base/ftfstype.c",
+        "src/base/ftgasp.c",
+        "src/base/ftglyph.c",
+        "src/base/ftinit.c",
+        "src/base/ftmm.c",
+        "src/base/ftstroke.c",
+        "src/base/fttype1.c",
+        "src/base/ftsystem.c",
+        "src/cid/type1cid.c",
+        "src/cff/cff.c",
+        "src/gzip/ftgzip.c",
+        "src/psaux/psaux.c",
+        "src/pshinter/pshinter.c",
+        "src/psnames/psnames.c",
+        "src/raster/raster.c",
+        "src/sfnt/sfnt.c",
+        "src/smooth/smooth.c",
+        "src/truetype/truetype.c",
+        "src/type1/type1.c",
+    ],
+
+    export_include_dirs: ["include"],
+
+    cflags: [
+        "-W",
+        "-Wall",
+        "-Werror",
+
+        "-DDARWIN_NO_CARBON",
+        "-DFT2_BUILD_LIBRARY",
+
+        "-O2",
+    ],
 }
