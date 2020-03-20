@@ -1,0 +1,24 @@
+{
+"includes": [
+    "../devel-teeui",
+    "../include"
+],
+"sources": [
+    "../src/base/ftsystem.c",
+    "../src/base/ftinit.c",
+    "../src/base/ftdebug.c",
+    "../src/base/ftbase.c",
+    "../src/base/ftbbox.c",
+    "../src/base/ftglyph.c",
+    "../src/base/ftbitmap.c",
+    "../src/sfnt/sfnt.c",
+    "../src/truetype/truetype.c",
+    "../src/raster/raster.c",
+    "../src/smooth/smooth.c",
+    "../src/autofit/autofit.c",
+    "../src/gzip/ftgzip.c"
+],
+"cflags": [
+    "-DFT2_BUILD_LIBRARY"
+    ]
+}
