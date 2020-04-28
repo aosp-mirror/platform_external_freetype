@@ -4,7 +4,7 @@
  *
  *   FreeType simple types definitions (specification only).
  *
- * Copyright (C) 1996-2019 by
+ * Copyright 1996-2018 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -126,8 +126,8 @@ FT_BEGIN_HEADER
    *   FT_UFWord
    *
    * @description:
-   *   An unsigned 16-bit integer used to store a distance in original font
-   *   units.
+   *   An unsigned 16-bit integer used to store a distance in original
+   *   font units.
    */
   typedef unsigned short  FT_UFWord;  /* unsigned distance */
 
@@ -270,7 +270,8 @@ FT_BEGIN_HEADER
    *   FT_F26Dot6
    *
    * @description:
-   *   A signed 26.6 fixed-point type used for vectorial pixel coordinates.
+   *   A signed 26.6 fixed-point type used for vectorial pixel
+   *   coordinates.
    */
   typedef signed long  FT_F26Dot6;
 
@@ -293,8 +294,8 @@ FT_BEGIN_HEADER
    *   FT_Error
    *
    * @description:
-   *   The FreeType error code type.  A value of~0 is always interpreted as a
-   *   successful operation.
+   *   The FreeType error code type.  A value of~0 is always interpreted
+   *   as a successful operation.
    */
   typedef int  FT_Error;
 
@@ -316,9 +317,9 @@ FT_BEGIN_HEADER
    *   FT_Offset
    *
    * @description:
-   *   This is equivalent to the ANSI~C `size_t` type, i.e., the largest
-   *   _unsigned_ integer type used to express a file size or position, or a
-   *   memory block size.
+   *   This is equivalent to the ANSI~C `size_t' type, i.e., the largest
+   *   _unsigned_ integer type used to express a file size or position,
+   *   or a memory block size.
    */
   typedef size_t  FT_Offset;
 
@@ -329,9 +330,9 @@ FT_BEGIN_HEADER
    *   FT_PtrDist
    *
    * @description:
-   *   This is equivalent to the ANSI~C `ptrdiff_t` type, i.e., the largest
-   *   _signed_ integer type used to express the distance between two
-   *   pointers.
+   *   This is equivalent to the ANSI~C `ptrdiff_t' type, i.e., the
+   *   largest _signed_ integer type used to express the distance
+   *   between two pointers.
    */
   typedef ft_ptrdiff_t  FT_PtrDist;
 
@@ -366,13 +367,13 @@ FT_BEGIN_HEADER
    *   FT_Matrix
    *
    * @description:
-   *   A simple structure used to store a 2x2 matrix.  Coefficients are in
-   *   16.16 fixed-point format.  The computation performed is:
+   *   A simple structure used to store a 2x2 matrix.  Coefficients are
+   *   in 16.16 fixed-point format.  The computation performed is:
    *
-   *   ```
+   *   {
    *     x' = x*xx + y*xy
    *     y' = x*yx + y*yy
-   *   ```
+   *   }
    *
    * @fields:
    *   xx ::
@@ -424,13 +425,13 @@ FT_BEGIN_HEADER
    *   FT_Generic_Finalizer
    *
    * @description:
-   *   Describe a function used to destroy the 'client' data of any FreeType
-   *   object.  See the description of the @FT_Generic type for details of
-   *   usage.
+   *   Describe a function used to destroy the `client' data of any
+   *   FreeType object.  See the description of the @FT_Generic type for
+   *   details of usage.
    *
    * @input:
-   *   The address of the FreeType object that is under finalization.  Its
-   *   client data is accessed through its `generic` field.
+   *   The address of the FreeType object that is under finalization.
+   *   Its client data is accessed through its `generic' field.
    */
   typedef void  (*FT_Generic_Finalizer)( void*  object );
 
@@ -445,24 +446,25 @@ FT_BEGIN_HEADER
    *   variety of FreeType core objects.  For example, a text layout API
    *   might want to associate a glyph cache to a given size object.
    *
-   *   Some FreeType object contains a `generic` field, of type `FT_Generic`,
-   *   which usage is left to client applications and font servers.
+   *   Some FreeType object contains a `generic' field, of type
+   *   FT_Generic, which usage is left to client applications and font
+   *   servers.
    *
-   *   It can be used to store a pointer to client-specific data, as well as
-   *   the address of a 'finalizer' function, which will be called by
+   *   It can be used to store a pointer to client-specific data, as well
+   *   as the address of a `finalizer' function, which will be called by
    *   FreeType when the object is destroyed (for example, the previous
-   *   client example would put the address of the glyph cache destructor in
-   *   the `finalizer` field).
+   *   client example would put the address of the glyph cache destructor
+   *   in the `finalizer' field).
    *
    * @fields:
    *   data ::
-   *     A typeless pointer to any client-specified data. This field is
-   *     completely ignored by the FreeType library.
+   *     A typeless pointer to any client-specified data. This
+   *     field is completely ignored by the FreeType library.
    *
    *   finalizer ::
-   *     A pointer to a 'generic finalizer' function, which will be called
-   *     when the object is destroyed.  If this field is set to `NULL`, no
-   *     code will be called.
+   *     A pointer to a `generic finalizer' function, which
+   *     will be called when the object is destroyed.  If this
+   *     field is set to NULL, no code will be called.
    */
   typedef struct  FT_Generic_
   {
@@ -478,12 +480,12 @@ FT_BEGIN_HEADER
    *   FT_MAKE_TAG
    *
    * @description:
-   *   This macro converts four-letter tags that are used to label TrueType
-   *   tables into an unsigned long, to be used within FreeType.
+   *   This macro converts four-letter tags that are used to label
+   *   TrueType tables into an unsigned long, to be used within FreeType.
    *
    * @note:
-   *   The produced values **must** be 32-bit integers.  Don't redefine this
-   *   macro.
+   *   The produced values *must* be 32-bit integers.  Don't redefine
+   *   this macro.
    */
 #define FT_MAKE_TAG( _x1, _x2, _x3, _x4 ) \
           (FT_Tag)                        \
@@ -516,9 +518,9 @@ FT_BEGIN_HEADER
    *   FT_ListNode
    *
    * @description:
-   *    Many elements and objects in FreeType are listed through an @FT_List
-   *    record (see @FT_ListRec).  As its name suggests, an FT_ListNode is a
-   *    handle to a single list element.
+   *    Many elements and objects in FreeType are listed through an
+   *    @FT_List record (see @FT_ListRec).  As its name suggests, an
+   *    FT_ListNode is a handle to a single list element.
    */
   typedef struct FT_ListNodeRec_*  FT_ListNode;
 
@@ -544,10 +546,10 @@ FT_BEGIN_HEADER
    *
    * @fields:
    *   prev ::
-   *     The previous element in the list.  `NULL` if first.
+   *     The previous element in the list.  NULL if first.
    *
    *   next ::
-   *     The next element in the list.  `NULL` if last.
+   *     The next element in the list.  NULL if last.
    *
    *   data ::
    *     A typeless pointer to the listed object.
@@ -567,8 +569,8 @@ FT_BEGIN_HEADER
    *   FT_ListRec
    *
    * @description:
-   *   A structure used to hold a simple doubly-linked list.  These are used
-   *   in many parts of FreeType.
+   *   A structure used to hold a simple doubly-linked list.  These are
+   *   used in many parts of FreeType.
    *
    * @fields:
    *   head ::
@@ -588,13 +590,13 @@ FT_BEGIN_HEADER
 
 
 #define FT_IS_EMPTY( list )  ( (list).head == 0 )
-#define FT_BOOL( x )  ( (FT_Bool)( (x) != 0 ) )
+#define FT_BOOL( x )  ( (FT_Bool)( x ) )
 
   /* concatenate C tokens */
 #define FT_ERR_XCAT( x, y )  x ## y
 #define FT_ERR_CAT( x, y )   FT_ERR_XCAT( x, y )
 
-  /* see `ftmoderr.h` for descriptions of the following macros */
+  /* see `ftmoderr.h' for descriptions of the following macros */
 
 #define FT_ERR( e )  FT_ERR_CAT( FT_ERR_PREFIX, e )
 

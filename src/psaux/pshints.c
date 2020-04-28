@@ -52,7 +52,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  cf2hints
+#define FT_COMPONENT  trace_cf2hints
 
 
   typedef struct  CF2_HintMoveRec_
@@ -217,49 +217,52 @@
   FT_LOCAL_DEF( FT_Bool )
   cf2_hint_isValid( const CF2_Hint  hint )
   {
-    return FT_BOOL( hint->flags );
+    return (FT_Bool)( hint->flags != 0 );
   }
 
 
   static FT_Bool
   cf2_hint_isPair( const CF2_Hint  hint )
   {
-    return FT_BOOL( hint->flags & ( CF2_PairBottom | CF2_PairTop ) );
+    return (FT_Bool)( ( hint->flags                      &
+                        ( CF2_PairBottom | CF2_PairTop ) ) != 0 );
   }
 
 
   static FT_Bool
   cf2_hint_isPairTop( const CF2_Hint  hint )
   {
-    return FT_BOOL( hint->flags & CF2_PairTop );
+    return (FT_Bool)( ( hint->flags & CF2_PairTop ) != 0 );
   }
 
 
   FT_LOCAL_DEF( FT_Bool )
   cf2_hint_isTop( const CF2_Hint  hint )
   {
-    return FT_BOOL( hint->flags & ( CF2_PairTop | CF2_GhostTop ) );
+    return (FT_Bool)( ( hint->flags                    &
+                        ( CF2_PairTop | CF2_GhostTop ) ) != 0 );
   }
 
 
   FT_LOCAL_DEF( FT_Bool )
   cf2_hint_isBottom( const CF2_Hint  hint )
   {
-    return FT_BOOL( hint->flags & ( CF2_PairBottom | CF2_GhostBottom ) );
+    return (FT_Bool)( ( hint->flags                          &
+                        ( CF2_PairBottom | CF2_GhostBottom ) ) != 0 );
   }
 
 
   static FT_Bool
   cf2_hint_isLocked( const CF2_Hint  hint )
   {
-    return FT_BOOL( hint->flags & CF2_Locked );
+    return (FT_Bool)( ( hint->flags & CF2_Locked ) != 0 );
   }
 
 
   static FT_Bool
   cf2_hint_isSynthetic( const CF2_Hint  hint )
   {
-    return FT_BOOL( hint->flags & CF2_Synthetic );
+    return (FT_Bool)( ( hint->flags & CF2_Synthetic ) != 0 );
   }
 
 
@@ -331,7 +334,7 @@
   cf2_hintmap_map( CF2_HintMap  hintmap,
                    CF2_Fixed    csCoord )
   {
-    if ( hintmap->count == 0 || !hintmap->hinted )
+    if ( hintmap->count == 0 || ! hintmap->hinted )
     {
       /* there are no hints; use uniform scale and zero offset */
       return FT_MulFix( csCoord, hintmap->scale );
@@ -494,7 +497,7 @@
           {
             move     = moveDown;
             /* true if non-optimum move */
-            saveEdge = FT_BOOL( moveUp < -moveDown );
+            saveEdge = (FT_Bool)( moveUp < -moveDown );
           }
           else
           {
@@ -1022,10 +1025,10 @@
       }
     }
 
-    FT_TRACE6(( "%s\n", initialMap ? "flags: [p]air [g]host [t]op"
-                                     " [b]ottom [L]ocked [S]ynthetic\n"
-                                     "Initial hintmap"
-                                   : "Hints:" ));
+    FT_TRACE6(( initialMap ? "flags: [p]air [g]host [t]op "
+                             "[b]ottom [L]ocked [S]ynthetic\n"
+                             "Initial hintmap\n"
+                           : "Hints:\n" ));
     cf2_hintmap_dump( hintmap );
 
     /*
@@ -1212,7 +1215,7 @@
      * (`u').
      *
      * See notation in
-     * http://geomalgorithms.com/a05-_intersect-1.html.
+     * http://softsurfer.com/Archive/algorithm_0104/algorithm_0104B.htm.
      * Calculations are done in 16.16, but must handle the squaring of
      * line lengths in character space.  We scale all vectors by 1/32 to
      * avoid overflow.  This allows values up to 4095 to be squared.  The

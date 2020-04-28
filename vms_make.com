@@ -1,6 +1,6 @@
 $! make FreeType 2 under OpenVMS
 $!
-$! Copyright (C) 2003-2019 by
+$! Copyright 2003-2018 by
 $! David Turner, Robert Wilhelm, and Werner Lemberg.
 $!
 $! This file is part of the FreeType project, and may only be used, modified,
@@ -47,13 +47,13 @@ $!
 $! Setup variables holding "config" information
 $!
 $ Make    = ""
-$ ccopt   = "/name=(as_is,short)/float=ieee"
+$ ccopt   = "/name=as_is/float=ieee"
 $ lopts   = ""
 $ dnsrl   = ""
 $ aconf_in_file = "config.hin"
 $ name    = "Freetype2"
-$ mapfile = name + ".map"
-$ optfile = name + ".opt"
+$ mapfile =  name + ".map"
+$ optfile =  name + ".opt"
 $ s_case  = false
 $ liblist = ""
 $!
@@ -113,14 +113,7 @@ $!
 $ If f$getsyi("HW_MODEL") .gt. 1024
 $ Then
 $   write sys$output "Creating freetype2shr.exe"
-$   If f$getsyi("HW_MODEL") .le. 2048
-$   Then
-$     call anal_obj_axp 'optfile' _link.opt
-$   Else
-$     copy _link.opt_ia64 _link.opt
-$     close libsf
-$     copy libs.opt_ia64 libs.opt
-$   endif
+$   call anal_obj_axp 'optfile' _link.opt
 $   open/append  optf 'optfile'
 $   if s_case then WRITE optf "case_sensitive=YES"
 $   close optf
@@ -164,7 +157,7 @@ $ deck
 #
 
 
-# Copyright 2001-2019 by
+# Copyright 2001 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # This file is part of the FreeType project, and may only be used, modified,
@@ -179,16 +172,15 @@ $ deck
 
 
 all :
-        define config [--.include.freetype.config]
-        define internal [--.include.freetype.internal]
+        define freetype [--.include]
+        define psaux [-.psaux]
         define autofit [-.autofit]
+        define autohint [-.autohint]
         define base [-.base]
         define cache [-.cache]
         define cff [-.cff]
         define cid [-.cid]
-        define freetype [--.include.freetype]
         define pcf [-.pcf]
-        define psaux [-.psaux]
         define psnames [-.psnames]
         define raster [-.raster]
         define sfnt [-.sfnt]
@@ -199,7 +191,9 @@ all :
         if f$search("lib.dir") .eqs. "" then create/directory [.lib]
         set default [.builds.vms]
         $(MMS)$(MMSQUALIFIERS)
-        set default [--.src.autofit]
+#        set default [--.src.autofit]
+#        $(MMS)$(MMSQUALIFIERS)
+        set default [--.src.autohint]
         $(MMS)$(MMSQUALIFIERS)
         set default [-.base]
         $(MMS)$(MMSQUALIFIERS)
@@ -211,11 +205,7 @@ all :
         $(MMS)$(MMSQUALIFIERS)
         set default [-.cid]
         $(MMS)$(MMSQUALIFIERS)
-        set default [-.gxvalid]
-        $(MMS)$(MMSQUALIFIERS)
         set default [-.gzip]
-        $(MMS)$(MMSQUALIFIERS)
-        set default [-.bzip2]
         $(MMS)$(MMSQUALIFIERS)
         set default [-.lzw]
         $(MMS)$(MMSQUALIFIERS)
@@ -260,7 +250,7 @@ $ deck
 #
 
 
-# Copyright 2001-2019 by
+# Copyright 2001 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # This file is part of the FreeType project, and may only be used, modified,
@@ -270,7 +260,7 @@ $ deck
 # fully.
 
 
-CFLAGS=$(COMP_FLAGS)$(DEBUG)/list/show=all/include=([],[--.include],[--.src.base])
+CFLAGS=$(COMP_FLAGS)$(DEBUG)/include=([],[--.include],[--.src.base])
 
 OBJS=ftsystem.obj
 
@@ -292,7 +282,7 @@ $ deck
 #
 
 
-# Copyright 2002-2019 by
+# Copyright 2002 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # This file is part of the FreeType project, and may only be used, modified,
@@ -303,7 +293,39 @@ $ deck
 
 CFLAGS=$(COMP_FLAGS)$(DEBUG)/include=([--.include],[--.src.autofit])
 
-OBJS=autofit.obj
+OBJS=afangles.obj,afhints.obj,aflatin.obj
+
+all : $(OBJS)
+        library [--.lib]freetype.olb $(OBJS)
+
+# EOF
+$ eod
+$ close out
+$ write sys$output "... [.src.autohint] directory"
+$ create [.src.autohint]descrip.mms
+$ open/append out [.src.autohint]descrip.mms
+$ copy sys$input: out
+$ deck
+#
+# FreeType 2 auto-hinter module compilation rules for VMS
+#
+
+
+# Copyright 2001, 2002 Catharon Productions Inc.
+#
+# This file is part of the Catharon Typography Project and shall only
+# be used, modified, and distributed under the terms of the Catharon
+# Open Source License that should come with this file under the name
+# `CatharonLicense.txt'.  By continuing to use, modify, or distribute
+# this file you indicate that you have read the license and
+# understand and accept it fully.
+#
+# Note that this license is compatible with the FreeType license.
+
+
+CFLAGS=$(COMP_FLAGS)$(DEBUG)/incl=([--.include],[--.src.autohint])
+
+OBJS=autohint.obj
 
 all : $(OBJS)
         library [--.lib]freetype.olb $(OBJS)
@@ -321,7 +343,7 @@ $ deck
 #
 
 
-# Copyright 2001-2019 by
+# Copyright 2001, 2003 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # This file is part of the FreeType project, and may only be used, modified,
@@ -333,22 +355,9 @@ $ deck
 
 CFLAGS=$(COMP_FLAGS)$(DEBUG)/include=([--.builds.vms],[--.include],[--.src.base])
 
-OBJS=ftbase.obj,\
-     ftbbox.obj,\
-     ftbdf.obj,\
-     ftbitmap.obj,\
-     ftcid.obj,\
-     ftdebug.obj,\
-     ftfstype.obj,\
-     ftgasp.obj,\
-     ftglyph.obj,\
-     ftinit.obj,\
-     ftmm.obj,\
-     ftpfr.obj,\
-     ftstroke.obj,\
-     ftsynth.obj,\
-     fttype1.obj,\
-     ftwinfnt.obj
+OBJS=ftbase.obj,ftinit.obj,ftglyph.obj,ftdebug.obj,ftbdf.obj,ftmm.obj,\
+     fttype1.obj,ftpfr.obj,ftstroke.obj,ftwinfnt.obj,ftbbox.obj,\
+     ftbitmap.obj,ftgasp.obj
 
 all : $(OBJS)
         library [--.lib]freetype.olb $(OBJS)
@@ -366,7 +375,7 @@ $ deck
 #
 
 
-# Copyright 2002-2019 by
+# Copyright 2002 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # This file is part of the FreeType project, and may only be used, modified,
@@ -396,7 +405,7 @@ $ deck
 #
 
 
-# Copyright 2001-2019 by
+# Copyright 2001, 2002, 2003, 2004 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # This file is part of the FreeType project, and may only be used, modified,
@@ -406,12 +415,15 @@ $ deck
 # fully.
 
 
-CFLAGS=$(COMP_FLAGS)$(DEBUG)/include=([--.include],[--.src.cache])/nowarn
+CFLAGS=$(COMP_FLAGS)$(DEBUG)/include=([--.include],[--.src.cache])
 
 OBJS=ftcache.obj
 
 all : $(OBJS)
         library [--.lib]freetype.olb $(OBJS)
+
+ftcache.obj : ftcache.c ftcbasic.c ftccache.c ftccmap.c ftcglyph.c ftcimage.c \
+              ftcmanag.c ftcmru.c ftcsbits.c
 
 # EOF
 $ eod
@@ -426,7 +438,7 @@ $ deck
 #
 
 
-# Copyright 2001-2019 by
+# Copyright 2001, 2002 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # This file is part of the FreeType project, and may only be used, modified,
@@ -456,7 +468,7 @@ $ deck
 #
 
 
-# Copyright 2001-2019 by
+# Copyright 2001 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # This file is part of the FreeType project, and may only be used, modified,
@@ -476,36 +488,6 @@ all : $(OBJS)
 # EOF
 $ eod
 $ close out
-$ write sys$output "... [.src.gxvalid] directory"
-$ create [.src.gxvalid]descrip.mms
-$ open/append out [.src.gxvalid]descrip.mms
-$ copy sys$input: out
-$ deck
-#
-# FreeType 2 TrueTypeGX/AAT validation driver configuration rules for VMS
-#
-
-
-# Copyright 2004-2019 by
-# David Turner, Robert Wilhelm, and Werner Lemberg.
-#
-# This file is part of the FreeType project, and may only be used, modified,
-# and distributed under the terms of the FreeType project license,
-# LICENSE.TXT.  By continuing to use, modify, or distribute this file you
-# indicate that you have read the license and understand and accept it
-# fully.
-
-
-CFLAGS=$(COMP_FLAGS)$(DEBUG)/include=([--.include],[--.src.gxvalid])
-
-OBJS=gxvalid.obj
-
-all : $(OBJS)
-        library [--.lib]freetype.olb $(OBJS)
-
-# EOF
-$ eod
-$ close out
 $ write sys$output "... [.src.gzip] directory"
 $ create [.src.gzip]descrip.mms
 $ open/append out [.src.gzip]descrip.mms
@@ -516,7 +498,7 @@ $ deck
 #
 
 
-# Copyright 2002-2019 by
+# Copyright 2002 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # This file is part of the FreeType project, and may only be used, modified,
@@ -540,42 +522,6 @@ all : $(OBJS)
 # EOF
 $ eod
 $ close out
-$ write sys$output "... [.src.bzip2] directory"
-$ create [.src.bzip2]descrip.mms
-$ open/append out [.src.bzip2]descrip.mms
-$ copy sys$input: out
-$ deck
-#
-# FreeType 2 BZIP2 support compilation rules for VMS
-#
-
-
-# Copyright 2010-2019 by
-# Joel Klinghed.
-#
-# based on `src/lzw/rules.mk'
-#
-# This file is part of the FreeType project, and may only be used, modified,
-# and distributed under the terms of the FreeType project license,
-# LICENSE.TXT.  By continuing to use, modify, or distribute this file you
-# indicate that you have read the license and understand and accept it
-# fully.
-$EOD
-$ if libincs .nes. "" then write out "LIBINCS = ", libincs - ",", ","
-$ write out "COMP_FLAGS = ", ccopt
-$ copy sys$input: out
-$ deck
-
-CFLAGS=$(COMP_FLAGS)$(DEBUG)/include=([--.include],[--.src.bzip2])
-
-OBJS=ftbzip2.obj
-
-all : $(OBJS)
-        library [--.lib]freetype.olb $(OBJS)
-
-# EOF
-$ eod
-$ close out
 $ write sys$output "... [.src.lzw] directory"
 $ create [.src.lzw]descrip.mms
 $ open/append out [.src.lzw]descrip.mms
@@ -586,7 +532,7 @@ $ deck
 #
 
 
-# Copyright 2004-2019 by
+# Copyright 2004 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # This file is part of the FreeType project, and may only be used, modified,
@@ -610,6 +556,38 @@ all : $(OBJS)
 # EOF
 $ eod
 $ close out
+$ write sys$output "... [.src.otlayout] directory"
+$ create [.src.otlayout]descrip.mms
+$ open/append out [.src.otlayout]descrip.mms
+$ copy sys$input: out
+$ deck
+#
+# FreeType 2 OT layout compilation rules for VMS
+#
+
+
+# Copyright 2004 by
+# David Turner, Robert Wilhelm, and Werner Lemberg.
+#
+# This file is part of the FreeType project, and may only be used, modified,
+# and distributed under the terms of the FreeType project license,
+# LICENSE.TXT.  By continuing to use, modify, or distribute this file you
+# indicate that you have read the license and understand and accept it
+# fully.
+
+
+CFLAGS=$(COMP_FLAGS)$(DEBUG)/include=([--.include],[--.src.otlayout])
+
+OBJS=otlbase.obj,otlcommn.obj,otlgdef.obj,otlgpos.obj,otlgsub.obj,\
+     otljstf.obj,otlparse.obj
+
+all : $(OBJS)
+        library [--.lib]freetype.olb $(OBJS)
+
+
+# EOF
+$ eod
+$ close out
 $ write sys$output "... [.src.otvalid] directory"
 $ create [.src.otvalid]descrip.mms
 $ open/append out [.src.otvalid]descrip.mms
@@ -620,7 +598,7 @@ $ deck
 #
 
 
-# Copyright 2004-2019 by
+# Copyright 2004 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # This file is part of the FreeType project, and may only be used, modified,
@@ -692,7 +670,7 @@ $ deck
 #
 
 
-# Copyright 2002-2019 by
+# Copyright 2002 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # This file is part of the FreeType project, and may only be used, modified,
@@ -722,7 +700,7 @@ $ deck
 #
 
 
-# Copyright 2001-2019 by
+# Copyright 2001, 2002 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # This file is part of the FreeType project, and may only be used, modified,
@@ -752,7 +730,7 @@ $ deck
 #
 
 
-# Copyright 2001-2019 by
+# Copyright 2001, 2002 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # This file is part of the FreeType project, and may only be used, modified,
@@ -778,11 +756,11 @@ $ open/append out [.src.psnames]descrip.mms
 $ copy sys$input: out
 $ deck
 #
-# FreeType 2 psnames driver compilation rules for VMS
+# FreeType 2 PSNames driver compilation rules for VMS
 #
 
 
-# Copyright 2001-2019 by
+# Copyright 2001, 2002 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # This file is part of the FreeType project, and may only be used, modified,
@@ -812,7 +790,7 @@ $ deck
 #
 
 
-# Copyright 2001-2019 by
+# Copyright 2001 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # This file is part of the FreeType project, and may only be used, modified,
@@ -842,7 +820,7 @@ $ deck
 #
 
 
-# Copyright 2001-2019 by
+# Copyright 2001, 2002 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # This file is part of the FreeType project, and may only be used, modified,
@@ -872,7 +850,7 @@ $ deck
 #
 
 
-# Copyright 2001-2019 by
+# Copyright 2001 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # This file is part of the FreeType project, and may only be used, modified,
@@ -902,7 +880,7 @@ $ deck
 #
 
 
-# Copyright 2001-2019 by
+# Copyright 2001, 2002 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # This file is part of the FreeType project, and may only be used, modified,
@@ -932,7 +910,7 @@ $ deck
 #
 
 
-# Copyright 1996-2019 by
+# Copyright 1996-2000, 2002 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # This file is part of the FreeType project, and may only be used, modified,
@@ -949,6 +927,8 @@ OBJS=type1.obj
 all : $(OBJS)
         library [--.lib]freetype.olb $(OBJS)
 
+type1.obj : type1.c t1parse.c t1load.c t1objs.c t1driver.c t1gload.c t1afm.c
+
 # EOF
 $ eod
 $ close out
@@ -962,7 +942,7 @@ $ deck
 #
 
 
-# Copyright 2002-2019 by
+# Copyright 2002 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # This file is part of the FreeType project, and may only be used, modified,
@@ -992,7 +972,7 @@ $ deck
 #
 
 
-# Copyright 2001-2019 by
+# Copyright 2001, 2002 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # This file is part of the FreeType project, and may only be used, modified,
@@ -1123,7 +1103,7 @@ $ endif
 $!
 $! Init symbols used to hold CPP definitions and include path
 $!
-$ libdefs = "FT2_BUILD_LIBRARY,FT_CONFIG_OPTION_OLD_INTERNALS,"
+$ libdefs = ""
 $ libincs = ""
 $!
 $! Open data file with location of libraries

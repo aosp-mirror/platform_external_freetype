@@ -4,7 +4,7 @@
  *
  *   The FreeType glyph rasterizer interface (body).
  *
- * Copyright (C) 1996-2019 by
+ * Copyright 1996-2018 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -127,8 +127,12 @@
       slot->internal->flags &= ~FT_GLYPH_OWN_BITMAP;
     }
 
-    if ( ft_glyphslot_preset_bitmap( slot, mode, origin ) )
+    ft_glyphslot_preset_bitmap( slot, mode, origin );
+
+    if ( bitmap->width > 0x7FFF || bitmap->rows > 0x7FFF )
     {
+      FT_ERROR(( "ft_raster1_render: glyph is too large: %u x %u\n",
+                 bitmap->width, bitmap->rows ));
       error = FT_THROW( Raster_Overflow );
       goto Exit;
     }

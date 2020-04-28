@@ -4,7 +4,7 @@
  *
  *   FreeType utility functions for bitmaps (body).
  *
- * Copyright (C) 2004-2019 by
+ * Copyright 2004-2018 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -31,7 +31,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  bitmap
+#define FT_COMPONENT  trace_bitmap
 
 
   static
@@ -811,6 +811,7 @@
 
     FT_Vector  source_offset;
     FT_Vector  target_offset;
+    FT_Vector  frac_offset;
 
     FT_Bool  free_source_bitmap          = 0;
     FT_Bool  free_target_bitmap_on_error = 0;
@@ -844,9 +845,16 @@
     if ( !( source_->width && source_->rows ) )
       return FT_Err_Ok;               /* nothing to do */
 
-    /* assure integer pixel offsets */
+    /* we isolate a fractional shift of `source',        */
+    /* to be less than one pixel and always positive;    */
+    /* `source_offset' now holds full-pixel shift values */
     source_offset.x = FT_PIX_FLOOR( source_offset_.x );
+    frac_offset.x   = source_offset_.x - source_offset.x;
+
     source_offset.y = FT_PIX_FLOOR( source_offset_.y );
+    frac_offset.y   = source_offset_.y - source_offset.y;
+
+    /* assure integer pixel offset for target bitmap */
     target_offset.x = FT_PIX_FLOOR( atarget_offset->x );
     target_offset.y = FT_PIX_FLOOR( atarget_offset->y );
 
@@ -898,6 +906,13 @@
       target_ury = FT_LONG_MIN;
     }
 
+    /* move upper right corner up and to the right */
+    /* if we have a fractional offset              */
+    if ( source_urx >= target_urx && frac_offset.x )
+      source_urx += 64;
+    if ( source_ury >= target_ury && frac_offset.y )
+      source_ury += 64;
+
     /* compute final bitmap dimensions */
     final_llx = FT_MIN( source_llx, target_llx );
     final_lly = FT_MIN( source_lly, target_lly );
@@ -914,6 +929,10 @@
       source_urx / 64, source_ury / 64,
       source_->width, source_->rows ));
 
+    if ( frac_offset.x || frac_offset.y )
+      FT_TRACE5(( "    fractional offset: (%d/64, %d/64)\n",
+                  frac_offset.x, frac_offset.y ));
+
     if ( target->width && target->rows )
       FT_TRACE5(( "  target bitmap: (%d, %d) -- (%d, %d); %d x %d\n",
         target_llx / 64, target_lly / 64,
@@ -922,17 +941,11 @@
     else
       FT_TRACE5(( "  target bitmap: empty\n" ));
 
-    if ( final_width && final_rows )
-      FT_TRACE5(( "  final bitmap: (%d, %d) -- (%d, %d); %d x %d\n",
-        final_llx / 64, final_lly / 64,
-        final_urx / 64, final_ury / 64,
-        final_width, final_rows ));
-    else
-      FT_TRACE5(( "  final bitmap: empty\n" ));
+    FT_TRACE5(( "  final bitmap: (%d, %d) -- (%d, %d); %d x %d\n",
+      final_llx / 64, final_lly / 64,
+      final_urx / 64, final_ury / 64,
+      final_width, final_rows ));
 #endif /* FT_DEBUG_LEVEL_TRACE */
-
-    if ( !( final_width && final_rows ) )
-      return FT_Err_Ok;               /* nothing to do */
 
     /* for blending, set offset vector of final bitmap */
     /* temporarily to (0,0)                            */
@@ -977,7 +990,6 @@
 
 
       pitch = target->pitch;
-
       if ( pitch < 0 )
         pitch = -pitch;
 
@@ -1057,6 +1069,8 @@
     /* similar to what FreeType gets from `CBDT' tables             */
     x = source_llx >> 6;
     y = source_lly >> 6;
+
+    /* XXX handle `frac_offset' */
 
     /* the bitmap flow is from top to bottom, */
     /* but y is measured from bottom to top   */

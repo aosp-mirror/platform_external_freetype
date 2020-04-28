@@ -4,7 +4,7 @@
  *
  *   The FreeType basic cache interface (body).
  *
- * Copyright (C) 2003-2019 by
+ * Copyright 2003-2018 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -27,7 +27,7 @@
 #include "ftccback.h"
 #include "ftcerror.h"
 
-#define FT_COMPONENT  cache
+#define FT_COMPONENT  trace_cache
 
 
   /*

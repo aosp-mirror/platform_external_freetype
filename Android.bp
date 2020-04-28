@@ -1,4 +1,4 @@
-cc_library {
+cc_library_shared {
     name: "libft2",
     host_supported: true,
 

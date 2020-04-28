@@ -5,7 +5,7 @@
 /*    Mac FOND support.  Written by just@letterror.com.                    */
 /*  Heavily Fixed by mpsuzuki, George Williams and Sean McBride            */
 /*                                                                         */
-/*  Copyright (C) 1996-2019 by                                             */
+/*  Copyright 1996-2018 by                                                 */
 /*  Just van Rossum, David Turner, Robert Wilhelm, and Werner Lemberg.     */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -780,10 +780,9 @@ typedef short ResourceIndex;
       style = (StyleTable*)p;
       p += sizeof ( StyleTable );
       string_count = EndianS16_BtoN( *(short*)(p) );
-      string_count = FT_MIN( 64, string_count );
       p += sizeof ( short );
 
-      for ( i = 0; i < string_count; i++ )
+      for ( i = 0; i < string_count && i < 64; i++ )
       {
         names[i] = p;
         p       += names[i][0];
@@ -800,7 +799,7 @@ typedef short ResourceIndex;
           ps_name[ps_name_len] = 0;
         }
         if ( style->indexes[face_index] > 1 &&
-             style->indexes[face_index] <= string_count )
+             style->indexes[face_index] <= FT_MIN( string_count, 64 ) )
         {
           unsigned char*  suffixes = names[style->indexes[face_index] - 1];
 

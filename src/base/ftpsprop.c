@@ -5,7 +5,7 @@
  *   Get and set properties of PostScript drivers (body).
  *   See `ftdriver.h' for available properties.
  *
- * Copyright (C) 2017-2019 by
+ * Copyright 2017-2018 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -32,7 +32,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  psprops
+#define FT_COMPONENT  trace_psprops
 
 
   FT_BASE_CALLBACK_DEF( FT_Error )

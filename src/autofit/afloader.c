@@ -4,7 +4,7 @@
  *
  *   Auto-fitter glyph loading routines (body).
  *
- * Copyright (C) 2003-2019 by
+ * Copyright 2003-2018 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -421,15 +421,10 @@
       /* now load the slot image into the auto-outline */
       /* and run the automatic hinting process         */
       if ( writing_system_class->style_hints_apply )
-      {
-        error = writing_system_class->style_hints_apply(
-                  glyph_index,
-                  hints,
-                  &gloader->base.outline,
-                  style_metrics );
-        if ( error )
-          goto Exit;
-      }
+        writing_system_class->style_hints_apply( glyph_index,
+                                                 hints,
+                                                 &gloader->base.outline,
+                                                 style_metrics );
 
       /* we now need to adjust the metrics according to the change in */
       /* width/positioning that occurred during the hinting process   */

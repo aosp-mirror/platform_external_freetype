@@ -4,7 +4,7 @@
  *
  *   Auto-fitter routines to compute global hinting values (body).
  *
- * Copyright (C) 2003-2019 by
+ * Copyright 2003-2018 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -29,7 +29,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  afglobal
+#define FT_COMPONENT  trace_afglobal
 
 
   /* get writing system specific header files */
@@ -443,7 +443,6 @@
       style = (AF_Style)( globals->glyph_styles[gindex] &
                           AF_STYLE_UNASSIGNED           );
 
-  Again:
     style_class          = af_style_classes[style];
     writing_system_class = af_writing_system_classes
                              [style_class->writing_system];
@@ -471,16 +470,6 @@
             writing_system_class->style_metrics_done( metrics );
 
           FT_FREE( metrics );
-
-          /* internal error code -1 indicates   */
-          /* that no blue zones have been found */
-          if ( error == -1 )
-          {
-            style = (AF_Style)( globals->glyph_styles[gindex] &
-                                AF_STYLE_UNASSIGNED           );
-            goto Again;
-          }
-
           goto Exit;
         }
       }
@@ -500,9 +489,9 @@
                             FT_UInt         gindex )
   {
     if ( gindex < (FT_ULong)globals->glyph_count )
-      return FT_BOOL( globals->glyph_styles[gindex] & AF_DIGIT );
+      return (FT_Bool)( globals->glyph_styles[gindex] & AF_DIGIT );
 
-    return FT_BOOL( 0 );
+    return (FT_Bool)0;
   }
 
 

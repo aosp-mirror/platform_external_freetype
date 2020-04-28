@@ -4,7 +4,7 @@
  *
  *   FreeType outline management (body).
  *
- * Copyright (C) 1996-2019 by
+ * Copyright 1996-2018 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -14,6 +14,13 @@
  * understand and accept it fully.
  *
  */
+
+
+  /**************************************************************************
+   *
+   * All functions are declared in freetype.h.
+   *
+   */
 
 
 #include <ft2build.h>
@@ -31,7 +38,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  outline
+#define FT_COMPONENT  trace_outline
 
 
   static
@@ -46,7 +53,8 @@
                         void*                    user )
   {
 #undef  SCALED
-#define SCALED( x )  ( (x) * ( 1L << shift ) - delta )
+#define SCALED( x )  ( ( (x) < 0 ? -( -(x) << shift )             \
+                                 :  (  (x) << shift ) ) - delta )
 
     FT_Vector   v_last;
     FT_Vector   v_control;
@@ -288,22 +296,14 @@
   }
 
 
-  /* documentation is in ftoutln.h */
-
   FT_EXPORT_DEF( FT_Error )
-  FT_Outline_New( FT_Library   library,
-                  FT_UInt      numPoints,
-                  FT_Int       numContours,
-                  FT_Outline  *anoutline )
+  FT_Outline_New_Internal( FT_Memory    memory,
+                           FT_UInt      numPoints,
+                           FT_Int       numContours,
+                           FT_Outline  *anoutline )
   {
-    FT_Error   error;
-    FT_Memory  memory;
+    FT_Error  error;
 
-
-    if ( !library )
-      return FT_THROW( Invalid_Library_Handle );
-
-    memory = library->memory;
 
     if ( !anoutline || !memory )
       return FT_THROW( Invalid_Argument );
@@ -330,9 +330,25 @@
 
   Fail:
     anoutline->flags |= FT_OUTLINE_OWNER;
-    FT_Outline_Done( library, anoutline );
+    FT_Outline_Done_Internal( memory, anoutline );
 
     return error;
+  }
+
+
+  /* documentation is in ftoutln.h */
+
+  FT_EXPORT_DEF( FT_Error )
+  FT_Outline_New( FT_Library   library,
+                  FT_UInt      numPoints,
+                  FT_Int       numContours,
+                  FT_Outline  *anoutline )
+  {
+    if ( !library )
+      return FT_THROW( Invalid_Library_Handle );
+
+    return FT_Outline_New_Internal( library->memory, numPoints,
+                                    numContours, anoutline );
   }
 
 
@@ -420,22 +436,12 @@
   }
 
 
-  /* documentation is in ftoutln.h */
-
   FT_EXPORT_DEF( FT_Error )
-  FT_Outline_Done( FT_Library   library,
-                   FT_Outline*  outline )
+  FT_Outline_Done_Internal( FT_Memory    memory,
+                            FT_Outline*  outline )
   {
-    FT_Memory  memory;
-
-
-    if ( !library )
-      return FT_THROW( Invalid_Library_Handle );
-
     if ( !outline )
       return FT_THROW( Invalid_Outline );
-
-    memory = library->memory;
 
     if ( !memory )
       return FT_THROW( Invalid_Argument );
@@ -449,6 +455,21 @@
     *outline = null_outline;
 
     return FT_Err_Ok;
+  }
+
+
+  /* documentation is in ftoutln.h */
+
+  FT_EXPORT_DEF( FT_Error )
+  FT_Outline_Done( FT_Library   library,
+                   FT_Outline*  outline )
+  {
+    /* check for valid `outline' in FT_Outline_Done_Internal() */
+
+    if ( !library )
+      return FT_THROW( Invalid_Library_Handle );
+
+    return FT_Outline_Done_Internal( library->memory, outline );
   }
 
 
@@ -619,16 +640,6 @@
     node     = library->renderers.head;
 
     params->source = (void*)outline;
-
-    /* preset clip_box for direct mode */
-    if ( params->flags & FT_RASTER_FLAG_DIRECT    &&
-         !( params->flags & FT_RASTER_FLAG_CLIP ) )
-    {
-      params->clip_box.xMin = cbox.xMin >> 6;
-      params->clip_box.yMin = cbox.yMin >> 6;
-      params->clip_box.xMax = ( cbox.xMax + 63 ) >> 6;
-      params->clip_box.yMax = ( cbox.yMax + 63 ) >> 6;
-    }
 
     error = FT_ERR( Cannot_Render_Glyph );
     while ( renderer )
@@ -1085,8 +1096,7 @@
         v_cur.y = points[n].y >> yshift;
 
         area = ADD_LONG( area,
-                         MUL_LONG( v_cur.y - v_prev.y,
-                                   v_cur.x + v_prev.x ) );
+                         ( v_cur.y - v_prev.y ) * ( v_cur.x + v_prev.x ) );
 
         v_prev = v_cur;
       }

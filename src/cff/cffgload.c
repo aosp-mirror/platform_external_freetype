@@ -4,7 +4,7 @@
  *
  *   OpenType Glyph Loader (body).
  *
- * Copyright (C) 1996-2019 by
+ * Copyright 1996-2018 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -38,7 +38,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  cffgload
+#define FT_COMPONENT  trace_cffgload
 
 
   FT_LOCAL_DEF( FT_Error )
@@ -414,7 +414,7 @@
         decoder.width_only = TRUE;
 
       decoder.builder.no_recurse =
-        FT_BOOL( load_flags & FT_LOAD_NO_RECURSE );
+        (FT_Bool)( load_flags & FT_LOAD_NO_RECURSE );
 
       /* now load the unscaled outline */
       error = cff_get_glyph_data( face, glyph_index,

@@ -4,7 +4,7 @@
  *
  *   TrueType bytecode interpreter (body).
  *
- * Copyright (C) 1996-2019 by
+ * Copyright 1996-2018 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -46,7 +46,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  ttinterp
+#define FT_COMPONENT  trace_ttinterp
 
 
 #define NO_SUBPIXEL_HINTING                                                  \
@@ -537,6 +537,14 @@
    *   Executes one or more instructions in the execution context.
    *
    * @Input:
+   *   debug ::
+   *     A Boolean flag.  If set, the function sets some internal
+   *     variables and returns immediately, otherwise TT_RunIns()
+   *     is called.
+   *
+   *     This is commented out currently.
+   *
+   * @Input:
    *   exec ::
    *     A handle to the target execution context.
    *
@@ -654,25 +662,23 @@
     /* opcodes are gathered in groups of 16 */
     /* please keep the spaces as they are   */
 
-    /* 0x00 */
-    /*  SVTCA[0]  */  PACK( 0, 0 ),
-    /*  SVTCA[1]  */  PACK( 0, 0 ),
-    /*  SPVTCA[0] */  PACK( 0, 0 ),
-    /*  SPVTCA[1] */  PACK( 0, 0 ),
-    /*  SFVTCA[0] */  PACK( 0, 0 ),
-    /*  SFVTCA[1] */  PACK( 0, 0 ),
-    /*  SPVTL[0]  */  PACK( 2, 0 ),
-    /*  SPVTL[1]  */  PACK( 2, 0 ),
-    /*  SFVTL[0]  */  PACK( 2, 0 ),
-    /*  SFVTL[1]  */  PACK( 2, 0 ),
-    /*  SPVFS     */  PACK( 2, 0 ),
-    /*  SFVFS     */  PACK( 2, 0 ),
-    /*  GPV       */  PACK( 0, 2 ),
-    /*  GFV       */  PACK( 0, 2 ),
-    /*  SFVTPV    */  PACK( 0, 0 ),
+    /*  SVTCA  y  */  PACK( 0, 0 ),
+    /*  SVTCA  x  */  PACK( 0, 0 ),
+    /*  SPvTCA y  */  PACK( 0, 0 ),
+    /*  SPvTCA x  */  PACK( 0, 0 ),
+    /*  SFvTCA y  */  PACK( 0, 0 ),
+    /*  SFvTCA x  */  PACK( 0, 0 ),
+    /*  SPvTL //  */  PACK( 2, 0 ),
+    /*  SPvTL +   */  PACK( 2, 0 ),
+    /*  SFvTL //  */  PACK( 2, 0 ),
+    /*  SFvTL +   */  PACK( 2, 0 ),
+    /*  SPvFS     */  PACK( 2, 0 ),
+    /*  SFvFS     */  PACK( 2, 0 ),
+    /*  GPv       */  PACK( 0, 2 ),
+    /*  GFv       */  PACK( 0, 2 ),
+    /*  SFvTPv    */  PACK( 0, 0 ),
     /*  ISECT     */  PACK( 5, 0 ),
 
-    /* 0x10 */
     /*  SRP0      */  PACK( 1, 0 ),
     /*  SRP1      */  PACK( 1, 0 ),
     /*  SRP2      */  PACK( 1, 0 ),
@@ -686,11 +692,10 @@
     /*  SMD       */  PACK( 1, 0 ),
     /*  ELSE      */  PACK( 0, 0 ),
     /*  JMPR      */  PACK( 1, 0 ),
-    /*  SCVTCI    */  PACK( 1, 0 ),
-    /*  SSWCI     */  PACK( 1, 0 ),
+    /*  SCvTCi    */  PACK( 1, 0 ),
+    /*  SSwCi     */  PACK( 1, 0 ),
     /*  SSW       */  PACK( 1, 0 ),
 
-    /* 0x20 */
     /*  DUP       */  PACK( 1, 2 ),
     /*  POP       */  PACK( 1, 0 ),
     /*  CLEAR     */  PACK( 0, 0 ),
@@ -698,7 +703,7 @@
     /*  DEPTH     */  PACK( 0, 1 ),
     /*  CINDEX    */  PACK( 1, 1 ),
     /*  MINDEX    */  PACK( 1, 0 ),
-    /*  ALIGNPTS  */  PACK( 2, 0 ),
+    /*  AlignPTS  */  PACK( 2, 0 ),
     /*  INS_$28   */  PACK( 0, 0 ),
     /*  UTP       */  PACK( 1, 0 ),
     /*  LOOPCALL  */  PACK( 2, 0 ),
@@ -708,7 +713,6 @@
     /*  MDAP[0]   */  PACK( 1, 0 ),
     /*  MDAP[1]   */  PACK( 1, 0 ),
 
-    /* 0x30 */
     /*  IUP[0]    */  PACK( 0, 0 ),
     /*  IUP[1]    */  PACK( 0, 0 ),
     /*  SHP[0]    */  PACK( 0, 0 ), /* loops */
@@ -721,18 +725,17 @@
     /*  IP        */  PACK( 0, 0 ), /* loops */
     /*  MSIRP[0]  */  PACK( 2, 0 ),
     /*  MSIRP[1]  */  PACK( 2, 0 ),
-    /*  ALIGNRP   */  PACK( 0, 0 ), /* loops */
+    /*  AlignRP   */  PACK( 0, 0 ), /* loops */
     /*  RTDG      */  PACK( 0, 0 ),
     /*  MIAP[0]   */  PACK( 2, 0 ),
     /*  MIAP[1]   */  PACK( 2, 0 ),
 
-    /* 0x40 */
-    /*  NPUSHB    */  PACK( 0, 0 ),
-    /*  NPUSHW    */  PACK( 0, 0 ),
+    /*  NPushB    */  PACK( 0, 0 ),
+    /*  NPushW    */  PACK( 0, 0 ),
     /*  WS        */  PACK( 2, 0 ),
     /*  RS        */  PACK( 1, 1 ),
-    /*  WCVTP     */  PACK( 2, 0 ),
-    /*  RCVT      */  PACK( 1, 1 ),
+    /*  WCvtP     */  PACK( 2, 0 ),
+    /*  RCvt      */  PACK( 1, 1 ),
     /*  GC[0]     */  PACK( 1, 1 ),
     /*  GC[1]     */  PACK( 1, 1 ),
     /*  SCFS      */  PACK( 2, 0 ),
@@ -740,11 +743,10 @@
     /*  MD[1]     */  PACK( 2, 1 ),
     /*  MPPEM     */  PACK( 0, 1 ),
     /*  MPS       */  PACK( 0, 1 ),
-    /*  FLIPON    */  PACK( 0, 0 ),
-    /*  FLIPOFF   */  PACK( 0, 0 ),
+    /*  FlipON    */  PACK( 0, 0 ),
+    /*  FlipOFF   */  PACK( 0, 0 ),
     /*  DEBUG     */  PACK( 1, 0 ),
 
-    /* 0x50 */
     /*  LT        */  PACK( 2, 1 ),
     /*  LTEQ      */  PACK( 2, 1 ),
     /*  GT        */  PACK( 2, 1 ),
@@ -758,11 +760,10 @@
     /*  AND       */  PACK( 2, 1 ),
     /*  OR        */  PACK( 2, 1 ),
     /*  NOT       */  PACK( 1, 1 ),
-    /*  DELTAP1   */  PACK( 1, 0 ),
+    /*  DeltaP1   */  PACK( 1, 0 ),
     /*  SDB       */  PACK( 1, 0 ),
     /*  SDS       */  PACK( 1, 0 ),
 
-    /* 0x60 */
     /*  ADD       */  PACK( 2, 1 ),
     /*  SUB       */  PACK( 2, 1 ),
     /*  DIV       */  PACK( 2, 1 ),
@@ -780,15 +781,14 @@
     /*  NROUND[2] */  PACK( 1, 1 ),
     /*  NROUND[3] */  PACK( 1, 1 ),
 
-    /* 0x70 */
-    /*  WCVTF     */  PACK( 2, 0 ),
-    /*  DELTAP2   */  PACK( 1, 0 ),
-    /*  DELTAP3   */  PACK( 1, 0 ),
-    /*  DELTAC1   */  PACK( 1, 0 ),
-    /*  DELTAC2   */  PACK( 1, 0 ),
-    /*  DELTAC3   */  PACK( 1, 0 ),
+    /*  WCvtF     */  PACK( 2, 0 ),
+    /*  DeltaP2   */  PACK( 1, 0 ),
+    /*  DeltaP3   */  PACK( 1, 0 ),
+    /*  DeltaCn[0] */ PACK( 1, 0 ),
+    /*  DeltaCn[1] */ PACK( 1, 0 ),
+    /*  DeltaCn[2] */ PACK( 1, 0 ),
     /*  SROUND    */  PACK( 1, 0 ),
-    /*  S45ROUND  */  PACK( 1, 0 ),
+    /*  S45Round  */  PACK( 1, 0 ),
     /*  JROT      */  PACK( 2, 0 ),
     /*  JROF      */  PACK( 2, 0 ),
     /*  ROFF      */  PACK( 0, 0 ),
@@ -798,25 +798,23 @@
     /*  SANGW     */  PACK( 1, 0 ),
     /*  AA        */  PACK( 1, 0 ),
 
-    /* 0x80 */
-    /*  FLIPPT    */  PACK( 0, 0 ), /* loops */
-    /*  FLIPRGON  */  PACK( 2, 0 ),
-    /*  FLIPRGOFF */  PACK( 2, 0 ),
+    /*  FlipPT    */  PACK( 0, 0 ), /* loops */
+    /*  FlipRgON  */  PACK( 2, 0 ),
+    /*  FlipRgOFF */  PACK( 2, 0 ),
     /*  INS_$83   */  PACK( 0, 0 ),
     /*  INS_$84   */  PACK( 0, 0 ),
-    /*  SCANCTRL  */  PACK( 1, 0 ),
-    /*  SDPVTL[0] */  PACK( 2, 0 ),
-    /*  SDPVTL[1] */  PACK( 2, 0 ),
-    /*  GETINFO   */  PACK( 1, 1 ),
+    /*  ScanCTRL  */  PACK( 1, 0 ),
+    /*  SDPvTL[0] */  PACK( 2, 0 ),
+    /*  SDPvTL[1] */  PACK( 2, 0 ),
+    /*  GetINFO   */  PACK( 1, 1 ),
     /*  IDEF      */  PACK( 1, 0 ),
     /*  ROLL      */  PACK( 3, 3 ),
     /*  MAX       */  PACK( 2, 1 ),
     /*  MIN       */  PACK( 2, 1 ),
-    /*  SCANTYPE  */  PACK( 1, 0 ),
-    /*  INSTCTRL  */  PACK( 2, 0 ),
+    /*  ScanTYPE  */  PACK( 1, 0 ),
+    /*  InstCTRL  */  PACK( 2, 0 ),
     /*  INS_$8F   */  PACK( 0, 0 ),
 
-    /* 0x90 */
     /*  INS_$90  */   PACK( 0, 0 ),
     /*  GETVAR   */   PACK( 0, 0 ), /* will be handled specially */
     /*  GETDATA  */   PACK( 0, 1 ),
@@ -834,7 +832,6 @@
     /*  INS_$9E  */   PACK( 0, 0 ),
     /*  INS_$9F  */   PACK( 0, 0 ),
 
-    /* 0xA0 */
     /*  INS_$A0  */   PACK( 0, 0 ),
     /*  INS_$A1  */   PACK( 0, 0 ),
     /*  INS_$A2  */   PACK( 0, 0 ),
@@ -852,25 +849,23 @@
     /*  INS_$AE  */   PACK( 0, 0 ),
     /*  INS_$AF  */   PACK( 0, 0 ),
 
-    /* 0xB0 */
-    /*  PUSHB[0]  */  PACK( 0, 1 ),
-    /*  PUSHB[1]  */  PACK( 0, 2 ),
-    /*  PUSHB[2]  */  PACK( 0, 3 ),
-    /*  PUSHB[3]  */  PACK( 0, 4 ),
-    /*  PUSHB[4]  */  PACK( 0, 5 ),
-    /*  PUSHB[5]  */  PACK( 0, 6 ),
-    /*  PUSHB[6]  */  PACK( 0, 7 ),
-    /*  PUSHB[7]  */  PACK( 0, 8 ),
-    /*  PUSHW[0]  */  PACK( 0, 1 ),
-    /*  PUSHW[1]  */  PACK( 0, 2 ),
-    /*  PUSHW[2]  */  PACK( 0, 3 ),
-    /*  PUSHW[3]  */  PACK( 0, 4 ),
-    /*  PUSHW[4]  */  PACK( 0, 5 ),
-    /*  PUSHW[5]  */  PACK( 0, 6 ),
-    /*  PUSHW[6]  */  PACK( 0, 7 ),
-    /*  PUSHW[7]  */  PACK( 0, 8 ),
+    /*  PushB[0]  */  PACK( 0, 1 ),
+    /*  PushB[1]  */  PACK( 0, 2 ),
+    /*  PushB[2]  */  PACK( 0, 3 ),
+    /*  PushB[3]  */  PACK( 0, 4 ),
+    /*  PushB[4]  */  PACK( 0, 5 ),
+    /*  PushB[5]  */  PACK( 0, 6 ),
+    /*  PushB[6]  */  PACK( 0, 7 ),
+    /*  PushB[7]  */  PACK( 0, 8 ),
+    /*  PushW[0]  */  PACK( 0, 1 ),
+    /*  PushW[1]  */  PACK( 0, 2 ),
+    /*  PushW[2]  */  PACK( 0, 3 ),
+    /*  PushW[3]  */  PACK( 0, 4 ),
+    /*  PushW[4]  */  PACK( 0, 5 ),
+    /*  PushW[5]  */  PACK( 0, 6 ),
+    /*  PushW[6]  */  PACK( 0, 7 ),
+    /*  PushW[7]  */  PACK( 0, 8 ),
 
-    /* 0xC0 */
     /*  MDRP[00]  */  PACK( 1, 0 ),
     /*  MDRP[01]  */  PACK( 1, 0 ),
     /*  MDRP[02]  */  PACK( 1, 0 ),
@@ -888,7 +883,6 @@
     /*  MDRP[14]  */  PACK( 1, 0 ),
     /*  MDRP[15]  */  PACK( 1, 0 ),
 
-    /* 0xD0 */
     /*  MDRP[16]  */  PACK( 1, 0 ),
     /*  MDRP[17]  */  PACK( 1, 0 ),
     /*  MDRP[18]  */  PACK( 1, 0 ),
@@ -906,7 +900,6 @@
     /*  MDRP[30]  */  PACK( 1, 0 ),
     /*  MDRP[31]  */  PACK( 1, 0 ),
 
-    /* 0xE0 */
     /*  MIRP[00]  */  PACK( 2, 0 ),
     /*  MIRP[01]  */  PACK( 2, 0 ),
     /*  MIRP[02]  */  PACK( 2, 0 ),
@@ -924,7 +917,6 @@
     /*  MIRP[14]  */  PACK( 2, 0 ),
     /*  MIRP[15]  */  PACK( 2, 0 ),
 
-    /* 0xF0 */
     /*  MIRP[16]  */  PACK( 2, 0 ),
     /*  MIRP[17]  */  PACK( 2, 0 ),
     /*  MIRP[18]  */  PACK( 2, 0 ),
@@ -953,25 +945,23 @@
   static
   const char*  const opcode_name[256] =
   {
-    /* 0x00 */
-    "8 SVTCA[y]",
-    "8 SVTCA[x]",
-    "9 SPVTCA[y]",
-    "9 SPVTCA[x]",
-    "9 SFVTCA[y]",
-    "9 SFVTCA[x]",
-    "9 SPVTL[||]",
-    "8 SPVTL[+]",
-    "9 SFVTL[||]",
-    "8 SFVTL[+]",
-    "5 SPVFS",
-    "5 SFVFS",
-    "3 GPV",
-    "3 GFV",
-    "6 SFVTPV",
+    "7 SVTCA y",
+    "7 SVTCA x",
+    "8 SPvTCA y",
+    "8 SPvTCA x",
+    "8 SFvTCA y",
+    "8 SFvTCA x",
+    "8 SPvTL ||",
+    "7 SPvTL +",
+    "8 SFvTL ||",
+    "7 SFvTL +",
+    "5 SPvFS",
+    "5 SFvFS",
+    "3 GPv",
+    "3 GFv",
+    "6 SFvTPv",
     "5 ISECT",
 
-    /* 0x10 */
     "4 SRP0",
     "4 SRP1",
     "4 SRP2",
@@ -985,11 +975,10 @@
     "3 SMD",
     "4 ELSE",
     "4 JMPR",
-    "6 SCVTCI",
-    "5 SSWCI",
+    "6 SCvTCi",
+    "5 SSwCi",
     "3 SSW",
 
-    /* 0x20 */
     "3 DUP",
     "3 POP",
     "5 CLEAR",
@@ -997,53 +986,50 @@
     "5 DEPTH",
     "6 CINDEX",
     "6 MINDEX",
-    "8 ALIGNPTS",
+    "8 AlignPTS",
     "7 INS_$28",
     "3 UTP",
     "8 LOOPCALL",
     "4 CALL",
     "4 FDEF",
     "4 ENDF",
-    "6 MDAP[]",
-    "9 MDAP[rnd]",
+    "7 MDAP[0]",
+    "7 MDAP[1]",
 
-    /* 0x30 */
-    "6 IUP[y]",
-    "6 IUP[x]",
-    "8 SHP[rp2]",
-    "8 SHP[rp1]",
-    "8 SHC[rp2]",
-    "8 SHC[rp1]",
-    "8 SHZ[rp2]",
-    "8 SHZ[rp1]",
+    "6 IUP[0]",
+    "6 IUP[1]",
+    "6 SHP[0]",
+    "6 SHP[1]",
+    "6 SHC[0]",
+    "6 SHC[1]",
+    "6 SHZ[0]",
+    "6 SHZ[1]",
     "5 SHPIX",
     "2 IP",
-    "7 MSIRP[]",
-    "A MSIRP[rp0]",
-    "7 ALIGNRP",
+    "8 MSIRP[0]",
+    "8 MSIRP[1]",
+    "7 AlignRP",
     "4 RTDG",
-    "6 MIAP[]",
-    "9 MIAP[rnd]",
+    "7 MIAP[0]",
+    "7 MIAP[1]",
 
-    /* 0x40 */
-    "6 NPUSHB",
-    "6 NPUSHW",
+    "6 NPushB",
+    "6 NPushW",
     "2 WS",
     "2 RS",
-    "5 WCVTP",
-    "4 RCVT",
-    "8 GC[curr]",
-    "8 GC[orig]",
+    "5 WCvtP",
+    "4 RCvt",
+    "5 GC[0]",
+    "5 GC[1]",
     "4 SCFS",
-    "8 MD[curr]",
-    "8 MD[orig]",
+    "5 MD[0]",
+    "5 MD[1]",
     "5 MPPEM",
     "3 MPS",
-    "6 FLIPON",
-    "7 FLIPOFF",
+    "6 FlipON",
+    "7 FlipOFF",
     "5 DEBUG",
 
-    /* 0x50 */
     "2 LT",
     "4 LTEQ",
     "2 GT",
@@ -1057,11 +1043,10 @@
     "3 AND",
     "2 OR",
     "3 NOT",
-    "7 DELTAP1",
+    "7 DeltaP1",
     "3 SDB",
     "3 SDS",
 
-    /* 0x60 */
     "3 ADD",
     "3 SUB",
     "3 DIV",
@@ -1070,24 +1055,23 @@
     "3 NEG",
     "5 FLOOR",
     "7 CEILING",
-    "8 ROUND[G]",
-    "8 ROUND[B]",
-    "8 ROUND[W]",
-    "7 ROUND[]",
-    "9 NROUND[G]",
-    "9 NROUND[B]",
-    "9 NROUND[W]",
-    "8 NROUND[]",
+    "8 ROUND[0]",
+    "8 ROUND[1]",
+    "8 ROUND[2]",
+    "8 ROUND[3]",
+    "9 NROUND[0]",
+    "9 NROUND[1]",
+    "9 NROUND[2]",
+    "9 NROUND[3]",
 
-    /* 0x70 */
-    "5 WCVTF",
-    "7 DELTAP2",
-    "7 DELTAP3",
-    "7 DELTAC1",
-    "7 DELTAC2",
-    "7 DELTAC3",
+    "5 WCvtF",
+    "7 DeltaP2",
+    "7 DeltaP3",
+    "A DeltaCn[0]",
+    "A DeltaCn[1]",
+    "A DeltaCn[2]",
     "6 SROUND",
-    "8 S45ROUND",
+    "8 S45Round",
     "4 JROT",
     "4 JROF",
     "4 ROFF",
@@ -1097,28 +1081,26 @@
     "5 SANGW",
     "2 AA",
 
-    /* 0x80 */
-    "6 FLIPPT",
-    "8 FLIPRGON",
-    "9 FLIPRGOFF",
+    "6 FlipPT",
+    "8 FlipRgON",
+    "9 FlipRgOFF",
     "7 INS_$83",
     "7 INS_$84",
-    "8 SCANCTRL",
-    "A SDPVTL[||]",
-    "9 SDPVTL[+]",
-    "7 GETINFO",
+    "8 ScanCTRL",
+    "9 SDPvTL[0]",
+    "9 SDPvTL[1]",
+    "7 GetINFO",
     "4 IDEF",
     "4 ROLL",
     "3 MAX",
     "3 MIN",
-    "8 SCANTYPE",
-    "8 INSTCTRL",
+    "8 ScanTYPE",
+    "8 InstCTRL",
     "7 INS_$8F",
 
-    /* 0x90 */
     "7 INS_$90",
 #ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
-    "C GETVARIATION",
+    "6 GETVAR",
     "7 GETDATA",
 #else
     "7 INS_$91",
@@ -1138,7 +1120,6 @@
     "7 INS_$9E",
     "7 INS_$9F",
 
-    /* 0xA0 */
     "7 INS_$A0",
     "7 INS_$A1",
     "7 INS_$A2",
@@ -1156,95 +1137,90 @@
     "7 INS_$AE",
     "7 INS_$AF",
 
-    /* 0xB0 */
-    "8 PUSHB[0]",
-    "8 PUSHB[1]",
-    "8 PUSHB[2]",
-    "8 PUSHB[3]",
-    "8 PUSHB[4]",
-    "8 PUSHB[5]",
-    "8 PUSHB[6]",
-    "8 PUSHB[7]",
-    "8 PUSHW[0]",
-    "8 PUSHW[1]",
-    "8 PUSHW[2]",
-    "8 PUSHW[3]",
-    "8 PUSHW[4]",
-    "8 PUSHW[5]",
-    "8 PUSHW[6]",
-    "8 PUSHW[7]",
+    "8 PushB[0]",
+    "8 PushB[1]",
+    "8 PushB[2]",
+    "8 PushB[3]",
+    "8 PushB[4]",
+    "8 PushB[5]",
+    "8 PushB[6]",
+    "8 PushB[7]",
+    "8 PushW[0]",
+    "8 PushW[1]",
+    "8 PushW[2]",
+    "8 PushW[3]",
+    "8 PushW[4]",
+    "8 PushW[5]",
+    "8 PushW[6]",
+    "8 PushW[7]",
 
-    /* 0xC0 */
     "7 MDRP[G]",
     "7 MDRP[B]",
     "7 MDRP[W]",
-    "6 MDRP[]",
+    "7 MDRP[?]",
     "8 MDRP[rG]",
     "8 MDRP[rB]",
     "8 MDRP[rW]",
-    "7 MDRP[r]",
+    "8 MDRP[r?]",
     "8 MDRP[mG]",
     "8 MDRP[mB]",
     "8 MDRP[mW]",
-    "7 MDRP[m]",
+    "8 MDRP[m?]",
     "9 MDRP[mrG]",
     "9 MDRP[mrB]",
     "9 MDRP[mrW]",
-    "8 MDRP[mr]",
+    "9 MDRP[mr?]",
 
-    /* 0xD0 */
     "8 MDRP[pG]",
     "8 MDRP[pB]",
     "8 MDRP[pW]",
-    "7 MDRP[p]",
+    "8 MDRP[p?]",
     "9 MDRP[prG]",
     "9 MDRP[prB]",
     "9 MDRP[prW]",
-    "8 MDRP[pr]",
+    "9 MDRP[pr?]",
     "9 MDRP[pmG]",
     "9 MDRP[pmB]",
     "9 MDRP[pmW]",
-    "8 MDRP[pm]",
+    "9 MDRP[pm?]",
     "A MDRP[pmrG]",
     "A MDRP[pmrB]",
     "A MDRP[pmrW]",
-    "9 MDRP[pmr]",
+    "A MDRP[pmr?]",
 
-    /* 0xE0 */
     "7 MIRP[G]",
     "7 MIRP[B]",
     "7 MIRP[W]",
-    "6 MIRP[]",
+    "7 MIRP[?]",
     "8 MIRP[rG]",
     "8 MIRP[rB]",
     "8 MIRP[rW]",
-    "7 MIRP[r]",
+    "8 MIRP[r?]",
     "8 MIRP[mG]",
     "8 MIRP[mB]",
     "8 MIRP[mW]",
-    "7 MIRP[m]",
+    "8 MIRP[m?]",
     "9 MIRP[mrG]",
     "9 MIRP[mrB]",
     "9 MIRP[mrW]",
-    "8 MIRP[mr]",
+    "9 MIRP[mr?]",
 
-    /* 0xF0 */
     "8 MIRP[pG]",
     "8 MIRP[pB]",
     "8 MIRP[pW]",
-    "7 MIRP[p]",
+    "8 MIRP[p?]",
     "9 MIRP[prG]",
     "9 MIRP[prB]",
     "9 MIRP[prW]",
-    "8 MIRP[pr]",
+    "9 MIRP[pr?]",
     "9 MIRP[pmG]",
     "9 MIRP[pmB]",
     "9 MIRP[pmW]",
-    "8 MIRP[pm]",
+    "9 MIRP[pm?]",
     "A MIRP[pmrG]",
     "A MIRP[pmrB]",
     "A MIRP[pmrW]",
-    "9 MIRP[pmr]"
+    "A MIRP[pmr?]"
   };
 
 #endif /* FT_DEBUG_LEVEL_TRACE */
@@ -1596,7 +1572,7 @@
             FT_ULong        idx,
             FT_F26Dot6      value )
   {
-    exc->cvt[idx] = ADD_LONG( exc->cvt[idx], value );
+    exc->cvt[idx] += value;
   }
 
 
@@ -1605,8 +1581,7 @@
                       FT_ULong        idx,
                       FT_F26Dot6      value )
   {
-    exc->cvt[idx] = ADD_LONG( exc->cvt[idx],
-                              FT_DivFix( value, Current_Ratio( exc ) ) );
+    exc->cvt[idx] += FT_DivFix( value, Current_Ratio( exc ) );
   }
 
 
@@ -1692,32 +1667,6 @@
 
     return SUCCESS;
   }
-
-
-  /*
-   *
-   * Apple's TrueType specification at
-   *
-   *   https://developer.apple.com/fonts/TrueType-Reference-Manual/RM02/Chap2.html#order
-   *
-   * gives the following order of operations in instructions that move
-   * points.
-   *
-   *   - check single width cut-in (MIRP, MDRP)
-   *
-   *   - check control value cut-in (MIRP, MIAP)
-   *
-   *   - apply engine compensation (MIRP, MDRP)
-   *
-   *   - round distance (MIRP, MDRP) or value (MIAP, MDAP)
-   *
-   *   - check minimum distance (MIRP,MDRP)
-   *
-   *   - move point (MIRP, MDRP, MIAP, MSIRP, MDAP)
-   *
-   * For rounding instructions, engine compensation happens before rounding.
-   *
-   */
 
 
   /**************************************************************************
@@ -1944,6 +1893,7 @@
     zone->org[point].y = ADD_LONG( zone->org[point].y, distance );
   }
 
+
   /**************************************************************************
    *
    * @Function:
@@ -1961,6 +1911,12 @@
    *
    * @Return:
    *   The compensated distance.
+   *
+   * @Note:
+   *   The TrueType specification says very few about the relationship
+   *   between rounding and engine compensation.  However, it seems from
+   *   the description of super round that we should add the compensation
+   *   before rounding.
    */
   static FT_F26Dot6
   Round_None( TT_ExecContext  exc,
@@ -6363,7 +6319,7 @@
     if ( exc->GS.auto_flip )
     {
       if ( ( org_dist ^ cvt_dist ) < 0 )
-        cvt_dist = NEG_LONG( cvt_dist );
+        cvt_dist = -cvt_dist;
     }
 
 #ifdef TT_SUPPORT_SUBPIXEL_HINTING_INFINALITY
@@ -7918,7 +7874,7 @@
         /* and the first few stack elements also             */
         FT_TRACE6(( "  " ));
         FT_TRACE7(( "%06d ", exc->IP ));
-        FT_TRACE6(( "%s", opcode_name[exc->opcode] + 2 ));
+        FT_TRACE6(( opcode_name[exc->opcode] + 2 ));
         FT_TRACE7(( "%*s", *opcode_name[exc->opcode] == 'A'
                               ? 2
                               : 12 - ( *opcode_name[exc->opcode] - '0' ),

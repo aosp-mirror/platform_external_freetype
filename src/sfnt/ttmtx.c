@@ -4,7 +4,7 @@
  *
  *   Load the metrics tables common to TTF and OTF fonts (body).
  *
- * Copyright (C) 2006-2019 by
+ * Copyright 2006-2018 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -45,7 +45,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  ttmtx
+#define FT_COMPONENT  trace_ttmtx
 
 
   /**************************************************************************
@@ -280,7 +280,7 @@
       else
       {
         table_pos += 4 * ( k - 1 );
-        if ( table_pos + 2 > table_end )
+        if ( table_pos + 4 > table_end )
           goto NoData;
 
         if ( FT_STREAM_SEEK( table_pos ) ||
@@ -292,9 +292,7 @@
           *abearing = 0;
         else
         {
-          if ( FT_STREAM_SEEK( table_pos ) )
-            *abearing = 0;
-          else
+          if ( !FT_STREAM_SEEK( table_pos ) )
             (void)FT_READ_SHORT( *abearing );
         }
       }

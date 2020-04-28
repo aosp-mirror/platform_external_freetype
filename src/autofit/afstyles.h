@@ -4,7 +4,7 @@
  *
  *   Auto-fitter styles (specification only).
  *
- * Copyright (C) 2013-2019 by
+ * Copyright 2013-2018 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -320,13 +320,6 @@
          AF_WRITING_SYSTEM_LATIN,
          AF_SCRIPT_MLYM,
          AF_BLUE_STRINGSET_MLYM,
-         AF_COVERAGE_DEFAULT )
-
-  STYLE( mong_dflt, MONG_DFLT,
-         "Mongolian default style",
-         AF_WRITING_SYSTEM_LATIN,
-         AF_SCRIPT_MONG,
-         AF_BLUE_STRINGSET_MONG,
          AF_COVERAGE_DEFAULT )
 
   STYLE( mymr_dflt, MYMR_DFLT,

@@ -4,7 +4,7 @@
  *
  *   TrueTypeGX/AAT feat table validation (body).
  *
- * Copyright (C) 2004-2019 by
+ * Copyright 2004-2018 by
  * suzuki toshiya, Masatake YAMATO, Red Hat K.K.,
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
@@ -37,7 +37,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  gxvfeat
+#define FT_COMPONENT  trace_gxvfeat
 
 
   /*************************************************************************/

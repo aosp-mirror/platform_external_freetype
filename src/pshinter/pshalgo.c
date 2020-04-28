@@ -4,7 +4,7 @@
  *
  *   PostScript hinting algorithm (body).
  *
- * Copyright (C) 2001-2019 by
+ * Copyright 2001-2018 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used
@@ -26,7 +26,7 @@
 
 
 #undef  FT_COMPONENT
-#define FT_COMPONENT  pshalgo
+#define FT_COMPONENT  trace_pshalgo
 
 
 #ifdef DEBUG_HINTER
@@ -53,8 +53,8 @@
   psh_hint_overlap( PSH_Hint  hint1,
                     PSH_Hint  hint2 )
   {
-    return ADD_INT( hint1->org_pos, hint1->org_len ) >= hint2->org_pos &&
-           ADD_INT( hint2->org_pos, hint2->org_len ) >= hint1->org_pos;
+    return hint1->org_pos + hint1->org_len >= hint2->org_pos &&
+           hint2->org_pos + hint2->org_len >= hint1->org_pos;
   }
 
 
@@ -479,7 +479,7 @@
 
       if ( dimension == 1 )
         psh_blues_snap_stem( &globals->blues,
-                             ADD_INT( hint->org_pos, hint->org_len ),
+                             hint->org_pos + hint->org_len,
                              hint->org_pos,
                              &align );
 
@@ -703,7 +703,7 @@
 
       if ( dimension == 1 )
         psh_blues_snap_stem( &globals->blues,
-                             ADD_INT( hint->org_pos, hint->org_len ),
+                             hint->org_pos + hint->org_len,
                              hint->org_pos,
                              &align );
 
@@ -1538,8 +1538,8 @@
             PSH_Hint  hint = sort[nn];
 
 
-            if ( org_u >=          hint->org_pos                  &&
-                 org_u <= ADD_INT( hint->org_pos, hint->org_len ) )
+            if ( org_u >= hint->org_pos                 &&
+                org_u <= hint->org_pos + hint->org_len )
             {
               point->hint = hint;
               break;

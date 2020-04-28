@@ -45,7 +45,7 @@ THE SOFTWARE.
 #include "pcfutil.h"
 
 #undef  FT_COMPONENT
-#define FT_COMPONENT  pcfread
+#define FT_COMPONENT  trace_pcfread
 
 #include FT_SERVICE_BDF_H
 #include FT_SERVICE_FONT_FORMAT_H
@@ -60,7 +60,7 @@ THE SOFTWARE.
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  pcfdriver
+#define FT_COMPONENT  trace_pcfdriver
 
 
   /*
@@ -69,8 +69,9 @@ THE SOFTWARE.
    */
   typedef struct  PCF_CMapRec_
   {
-    FT_CMapRec  root;
-    PCF_Enc     enc;
+    FT_CMapRec    root;
+    FT_ULong      num_encodings;
+    PCF_Encoding  encodings;
 
   } PCF_CMapRec, *PCF_CMap;
 
@@ -85,7 +86,8 @@ THE SOFTWARE.
     FT_UNUSED( init_data );
 
 
-    cmap->enc = &face->enc;
+    cmap->num_encodings = face->nencodings;
+    cmap->encodings     = face->encodings;
 
     return FT_Err_Ok;
   }
@@ -97,7 +99,8 @@ THE SOFTWARE.
     PCF_CMap  cmap = (PCF_CMap)pcfcmap;
 
 
-    cmap->enc = NULL;
+    cmap->encodings     = NULL;
+    cmap->num_encodings = 0;
   }
 
 
@@ -105,26 +108,36 @@ THE SOFTWARE.
   pcf_cmap_char_index( FT_CMap    pcfcmap,  /* PCF_CMap */
                        FT_UInt32  charcode )
   {
-    PCF_CMap   cmap = (PCF_CMap)pcfcmap;
-    PCF_Enc    enc  = cmap->enc;
-    FT_UShort  charcodeRow;
-    FT_UShort  charcodeCol;
+    PCF_CMap      cmap      = (PCF_CMap)pcfcmap;
+    PCF_Encoding  encodings = cmap->encodings;
+    FT_ULong      min, max, mid;
+    FT_UInt       result    = 0;
 
 
-    if ( charcode > (FT_UInt32)( enc->lastRow  * 256 + enc->lastCol  ) ||
-         charcode < (FT_UInt32)( enc->firstRow * 256 + enc->firstCol ) )
-      return 0;
+    min = 0;
+    max = cmap->num_encodings;
 
-    charcodeRow = (FT_UShort)( charcode >> 8 );
-    charcodeCol = (FT_UShort)( charcode & 0xFF );
+    while ( min < max )
+    {
+      FT_ULong  code;
 
-    if ( charcodeCol < enc->firstCol ||
-         charcodeCol > enc->lastCol  )
-      return 0;
 
-    return (FT_UInt)enc->offset[( charcodeRow - enc->firstRow ) *
-                                  ( enc->lastCol - enc->firstCol + 1 ) +
-                                charcodeCol - enc->firstCol];
+      mid  = ( min + max ) >> 1;
+      code = encodings[mid].enc;
+
+      if ( charcode == code )
+      {
+        result = encodings[mid].glyph;
+        break;
+      }
+
+      if ( charcode < code )
+        max = mid;
+      else
+        min = mid + 1;
+    }
+
+    return result;
   }
 
 
@@ -132,42 +145,52 @@ THE SOFTWARE.
   pcf_cmap_char_next( FT_CMap    pcfcmap,   /* PCF_CMap */
                       FT_UInt32  *acharcode )
   {
-    PCF_CMap   cmap      = (PCF_CMap)pcfcmap;
-    PCF_Enc    enc       = cmap->enc;
-    FT_UInt32  charcode  = *acharcode;
-    FT_UShort  charcodeRow;
-    FT_UShort  charcodeCol;
-    FT_Int     result = 0;
+    PCF_CMap      cmap      = (PCF_CMap)pcfcmap;
+    PCF_Encoding  encodings = cmap->encodings;
+    FT_ULong      min, max, mid;
+    FT_ULong      charcode  = *acharcode + 1;
+    FT_UInt       result    = 0;
 
 
-    while ( charcode < (FT_UInt32)( enc->lastRow * 256 + enc->lastCol ) )
+    min = 0;
+    max = cmap->num_encodings;
+
+    while ( min < max )
     {
-      charcode++;
+      FT_ULong  code;
 
-      if ( charcode < (FT_UInt32)( enc->firstRow * 256 + enc->firstCol ) )
-        charcode = (FT_UInt32)( enc->firstRow * 256 + enc->firstCol );
 
-      charcodeRow = (FT_UShort)( charcode >> 8 );
-      charcodeCol = (FT_UShort)( charcode & 0xFF );
+      mid  = ( min + max ) >> 1;
+      code = encodings[mid].enc;
 
-      if ( charcodeCol < enc->firstCol )
-        charcodeCol = enc->firstCol;
-      else if ( charcodeCol > enc->lastCol )
+      if ( charcode == code )
       {
-        charcodeRow++;
-        charcodeCol = enc->firstCol;
+        result = encodings[mid].glyph;
+        goto Exit;
       }
 
-      charcode = (FT_UInt32)( charcodeRow * 256 + charcodeCol );
-
-      result = (FT_UInt)enc->offset[( charcodeRow - enc->firstRow ) *
-                                      ( enc->lastCol - enc->firstCol + 1 ) +
-                                    charcodeCol - enc->firstCol];
-      if ( result != 0xFFFFU )
-        break;
+      if ( charcode < code )
+        max = mid;
+      else
+        min = mid + 1;
     }
 
-    *acharcode = charcode;
+    charcode = 0;
+    if ( min < cmap->num_encodings )
+    {
+      charcode = encodings[min].enc;
+      result   = encodings[min].glyph;
+    }
+
+  Exit:
+    if ( charcode > 0xFFFFFFFFUL )
+    {
+      FT_TRACE1(( "pcf_cmap_char_next: charcode 0x%x > 32bit API" ));
+      *acharcode = 0;
+      /* XXX: result should be changed to indicate an overflow error */
+    }
+    else
+      *acharcode = (FT_UInt32)charcode;
 
     return result;
   }
@@ -198,8 +221,8 @@ THE SOFTWARE.
 
     memory = FT_FACE_MEMORY( face );
 
+    FT_FREE( face->encodings );
     FT_FREE( face->metrics );
-    FT_FREE( face->enc.offset );
 
     /* free properties */
     if ( face->properties )

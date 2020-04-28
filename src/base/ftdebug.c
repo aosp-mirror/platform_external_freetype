@@ -4,7 +4,7 @@
  *
  *   Debugging and logging component (body).
  *
- * Copyright (C) 1996-2019 by
+ * Copyright 1996-2018 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -87,19 +87,9 @@
             int          line,
             const char*  file )
   {
-#if 0
-    /* activating the code in this block makes FreeType very chatty */
-    fprintf( stderr,
-             "%s:%d: error 0x%02x: %s\n",
-             file,
-             line,
-             error,
-             FT_Error_String( error ) );
-#else
     FT_UNUSED( error );
     FT_UNUSED( line );
     FT_UNUSED( file );
-#endif
 
     return 0;
   }

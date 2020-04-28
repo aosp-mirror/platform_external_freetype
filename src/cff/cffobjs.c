@@ -4,7 +4,7 @@
  *
  *   OpenType objects manager (body).
  *
- * Copyright (C) 1996-2019 by
+ * Copyright 1996-2018 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -51,7 +51,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  cffobjs
+#define FT_COMPONENT  trace_cffobjs
 
 
   /**************************************************************************
@@ -644,14 +644,14 @@
 
       dict = &cff->top_font.font_dict;
 
-      /* we need the `psnames' module for CFF and CEF formats */
+      /* we need the `PSNames' module for CFF and CEF formats */
       /* which aren't CID-keyed                               */
       if ( dict->cid_registry == 0xFFFFU && !psnames )
       {
         FT_ERROR(( "cff_face_init:"
                    " cannot open CFF & CEF fonts\n"
                    "              "
-                   " without the `psnames' module\n" ));
+                   " without the `PSNames' module\n" ));
         error = FT_THROW( Missing_Module );
         goto Exit;
       }
@@ -962,7 +962,7 @@
           cffface->style_name = style_name;
         else
           /* assume "Regular" style if we don't know better */
-          cffface->style_name = cff_strcpy( memory, "Regular" );
+          cffface->style_name = cff_strcpy( memory, (char *)"Regular" );
 
         /********************************************************************
          *
@@ -1072,8 +1072,7 @@
         error = FT_CMap_New( &cff_cmap_unicode_class_rec, NULL,
                              &cmaprec, NULL );
         if ( error                                      &&
-             FT_ERR_NEQ( error, No_Unicode_Glyph_Name ) &&
-             FT_ERR_NEQ( error, Unimplemented_Feature ) )
+             FT_ERR_NEQ( error, No_Unicode_Glyph_Name ) )
           goto Exit;
         error = FT_Err_Ok;
 

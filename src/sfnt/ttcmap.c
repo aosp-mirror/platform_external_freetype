@@ -4,7 +4,7 @@
  *
  *   TrueType character mapping table (cmap) support (body).
  *
- * Copyright (C) 2002-2019 by
+ * Copyright 2002-2018 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -36,7 +36,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  ttcmap
+#define FT_COMPONENT  trace_ttcmap
 
 
 #define TT_PEEK_SHORT   FT_PEEK_SHORT
@@ -2368,7 +2368,10 @@
         /* if `gindex' is invalid, the remaining values */
         /* in this group are invalid, too               */
         if ( gindex >= (FT_UInt)face->num_glyphs )
+        {
+          gindex = 0;
           continue;
+        }
 
         cmap->cur_charcode = char_code;
         cmap->cur_gindex   = gindex;
@@ -3658,7 +3661,7 @@
   tt_get_glyph_name( TT_Face  face,
                      FT_UInt  idx )
   {
-    FT_String*  PSname = NULL;
+    FT_String*  PSname;
 
 
     tt_face_get_ps_name( face, idx, &PSname );
@@ -3677,9 +3680,6 @@
 
     FT_UNUSED( pointer );
 
-
-    if ( !psnames->unicodes_init )
-      return FT_THROW( Unimplemented_Feature );
 
     return psnames->unicodes_init( memory,
                                    unicodes,

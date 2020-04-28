@@ -235,7 +235,6 @@ int r )
       s->sub.trees.index = 0;
       Tracev((stderr, "inflate:       table sizes ok\n"));
       s->mode = BTREE;
-      /* fall through */
     case BTREE:
       while (s->sub.trees.index < 4 + (s->sub.trees.table >> 10))
       {
@@ -261,7 +260,6 @@ int r )
       s->sub.trees.index = 0;
       Tracev((stderr, "inflate:       bits tree ok\n"));
       s->mode = DTREE;
-      /* fall through */
     case DTREE:
       while (t = s->sub.trees.table,
              s->sub.trees.index < 258 + (t & 0x1f) + ((t >> 5) & 0x1f))
@@ -337,7 +335,6 @@ int r )
       }
       ZFREE(z, s->sub.trees.blens);
       s->mode = CODES;
-      /* fall through */
     case CODES:
       UPDATE
       if ((r = inflate_codes(s, z, r)) != Z_STREAM_END)
@@ -354,13 +351,11 @@ int r )
         break;
       }
       s->mode = DRY;
-      /* fall through */
     case DRY:
       FLUSH
       if (s->read != s->write)
         LEAVE
       s->mode = DONE;
-      /* fall through */
     case DONE:
       r = Z_STREAM_END;
       LEAVE

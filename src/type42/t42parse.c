@@ -4,7 +4,7 @@
  *
  *   Type 42 font parser (body).
  *
- * Copyright (C) 2002-2019 by
+ * Copyright 2002-2018 by
  * Roberto Alameda.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -30,7 +30,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  t42
+#define FT_COMPONENT  trace_t42
 
 
   static void
@@ -226,8 +226,7 @@
     if ( !parser->in_memory )
       FT_FREE( parser->base_dict );
 
-    if ( parser->root.funcs.done )
-      parser->root.funcs.done( &parser->root );
+    parser->root.funcs.done( &parser->root );
   }
 
 
@@ -374,7 +373,12 @@
 
       /* We need to `zero' out encoding_table.elements */
       for ( n = 0; n < count; n++ )
-        (void)T1_Add_Table( char_table, n, ".notdef", 8 );
+      {
+        char*  notdef = (char *)".notdef";
+
+
+        (void)T1_Add_Table( char_table, n, notdef, 8 );
+      }
 
       /* Now we need to read records of the form                */
       /*                                                        */
@@ -591,14 +595,6 @@
 
       else if ( *cur == '<' )
       {
-        if ( string_buf && !allocated )
-        {
-          FT_ERROR(( "t42_parse_sfnts: "
-                     "can't handle mixed binary and hex strings\n" ));
-          error = FT_THROW( Invalid_File_Format );
-          goto Fail;
-        }
-
         T1_Skip_PS_Token( parser );
         if ( parser->root.error )
           goto Exit;
@@ -1017,7 +1013,8 @@
     }
 
     /* if /.notdef does not occupy index 0, do our magic. */
-    if ( ft_strcmp( ".notdef", (const char*)name_table->elements[0] ) )
+    if ( ft_strcmp( (const char*)".notdef",
+                    (const char*)name_table->elements[0] ) )
     {
       /* Swap glyph in index 0 with /.notdef glyph.  First, add index 0  */
       /* name and code entries to swap_table.  Then place notdef_index   */

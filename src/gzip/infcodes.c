@@ -117,7 +117,6 @@ int r )
       c->sub.code.need = c->lbits;
       c->sub.code.tree = c->ltree;
       c->mode = LEN;
-      /* fall through */
     case LEN:           /* i: get length/literal/eob next */
       j = c->sub.code.need;
       NEEDBITS(j)
@@ -165,7 +164,6 @@ int r )
       c->sub.code.tree = c->dtree;
       Tracevv((stderr, "inflate:         length %u\n", c->len));
       c->mode = DIST;
-      /* fall through */
     case DIST:          /* i: get distance next */
       j = c->sub.code.need;
       NEEDBITS(j)
@@ -196,7 +194,6 @@ int r )
       DUMPBITS(j)
       Tracevv((stderr, "inflate:         distance %u\n", c->sub.copy.dist));
       c->mode = COPY;
-      /* fall through */
     case COPY:          /* o: copying bytes in window, waiting for space */
       f = q - c->sub.copy.dist;
       while (f < s->window)             /* modulo window size-"while" instead */
@@ -228,7 +225,6 @@ int r )
       if (s->read != s->write)
         LEAVE
       c->mode = END;
-      /* fall through */
     case END:
       r = Z_STREAM_END;
       LEAVE

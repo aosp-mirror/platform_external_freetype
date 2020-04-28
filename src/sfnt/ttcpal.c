@@ -4,7 +4,7 @@
  *
  *   TrueType and OpenType color palette support (body).
  *
- * Copyright (C) 2018-2019 by
+ * Copyright 2018 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * Originally written by Shao Yu Zhang <shaozhang@fb.com>.
@@ -68,7 +68,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  ttcpal
+#define FT_COMPONENT  trace_ttcpal
 
 
   FT_LOCAL_DEF( FT_Error )
@@ -119,9 +119,6 @@
     if ( colors_offset >= table_size )
       goto InvalidTable;
     if ( cpal->num_colors * COLOR_SIZE > table_size - colors_offset )
-      goto InvalidTable;
-
-    if ( face->palette_data.num_palette_entries > cpal->num_colors )
       goto InvalidTable;
 
     cpal->color_indices = p;
@@ -220,8 +217,7 @@
                        face->palette_data.num_palette_entries ) )
       goto NoCpal;
 
-    if ( tt_face_palette_set( face, 0 ) )
-      goto InvalidTable;
+    tt_face_palette_set( face, 0 );
 
     return FT_Err_Ok;
 
@@ -231,8 +227,6 @@
   NoCpal:
     FT_FRAME_RELEASE( table );
     FT_FREE( cpal );
-
-    face->cpal = NULL;
 
     /* arrays in `face->palette_data' and `face->palette' */
     /* are freed in `sfnt_done_face'                      */
@@ -270,20 +264,20 @@
     FT_Color*  q;
     FT_Color*  limit;
 
-    FT_UShort  color_index;
+    FT_ULong  record_offset;
 
 
     if ( !cpal || palette_index >= face->palette_data.num_palettes )
       return FT_THROW( Invalid_Argument );
 
-    offset      = cpal->color_indices + 2 * palette_index;
-    color_index = FT_PEEK_USHORT( offset );
+    offset        = cpal->color_indices + 2 * palette_index;
+    record_offset = COLOR_SIZE * FT_PEEK_USHORT( offset );
 
-    if ( color_index + face->palette_data.num_palette_entries >
-           cpal->num_colors )
+    if ( record_offset + COLOR_SIZE * face->palette_data.num_palette_entries >
+           cpal->table_size )
       return FT_THROW( Invalid_Table );
 
-    p     = cpal->colors + COLOR_SIZE * color_index;
+    p     = cpal->colors + record_offset;
     q     = face->palette;
     limit = q + face->palette_data.num_palette_entries;
 
