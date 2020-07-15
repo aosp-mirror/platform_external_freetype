@@ -1,6 +1,8 @@
 cc_library {
     name: "libft2",
     host_supported: true,
+    // TODO(b/153609531): remove when no longer needed.
+    native_bridge_supported: true,
 
     // compile in ARM mode, since the glyph loader/renderer is a hotspot
     // when loading complex pages in the browser
