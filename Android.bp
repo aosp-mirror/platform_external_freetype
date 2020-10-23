@@ -62,6 +62,8 @@ cc_library {
     name: "libft2",
     defaults: ["libft2_defaults"],
 
+    llndk_stubs: "libft2.llndk",
+
     cflags: [
         // Usually these are defined in include/freetype/config/ftoption.h
         // we have commented them and defined them here to allow for the
@@ -99,7 +101,7 @@ cc_library {
 }
 
 llndk_library {
-    name: "libft2",
+    name: "libft2.llndk",
     vendor_available: false,
     symbol_file: "libft2.map.txt",
     export_include_dirs: ["include"],
