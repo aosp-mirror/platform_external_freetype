@@ -102,7 +102,7 @@ cc_library {
 
 llndk_library {
     name: "libft2.llndk",
-    vendor_available: false,
+    private: true,
     symbol_file: "libft2.map.txt",
     export_include_dirs: ["include"],
 }
