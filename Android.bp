@@ -148,5 +148,6 @@ llndk_library {
 // variant of libft2 without any library dependencies.
 cc_library_static {
     name: "libft2.nodep",
+    vendor_available: true,
     defaults: ["libft2_defaults"],
 }
