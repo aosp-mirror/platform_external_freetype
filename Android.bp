@@ -100,8 +100,6 @@ cc_library {
     name: "libft2",
     defaults: ["libft2_defaults"],
 
-    llndk_stubs: "libft2.llndk",
-
     cflags: [
         // Usually these are defined in include/freetype/config/ftoption.h
         // we have commented them and defined them here to allow for the
@@ -136,13 +134,11 @@ cc_library {
             enabled: true,
         },
     },
-}
 
-llndk_library {
-    name: "libft2.llndk",
-    private: true,
-    symbol_file: "libft2.map.txt",
-    export_include_dirs: ["include"],
+    llndk: {
+        private: true,
+        symbol_file: "libft2.map.txt",
+    },
 }
 
 // variant of libft2 without any library dependencies.
