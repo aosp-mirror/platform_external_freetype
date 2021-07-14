@@ -1,12 +1,49 @@
-cc_library {
-    name: "libft2",
+package {
+    default_applicable_licenses: ["external_freetype_license"],
+}
+
+// Added automatically by a large-scale-change that took the approach of
+// 'apply every license found to every target'. While this makes sure we respect
+// every license restriction, it may not be entirely correct.
+//
+// e.g. GPL in an MIT project might only apply to the contrib/ directory.
+//
+// Please consider splitting the single license below into multiple licenses,
+// taking care not to lose any license_kind information, and overriding the
+// default license using the 'licenses: [...]' property on targets as needed.
+//
+// For unused files, consider creating a 'fileGroup' with "//visibility:private"
+// to attach the license to, and including a comment whether the files may be
+// used in the current project.
+// See: http://go/android-license-faq
+license {
+    name: "external_freetype_license",
+    visibility: [":__subpackages__"],
+    license_kinds: [
+        "SPDX-license-identifier-BSD",
+        "SPDX-license-identifier-FTL",
+        "SPDX-license-identifier-GPL",
+        "SPDX-license-identifier-GPL-2.0",
+        "SPDX-license-identifier-GPL-3.0",
+        "SPDX-license-identifier-ISC",
+        "SPDX-license-identifier-LGPL",
+        "SPDX-license-identifier-MIT",
+        "SPDX-license-identifier-Zlib",
+        "legacy_unencumbered",
+    ],
+    license_text: [
+        "NOTICE",
+    ],
+}
+
+cc_defaults {
+    name: "libft2_defaults",
     host_supported: true,
     // TODO(b/153609531): remove when no longer needed.
     native_bridge_supported: true,
 
     // compile in ARM mode, since the glyph loader/renderer is a hotspot
     // when loading complex pages in the browser
-    //
     arch: {
         arm: {
             instruction_set: "arm",
@@ -50,18 +87,26 @@ cc_library {
         "-DDARWIN_NO_CARBON",
         "-DFT2_BUILD_LIBRARY",
 
-        // Usually these are defined in include/freetype/config/ftoption.h
-        // we have commented them and defined them here to allow for the
-        // no dependency variant libft2.nodep below.
-        "-DFT_CONFIG_OPTION_USE_PNG",
-        "-DFT_CONFIG_OPTION_USE_ZLIB",
-
         "-O2",
 
         // Upstream ignores unused parameter warning
         "-Wno-unused-parameter",
         // Disabling some of modules results in warnings
         "-Wno-unused-variable",
+    ],
+}
+
+cc_library {
+    name: "libft2",
+    defaults: ["libft2_defaults"],
+
+    cflags: [
+        // Usually these are defined in include/freetype/config/ftoption.h
+        // we have commented them and defined them here to allow for the
+        // no dependency variant libft2.nodep below.
+        "-DFT_CONFIG_OPTION_USE_PNG",
+        "-DFT_CONFIG_OPTION_USE_ZLIB",
+
         // the following is for testing only, and should not be used in final
         // builds of the product
         // "-DTT_CONFIG_OPTION_BYTECODE_INTERPRETER",
@@ -89,65 +134,16 @@ cc_library {
             enabled: true,
         },
     },
-}
 
-llndk_library {
-    name: "libft2",
-    vendor_available: false,
-    symbol_file: "libft2.map.txt",
-    export_include_dirs: ["include"],
+    llndk: {
+        private: true,
+        symbol_file: "libft2.map.txt",
+    },
 }
 
 // variant of libft2 without any library dependencies.
 cc_library_static {
     name: "libft2.nodep",
-    host_supported: true,
-
-    // compile in ARM mode, since the glyph loader/renderer is a hotspot
-    // when loading complex pages in the browser
-    arch: {
-        arm: {
-            instruction_set: "arm",
-        },
-    },
-
-    srcs: [
-        "src/autofit/autofit.c",
-        "src/base/ftbase.c",
-        "src/base/ftbbox.c",
-        "src/base/ftbitmap.c",
-        "src/base/ftdebug.c",
-        "src/base/ftfstype.c",
-        "src/base/ftgasp.c",
-        "src/base/ftglyph.c",
-        "src/base/ftinit.c",
-        "src/base/ftmm.c",
-        "src/base/ftstroke.c",
-        "src/base/fttype1.c",
-        "src/base/ftsystem.c",
-        "src/cid/type1cid.c",
-        "src/cff/cff.c",
-        "src/gzip/ftgzip.c",
-        "src/psaux/psaux.c",
-        "src/pshinter/pshinter.c",
-        "src/psnames/psnames.c",
-        "src/raster/raster.c",
-        "src/sfnt/sfnt.c",
-        "src/smooth/smooth.c",
-        "src/truetype/truetype.c",
-        "src/type1/type1.c",
-    ],
-
-    export_include_dirs: ["include"],
-
-    cflags: [
-        "-W",
-        "-Wall",
-        "-Werror",
-
-        "-DDARWIN_NO_CARBON",
-        "-DFT2_BUILD_LIBRARY",
-
-        "-O2",
-    ],
+    vendor_available: true,
+    defaults: ["libft2_defaults"],
 }
