@@ -4,7 +4,7 @@
  *
  *   TrueType Glyph Loader (body).
  *
- * Copyright (C) 1996-2021 by
+ * Copyright (C) 1996-2020 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -197,17 +197,10 @@
     }
 #endif /* TT_SUPPORT_SUBPIXEL_HINTING_INFINALITY */
 
-#ifdef FT_CONFIG_OPTION_INCREMENTAL
-    /* With the incremental interface, these values are set by  */
-    /* a call to `tt_get_metrics_incremental'.                  */
-    if ( face->root.internal->incremental_interface == NULL )
-#endif
+    if ( !loader->linear_def )
     {
-      if ( !loader->linear_def )
-      {
-        loader->linear_def = 1;
-        loader->linear     = advance_width;
-      }
+      loader->linear_def = 1;
+      loader->linear     = advance_width;
     }
 
     return FT_Err_Ok;
@@ -217,8 +210,8 @@
 #ifdef FT_CONFIG_OPTION_INCREMENTAL
 
   static void
-  tt_get_metrics_incremental( TT_Loader  loader,
-                              FT_UInt    glyph_index )
+  tt_get_metrics_incr_overrides( TT_Loader  loader,
+                                 FT_UInt    glyph_index )
   {
     TT_Face  face = loader->face;
 
@@ -458,7 +451,7 @@
                           (void*)&load->exec->glyphIns,
                           n_ins );
 
-      load->exec->glyphSize = (FT_UInt)tmp;
+      load->exec->glyphSize = (FT_UShort)tmp;
       if ( error )
         return error;
 
@@ -743,14 +736,12 @@
                       subglyph->transform.xx / 65536.0,
                       subglyph->transform.yy / 65536.0 ));
         else if ( subglyph->flags & WE_HAVE_A_2X2 )
-        {
-          FT_TRACE7(( "      scaling: xx=%f, yx=%f\n",
+          FT_TRACE7(( "      scaling: xx=%f, yx=%f\n"
+                      "               xy=%f, yy=%f\n",
                       subglyph->transform.xx / 65536.0,
-                      subglyph->transform.yx / 65536.0 ));
-          FT_TRACE7(( "               xy=%f, yy=%f\n",
+                      subglyph->transform.yx / 65536.0,
                       subglyph->transform.xy / 65536.0,
                       subglyph->transform.yy / 65536.0 ));
-        }
 
         subglyph++;
       }
@@ -1392,7 +1383,7 @@
            FT_READ_USHORT( n_ins )           )
         return error;
 
-      FT_TRACE5(( "  Instructions size = %hu\n", n_ins ));
+      FT_TRACE5(( "  Instructions size = %d\n", n_ins ));
 
       /* check it */
       max_ins = loader->face->max_profile.maxSizeOfInstructions;
@@ -1400,10 +1391,10 @@
       {
         /* don't trust `maxSizeOfInstructions'; */
         /* only do a rough safety check         */
-        if ( n_ins > loader->byte_len )
+        if ( (FT_Int)n_ins > loader->byte_len )
         {
           FT_TRACE1(( "TT_Process_Composite_Glyph:"
-                      " too many instructions (%hu) for glyph with length %u\n",
+                      " too many instructions (%d) for glyph with length %d\n",
                       n_ins, loader->byte_len ));
           return FT_THROW( Too_Many_Hints );
         }
@@ -1686,7 +1677,7 @@
       FT_ZERO( &inc_stream );
       FT_Stream_OpenMemory( &inc_stream,
                             glyph_data.pointer,
-                            glyph_data.length );
+                            (FT_ULong)glyph_data.length );
 
       loader->stream = &inc_stream;
     }
@@ -1694,7 +1685,8 @@
 
 #endif /* FT_CONFIG_OPTION_INCREMENTAL */
 
-      offset = tt_face_get_location( face, glyph_index, &loader->byte_len );
+      offset = tt_face_get_location( face, glyph_index,
+                                     (FT_UInt*)&loader->byte_len );
 
     if ( loader->byte_len > 0 )
     {
@@ -1713,7 +1705,7 @@
 
       error = face->access_glyph_frame( loader, glyph_index,
                                         face->glyf_offset + offset,
-                                        loader->byte_len );
+                                        (FT_UInt)loader->byte_len );
       if ( error )
         goto Exit;
 
@@ -1747,11 +1739,13 @@
 
     if ( loader->byte_len == 0 || loader->n_contours == 0 )
     {
-#ifdef FT_CONFIG_OPTION_INCREMENTAL
-      tt_get_metrics_incremental( loader, glyph_index );
-#endif
+      /* must initialize points before (possibly) overriding */
+      /* glyph metrics from the incremental interface        */
       tt_loader_set_pp( loader );
 
+#ifdef FT_CONFIG_OPTION_INCREMENTAL
+      tt_get_metrics_incr_overrides( loader, glyph_index );
+#endif
 
 #ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
 
@@ -1834,11 +1828,13 @@
       goto Exit;
     }
 
-#ifdef FT_CONFIG_OPTION_INCREMENTAL
-    tt_get_metrics_incremental( loader, glyph_index );
-#endif
+    /* must initialize phantom points before (possibly) overriding */
+    /* glyph metrics from the incremental interface                */
     tt_loader_set_pp( loader );
 
+#ifdef FT_CONFIG_OPTION_INCREMENTAL
+    tt_get_metrics_incr_overrides( loader, glyph_index );
+#endif
 
     /***********************************************************************/
     /***********************************************************************/
@@ -1848,7 +1844,7 @@
     /* (which consists of 10 bytes)                            */
     error = face->access_glyph_frame( loader, glyph_index,
                                       face->glyf_offset + offset + 10,
-                                      loader->byte_len - 10 );
+                                      (FT_UInt)loader->byte_len - 10 );
     if ( error )
       goto Exit;
 
@@ -1902,7 +1898,7 @@
       /* clear the nodes filled by sibling chains */
       node = ft_list_get_node_at( &loader->composites, recurse_count );
       for ( node2 = node; node2; node2 = node2->next )
-        node2->data = (void*)-1;
+        node2->data = (void*)FT_ULONG_MAX;
 
       /* check whether we already have a composite glyph with this index */
       if ( FT_List_Find( &loader->composites,
@@ -1919,7 +1915,7 @@
 
       else
       {
-        if ( FT_QNEW( node ) )
+        if ( FT_NEW( node ) )
           goto Exit;
         node->data = FT_UINT_TO_POINTER( glyph_index );
         FT_List_Add( &loader->composites, node );
@@ -2104,7 +2100,7 @@
         FT_UInt      num_base_subgs = gloader->base.num_subglyphs;
 
         FT_Stream    old_stream     = loader->stream;
-        FT_UInt      old_byte_len   = loader->byte_len;
+        FT_Int       old_byte_len   = loader->byte_len;
 
 
         FT_GlyphLoader_Add( gloader );
@@ -2715,9 +2711,6 @@
       if ( reexecute )
       {
         error = tt_size_run_prep( size, pedantic );
-        if ( error )
-          return error;
-        error = TT_Load_Context( exec, face, size );
         if ( error )
           return error;
       }
