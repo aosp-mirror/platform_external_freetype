@@ -19,14 +19,14 @@ MODULE_SRCS += \
 	$(FREETYPE_ROOT)/src/autofit/autofit.c \
 	$(FREETYPE_ROOT)/src/gzip/ftgzip.c \
 
-MODULE_EXPORT_INCLUDES += \
+GLOBAL_INCLUDES += \
 	$(LOCAL_DIR) \
 	$(FREETYPE_ROOT)/include \
 
 MODULE_COMPILEFLAGS := -U__ANDROID__ -DFT2_BUILD_LIBRARY
 MODULE_COMPILEFLAGS += -Wno-implicit-fallthrough
 
-MODULE_LIBRARY_DEPS += \
+MODULE_DEPS += \
 	trusty/user/base/lib/libc-trusty \
 
-include make/library.mk
+include make/module.mk
