@@ -4,7 +4,7 @@
  *
  *   TrueTypeGX/AAT just table validation (body).
  *
- * Copyright (C) 2005-2020 by
+ * Copyright (C) 2005-2019 by
  * suzuki toshiya, Masatake YAMATO, Red Hat K.K.,
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
@@ -28,7 +28,7 @@
 #include "gxvalid.h"
 #include "gxvcommn.h"
 
-#include <freetype/ftsnames.h>
+#include FT_SFNT_NAMES_H
 
 
   /**************************************************************************

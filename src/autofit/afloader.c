@@ -4,7 +4,7 @@
  *
  *   Auto-fitter glyph loading routines (body).
  *
- * Copyright (C) 2003-2020 by
+ * Copyright (C) 2003-2019 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -22,7 +22,7 @@
 #include "aferrors.h"
 #include "afmodule.h"
 
-#include <freetype/internal/ftcalc.h>
+#include FT_INTERNAL_CALC_H
 
 
   /* Initialize glyph loader. */

@@ -4,7 +4,7 @@
  *
  *   Embedded resource forks accessor (body).
  *
- * Copyright (C) 2004-2020 by
+ * Copyright (C) 2004-2019 by
  * Masatake YAMATO and Redhat K.K.
  *
  * FT_Raccess_Get_HeaderInfo() and raccess_guess_darwin_hfsplus() are
@@ -24,9 +24,10 @@
  */
 
 
-#include <freetype/internal/ftdebug.h>
-#include <freetype/internal/ftstream.h>
-#include <freetype/internal/ftrfork.h>
+#include <ft2build.h>
+#include FT_INTERNAL_DEBUG_H
+#include FT_INTERNAL_STREAM_H
+#include FT_INTERNAL_RFORK_H
 
 #include "ftbase.h"
 
@@ -239,7 +240,7 @@
                   (char)( 0xFF & ( tag_internal >> 16 ) ),
                   (char)( 0xFF & ( tag_internal >>  8 ) ),
                   (char)( 0xFF & ( tag_internal >>  0 ) ) ));
-      FT_TRACE3(( "             : subcount=%d, suboffset=0x%04lx\n",
+      FT_TRACE3(( "             : subcount=%d, suboffset=0x%04x\n",
                   subcnt, rpos ));
 
       if ( tag_internal == tag )
@@ -285,7 +286,7 @@
           ref[j].offset = temp & 0xFFFFFFL;
 
           FT_TRACE3(( "             [%d]:"
-                      " resource_id=0x%04x, offset=0x%08lx\n",
+                      " resource_id=0x%04x, offset=0x%08x\n",
                       j, (FT_UShort)ref[j].res_id, ref[j].offset ));
         }
 
@@ -301,7 +302,7 @@
 
           for ( j = 0; j < *count; j++ )
             FT_TRACE3(( "             [%d]:"
-                        " resource_id=0x%04x, offset=0x%08lx\n",
+                        " resource_id=0x%04x, offset=0x%08x\n",
                         j, ref[j].res_id, ref[j].offset ));
         }
 

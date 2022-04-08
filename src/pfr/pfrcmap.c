@@ -4,7 +4,7 @@
  *
  *   FreeType PFR cmap handling (body).
  *
- * Copyright (C) 2002-2020 by
+ * Copyright (C) 2002-2019 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -16,7 +16,8 @@
  */
 
 
-#include <freetype/internal/ftdebug.h>
+#include <ft2build.h>
+#include FT_INTERNAL_DEBUG_H
 #include "pfrcmap.h"
 #include "pfrobjs.h"
 

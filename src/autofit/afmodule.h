@@ -4,7 +4,7 @@
  *
  *   Auto-fitter module implementation (specification).
  *
- * Copyright (C) 2003-2020 by
+ * Copyright (C) 2003-2019 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -19,8 +19,9 @@
 #ifndef AFMODULE_H_
 #define AFMODULE_H_
 
-#include <freetype/internal/ftobjs.h>
-#include <freetype/ftmodapi.h>
+#include <ft2build.h>
+#include FT_INTERNAL_OBJECTS_H
+#include FT_MODULE_H
 
 
 FT_BEGIN_HEADER
@@ -46,7 +47,6 @@ FT_BEGIN_HEADER
   } AF_ModuleRec, *AF_Module;
 
 
-FT_DECLARE_AUTOHINTER_INTERFACE( af_autofitter_interface )
 FT_DECLARE_MODULE( autofit_module_class )
 
 

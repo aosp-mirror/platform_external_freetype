@@ -4,7 +4,7 @@
  *
  *   The FreeType memory management macros (specification).
  *
- * Copyright (C) 1996-2020 by
+ * Copyright (C) 1996-2019 by
  * David Turner, Robert Wilhelm, and Werner Lemberg
  *
  * This file is part of the FreeType project, and may only be used,
@@ -22,9 +22,8 @@
 
 #include <ft2build.h>
 #include FT_CONFIG_CONFIG_H
-#include <freetype/fttypes.h>
+#include FT_TYPES_H
 
-#include "compiler-macros.h"
 
 FT_BEGIN_HEADER
 
@@ -56,14 +55,6 @@ FT_BEGIN_HEADER
   /*************************************************************************/
   /*************************************************************************/
   /*************************************************************************/
-
-
-  /* The calculation `NULL + n' is undefined in C.  Even if the resulting */
-  /* pointer doesn't get dereferenced, this causes warnings with          */
-  /* sanitizers.                                                          */
-  /*                                                                      */
-  /* We thus provide a macro that should be used if `base' can be NULL.   */
-#define FT_OFFSET( base, count )  ( (base) ? (base) + (count) : NULL )
 
 
   /*
@@ -162,10 +153,10 @@ extern "C++"
                                                (FT_Long)(size), \
                                                &error ) )
 
-#define FT_MEM_FREE( ptr )                                  \
-          FT_BEGIN_STMNT                                    \
-            FT_DEBUG_INNER( ft_mem_free( memory, (ptr) ) ); \
-            (ptr) = NULL;                                   \
+#define FT_MEM_FREE( ptr )                \
+          FT_BEGIN_STMNT                  \
+            ft_mem_free( memory, (ptr) ); \
+            (ptr) = NULL;                 \
           FT_END_STMNT
 
 #define FT_MEM_NEW( ptr )                        \
@@ -389,6 +380,8 @@ extern "C++"
 
 #define FT_STRCPYN( dst, src, size )                                         \
           ft_mem_strcpyn( (char*)dst, (const char*)(src), (FT_ULong)(size) )
+
+ /* */
 
 
 FT_END_HEADER

@@ -7,7 +7,7 @@
  *
  *   This is _not_ used to retrieve glyph names!
  *
- * Copyright (C) 1996-2020 by
+ * Copyright (C) 1996-2019 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -19,11 +19,12 @@
  */
 
 
-#include <freetype/internal/ftdebug.h>
+#include <ft2build.h>
+#include FT_INTERNAL_DEBUG_H
 
-#include <freetype/ftsnames.h>
-#include <freetype/internal/tttypes.h>
-#include <freetype/internal/ftstream.h>
+#include FT_SFNT_NAMES_H
+#include FT_INTERNAL_TRUETYPE_TYPES_H
+#include FT_INTERNAL_STREAM_H
 
 
 #ifdef TT_CONFIG_OPTION_SFNT_NAMES

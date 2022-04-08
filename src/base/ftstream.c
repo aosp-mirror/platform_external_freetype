@@ -4,7 +4,7 @@
  *
  *   I/O stream support (body).
  *
- * Copyright (C) 2000-2020 by
+ * Copyright (C) 2000-2019 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -16,8 +16,9 @@
  */
 
 
-#include <freetype/internal/ftstream.h>
-#include <freetype/internal/ftdebug.h>
+#include <ft2build.h>
+#include FT_INTERNAL_STREAM_H
+#include FT_INTERNAL_DEBUG_H
 
 
   /**************************************************************************
@@ -285,7 +286,7 @@
       }
 
       stream->cursor = stream->base;
-      stream->limit  = FT_OFFSET( stream->cursor, count );
+      stream->limit  = stream->cursor + count;
       stream->pos   += read_bytes;
     }
     else

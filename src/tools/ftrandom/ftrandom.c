@@ -45,8 +45,8 @@
 #include <time.h>
 
 #include <ft2build.h>
-#include <freetype/freetype.h>
-#include <freetype/ftoutln.h>
+#include FT_FREETYPE_H
+#include FT_OUTLINE_H
 
 #define true     1
 #define false    0

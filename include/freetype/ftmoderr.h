@@ -4,7 +4,7 @@
  *
  *   FreeType module error offsets (specification).
  *
- * Copyright (C) 2001-2020 by
+ * Copyright (C) 2001-2019 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -94,7 +94,7 @@
    *     const char*  mod_err_msg
    *   } ft_mod_errors[] =
    *
-   *   #include <freetype/ftmoderr.h>
+   *   #include FT_MODULE_ERRORS_H
    * ```
    *
    */

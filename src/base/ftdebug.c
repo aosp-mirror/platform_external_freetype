@@ -4,7 +4,7 @@
  *
  *   Debugging and logging component (body).
  *
- * Copyright (C) 1996-2020 by
+ * Copyright (C) 1996-2019 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -41,8 +41,9 @@
    */
 
 
-#include <freetype/freetype.h>
-#include <freetype/internal/ftdebug.h>
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#include FT_INTERNAL_DEBUG_H
 
 
 #ifdef FT_DEBUG_LEVEL_ERROR
@@ -125,7 +126,7 @@
 
   static const char*  ft_trace_toggles[trace_count + 1] =
   {
-#include <freetype/internal/fttrace.h>
+#include FT_INTERNAL_TRACE_H
     NULL
   };
 

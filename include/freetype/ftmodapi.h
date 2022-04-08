@@ -4,7 +4,7 @@
  *
  *   FreeType modules public interface (specification).
  *
- * Copyright (C) 1996-2020 by
+ * Copyright (C) 1996-2019 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -20,7 +20,8 @@
 #define FTMODAPI_H_
 
 
-#include <freetype/freetype.h>
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
 #ifdef FREETYPE_H
 #error "freetype.h of FreeType 1 has been loaded!"
@@ -64,7 +65,7 @@ FT_BEGIN_HEADER
    *     psnames
    *     raster1
    *     sfnt
-   *     smooth
+   *     smooth, smooth-lcd, smooth-lcdv
    *     truetype
    *     type1
    *     type42
@@ -485,7 +486,7 @@ FT_BEGIN_HEADER
    *
    *   ```
    *     FREETYPE_PROPERTIES=truetype:interpreter-version=35 \
-   *                         cff:no-stem-darkening=0 \
+   *                         cff:no-stem-darkening=1 \
    *                         autofitter:warping=1
    *   ```
    *

@@ -30,9 +30,10 @@
  * Based on bdf.h,v 1.16 2000/03/16 20:08:51 mleisher
  */
 
-#include <freetype/internal/ftobjs.h>
-#include <freetype/internal/ftstream.h>
-#include <freetype/internal/fthash.h>
+#include <ft2build.h>
+#include FT_INTERNAL_OBJECTS_H
+#include FT_INTERNAL_STREAM_H
+#include FT_INTERNAL_HASH_H
 
 
 FT_BEGIN_HEADER

@@ -4,7 +4,7 @@
  *
  *   FreeType PostScript hints recorder (body).
  *
- * Copyright (C) 2001-2020 by
+ * Copyright (C) 2001-2019 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -16,10 +16,11 @@
  */
 
 
-#include <freetype/freetype.h>
-#include <freetype/internal/ftobjs.h>
-#include <freetype/internal/ftdebug.h>
-#include <freetype/internal/ftcalc.h>
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#include FT_INTERNAL_OBJECTS_H
+#include FT_INTERNAL_DEBUG_H
+#include FT_INTERNAL_CALC_H
 
 #include "pshrec.h"
 #include "pshalgo.h"
@@ -874,7 +875,7 @@
       if ( error )
       {
         FT_ERROR(( "ps_hints_stem: could not add stem"
-                   " (%ld,%ld) to hints table\n", stems[0], stems[1] ));
+                   " (%d,%d) to hints table\n", stems[0], stems[1] ));
 
         hints->error = error;
         return;

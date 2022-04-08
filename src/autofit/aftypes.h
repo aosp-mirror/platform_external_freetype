@@ -4,7 +4,7 @@
  *
  *   Auto-fitter types (specification only).
  *
- * Copyright (C) 2003-2020 by
+ * Copyright (C) 2003-2019 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -32,11 +32,12 @@
 #ifndef AFTYPES_H_
 #define AFTYPES_H_
 
+#include <ft2build.h>
 
-#include <freetype/freetype.h>
-#include <freetype/ftoutln.h>
-#include <freetype/internal/ftobjs.h>
-#include <freetype/internal/ftdebug.h>
+#include FT_FREETYPE_H
+#include FT_OUTLINE_H
+#include FT_INTERNAL_OBJECTS_H
+#include FT_INTERNAL_DEBUG_H
 
 #include "afblue.h"
 

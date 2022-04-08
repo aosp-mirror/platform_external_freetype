@@ -63,7 +63,7 @@ instructions in the file `INSTALL.UNIX' instead.
 
       Otherwise, simply type 'make' again to build the library
       or 'make refdoc' to build the API reference (the latter needs
-      Python >= 3.5).
+      python).
       =============================================================
 
 
@@ -148,7 +148,7 @@ instructions in the file `INSTALL.UNIX' instead.
 
 ----------------------------------------------------------------------
 
-Copyright (C) 2003-2020 by
+Copyright (C) 2003-2019 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This  file is  part of  the FreeType  project, and  may only  be used,
