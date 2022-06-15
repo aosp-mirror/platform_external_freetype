@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Copyright (C) 2005-2021 by
+# Copyright (C) 2005-2020 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # This file is part of the FreeType project, and may only be used, modified,
@@ -110,10 +110,7 @@ check_tool_version ()
   fi
 }
 
-# Solaris 10's shell doesn't like the `!` operator to negate the exit status.
-if test -f ./builds/unix/configure.raw; then
-  :
-else
+if test ! -f ./builds/unix/configure.raw; then
   echo "You must be in the same directory as \`autogen.sh'."
   echo "Bootstrapping doesn't work if srcdir != builddir."
   exit 1
@@ -141,25 +138,18 @@ check_tool_version $ACLOCAL    aclocal    ACLOCAL    1.10.1
 check_tool_version $LIBTOOLIZE libtoolize LIBTOOLIZE 2.2.4
 check_tool_version $AUTOCONF   autoconf   AUTOCONF   2.62
 
-# This sets FREETYPE version.
-eval `sed -n \
--e 's/^#define  *\(FREETYPE_MAJOR\)  *\([0-9][0-9]*\).*/\1=\2/p' \
--e 's/^#define  *\(FREETYPE_MINOR\)  *\([0-9][0-9]*\).*/\1=\2/p' \
--e 's/^#define  *\(FREETYPE_PATCH\)  *\([0-9][0-9]*\).*/\1=\2/p' \
-include/freetype/freetype.h`
+# This sets freetype_major, freetype_minor, and freetype_patch.
+eval `sed -nf version.sed include/freetype/freetype.h`
 
-if test "$FREETYPE_PATCH" = "0"; then
-  FREETYPE=$FREETYPE_MAJOR.$FREETYPE_MINOR
-else
-  FREETYPE=$FREETYPE_MAJOR.$FREETYPE_MINOR.$FREETYPE_PATCH
+# We set freetype-patch to an empty value if it is zero.
+if test "$freetype_patch" = ".0"; then
+  freetype_patch=
 fi
-
-echo "FreeType $FREETYPE:"
 
 cd builds/unix
 
 echo "generating \`configure.ac'"
-sed -e "s;@VERSION@;$FREETYPE;" \
+sed -e "s;@VERSION@;$freetype_major$freetype_minor$freetype_patch;" \
   < configure.raw > configure.ac
 
 run aclocal -I . --force
@@ -171,30 +161,5 @@ chmod +x install-sh
 cd ../..
 
 chmod +x ./configure
-
-# Copy all necessary 'dlg' files.
-copy_submodule_files ()
-{
-  echo "Copying files from \`subprojects/dlg' to \`src/dlg' and \`include/dlg'"
-  mkdir include/dlg 2> /dev/null
-  cp $DLG_INC_DIR/output.h include/dlg
-  cp $DLG_INC_DIR/dlg.h include/dlg
-  cp $DLG_SRC_DIR/* src/dlg
-}
-
-if test -d ".git"; then
-  DLG_INC_DIR=subprojects/dlg/include/dlg
-  DLG_SRC_DIR=subprojects/dlg/src/dlg
-
-  if test -d "$DLG_INC_DIR"; then
-    :
-  else
-    echo "Checking out submodule in \`subprojects/dlg':"
-    git submodule init
-    git submodule update
-  fi
-
-  copy_submodule_files
-fi
 
 # EOF
