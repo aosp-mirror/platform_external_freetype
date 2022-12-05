@@ -105,6 +105,7 @@ cc_library {
         // no dependency variant libft2.nodep below.
         "-DFT_CONFIG_OPTION_USE_PNG",
         "-DFT_CONFIG_OPTION_USE_ZLIB",
+        "-DFT_CONFIG_OPTION_SYSTEM_ZLIB",
 
         // the following is for testing only, and should not be used in final
         // builds of the product
