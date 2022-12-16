@@ -100,7 +100,10 @@ NO_COPYRIGHT_FILES = [
   "libft2.map.txt",
   "objs/.gitignore",
   "objs/README",
+  "src/gzip/README.freetype",
+  "src/gzip/crc32.h",
   "src/gzip/inffixed.h",
+  "src/gzip/patches/freetype-zlib.diff",
   "src/tools/apinames.c",
   "src/tools/chktrcmp.py",
   "src/tools/cordic.py",
@@ -112,6 +115,7 @@ NO_COPYRIGHT_FILES = [
   "src/tools/test_bbox.c",
   "src/tools/test_trig.c",
   "src/tools/update-copyright",
+  "subprojects/harfbuzz.wrap",
   "subprojects/libpng.wrap",
   "subprojects/zlib.wrap",
   "tests/README.md",
@@ -331,6 +335,8 @@ def extract_from_c_style_block_at(
     if "*/" in lines[i]:
       return True
     if "understand and accept it fully." in lines[i]:
+      return True
+    if "see copyright notice in zlib.h" in lines[i]:
       return True
     if lines[i] == " *" and lines[i + 1] == " *":
       return True

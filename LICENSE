@@ -228,7 +228,42 @@ THE SOFTWARE.
 
 -------------------------------------------------------------------
 
-Copyright (C) 1995-2002 Jean-loup Gailly and Mark Adler
+Copyright (C) 1995-2003, 2010 Mark Adler
+For conditions of distribution and use, see copyright notice in zlib.h
+
+-------------------------------------------------------------------
+
+Copyright (C) 1995-2005, 2010 Mark Adler
+For conditions of distribution and use, see copyright notice in zlib.h
+
+-------------------------------------------------------------------
+
+Copyright (C) 1995-2011, 2016 Mark Adler
+For conditions of distribution and use, see copyright notice in zlib.h
+
+-------------------------------------------------------------------
+
+Copyright (C) 1995-2016 Jean-loup Gailly, Mark Adler
+For conditions of distribution and use, see copyright notice in zlib.h
+
+-------------------------------------------------------------------
+
+Copyright (C) 1995-2017 Jean-loup Gailly
+For conditions of distribution and use, see copyright notice in zlib.h
+
+-------------------------------------------------------------------
+
+Copyright (C) 1995-2017 Mark Adler
+For conditions of distribution and use, see copyright notice in zlib.h
+
+-------------------------------------------------------------------
+
+Copyright (C) 1995-2019 Mark Adler
+For conditions of distribution and use, see copyright notice in zlib.h
+
+-------------------------------------------------------------------
+
+Copyright (C) 1995-2022 Jean-loup Gailly and Mark Adler
 
 This software is provided 'as-is', without any express or implied
 warranty.  In no event will the authors be held liable for any damages
@@ -251,12 +286,12 @@ jloup@gzip.org          madler@alumni.caltech.edu
 
 -------------------------------------------------------------------
 
-Copyright (C) 1995-2002 Jean-loup Gailly.
+Copyright (C) 1995-2022 Jean-loup Gailly, Mark Adler
 For conditions of distribution and use, see copyright notice in zlib.h
 
 -------------------------------------------------------------------
 
-Copyright (C) 1995-2002 Mark Adler
+Copyright (C) 1995-2022 Mark Adler
 For conditions of distribution and use, see copyright notice in zlib.h
 
 -------------------------------------------------------------------
@@ -272,7 +307,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 1996-2021 by
+Copyright (C) 1996-2022 by
 David Turner, Robert Wilhelm, Werner Lemberg and Detlef Würkner.
 
 This file is part of the FreeType project, and may only be used,
@@ -283,7 +318,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 1996-2021 by
+Copyright (C) 1996-2022 by
 David Turner, Robert Wilhelm, Werner Lemberg, and Detlef Wuerkner.
 
 This file is part of the FreeType project, and may only be used,
@@ -294,7 +329,18 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 1996-2021 by
+Copyright (C) 1996-2022 by
+David Turner, Robert Wilhelm, Werner Lemberg, and Dominik Röttsches.
+
+This file is part of the FreeType project, and may only be used,
+modified, and distributed under the terms of the FreeType project
+license, LICENSE.TXT.  By continuing to use, modify, or distribute
+this file you indicate that you have read the license and
+understand and accept it fully.
+
+-------------------------------------------------------------------
+
+Copyright (C) 1996-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg
 
 This file is part of the FreeType project, and may only be used,
@@ -305,7 +351,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 1996-2021 by
+Copyright (C) 1996-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used
@@ -316,7 +362,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 1996-2021 by
+Copyright (C) 1996-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used,
@@ -327,7 +373,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 1996-2021 by
+Copyright (C) 1996-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used, modified,
@@ -338,7 +384,7 @@ fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 1996-2021 by
+Copyright (C) 1996-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 Copyright 2003 Huw D M Davies for Codeweavers
 Copyright 2007 Dmitry Timoshkov for Codeweavers
@@ -351,7 +397,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 1996-2021 by
+Copyright (C) 1996-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 Copyright 2007 Dmitry Timoshkov for Codeweavers
 
@@ -363,7 +409,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 1996-2021 by
+Copyright (C) 1996-2022 by
 Just van Rossum, David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used,
@@ -420,7 +466,7 @@ THE SOFTWARE.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2000-2021 by
+Copyright (C) 2000-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This  file  is  part  of the  FreeType  project, and may  only be  used,
@@ -431,7 +477,7 @@ accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2000-2021 by
+Copyright (C) 2000-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This  file is  part of  the FreeType  project, and  may only  be used,
@@ -442,7 +488,7 @@ and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2000-2021 by
+Copyright (C) 2000-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used,
@@ -453,7 +499,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2000-2021 by
+Copyright (C) 2000-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used, modified,
@@ -533,7 +579,7 @@ THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2001-2021 by
+Copyright (C) 2001-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This  file  is  part  of the  FreeType  project, and may  only be  used,
@@ -544,7 +590,7 @@ accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2001-2021 by
+Copyright (C) 2001-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used
@@ -555,7 +601,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2001-2021 by
+Copyright (C) 2001-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used,
@@ -566,7 +612,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2001-2021 by
+Copyright (C) 2001-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used, modified,
@@ -577,7 +623,7 @@ fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2001-2021 by
+Copyright (C) 2001-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used, modified,
@@ -595,7 +641,7 @@ serial 6
 
 -------------------------------------------------------------------
 
-Copyright (C) 2002-2021 by
+Copyright (C) 2002-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg
 
 This file is part of the FreeType project, and may only be used,
@@ -606,7 +652,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2002-2021 by
+Copyright (C) 2002-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This  file is  part  of the  FreeType  project, and  may  only be  used,
@@ -617,7 +663,7 @@ accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2002-2021 by
+Copyright (C) 2002-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This  file is  part of  the FreeType  project, and  may only  be used,
@@ -628,7 +674,7 @@ and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2002-2021 by
+Copyright (C) 2002-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used,
@@ -639,7 +685,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2002-2021 by
+Copyright (C) 2002-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used, modified,
@@ -650,7 +696,7 @@ fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2002-2021 by
+Copyright (C) 2002-2022 by
 Roberto Alameda.
 
 This file is part of the FreeType project, and may only be used,
@@ -661,7 +707,18 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2003-2021 by
+Copyright (C) 2003-2022 by
+David Turner, Robert Wilhelm, Werner Lemberg, and Dominik Röttsches.
+
+This file is part of the FreeType project, and may only be used,
+modified, and distributed under the terms of the FreeType project
+license, LICENSE.TXT.  By continuing to use, modify, or distribute
+this file you indicate that you have read the license and
+understand and accept it fully.
+
+-------------------------------------------------------------------
+
+Copyright (C) 2003-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This  file  is  part  of the  FreeType  project, and may  only be  used,
@@ -672,7 +729,7 @@ accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2003-2021 by
+Copyright (C) 2003-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This  file is  part of  the FreeType  project, and  may only  be used,
@@ -683,7 +740,7 @@ and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2003-2021 by
+Copyright (C) 2003-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used,
@@ -694,7 +751,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2003-2021 by
+Copyright (C) 2003-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used, modified,
@@ -705,7 +762,7 @@ fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2003-2021 by
+Copyright (C) 2003-2022 by
 Masatake YAMATO, Redhat K.K.,
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
@@ -717,7 +774,12 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2004-2021 by
+Copyright (C) 2004-2019 Mark Adler
+For conditions of distribution and use, see copyright notice in zlib.h
+
+-------------------------------------------------------------------
+
+Copyright (C) 2004-2022 by
 Albert Chin-A-Young.
 
 based on `src/lzw/rules.mk'
@@ -730,7 +792,7 @@ fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2004-2021 by
+Copyright (C) 2004-2022 by
 Albert Chin-A-Young.
 
 based on code in `src/gzip/ftgzip.c'
@@ -743,7 +805,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2004-2021 by
+Copyright (C) 2004-2022 by
 David Turner, Robert Wilhelm, Werner Lemberg and George Williams.
 
 This file is part of the FreeType project, and may only be used,
@@ -754,7 +816,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2004-2021 by
+Copyright (C) 2004-2022 by
 David Turner, Robert Wilhelm, Werner Lemberg, and George Williams.
 
 This file is part of the FreeType project, and may only be used,
@@ -765,7 +827,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2004-2021 by
+Copyright (C) 2004-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This  file is  part  of the  FreeType  project, and  may  only be  used,
@@ -776,7 +838,7 @@ accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2004-2021 by
+Copyright (C) 2004-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used,
@@ -787,7 +849,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2004-2021 by
+Copyright (C) 2004-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used, modified,
@@ -798,7 +860,7 @@ fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2004-2021 by
+Copyright (C) 2004-2022 by
 Masatake YAMATO and Redhat K.K.
 
 FT_Raccess_Get_HeaderInfo() and raccess_guess_darwin_hfsplus() are
@@ -812,7 +874,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2004-2021 by
+Copyright (C) 2004-2022 by
 Masatake YAMATO and Redhat K.K.
 
 This file is part of the FreeType project, and may only be used,
@@ -823,7 +885,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2004-2021 by
+Copyright (C) 2004-2022 by
 Masatake YAMATO and Redhat K.K.
 
 This file may only be used,
@@ -834,7 +896,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2004-2021 by
+Copyright (C) 2004-2022 by
 Masatake YAMATO, Red Hat K.K.,
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
@@ -846,7 +908,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2004-2021 by
+Copyright (C) 2004-2022 by
 Masatake YAMATO, Redhat K.K,
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
@@ -858,7 +920,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2004-2021 by
+Copyright (C) 2004-2022 by
 suzuki toshiya, Masatake YAMATO, Red Hat K.K.,
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
@@ -870,7 +932,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2004-2021 by
+Copyright (C) 2004-2022 by
 suzuki toshiya, Masatake YAMATO, Red Hat K.K.,
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
@@ -882,7 +944,7 @@ fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2004-2021 by
+Copyright (C) 2004-2022 by
 suzuki toshiya, Masatake YAMATO, Red hat K.K.,
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
@@ -922,7 +984,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2005-2021 by
+Copyright (C) 2005-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 Copyright 2013 by Google, Inc.
@@ -936,7 +998,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2005-2021 by
+Copyright (C) 2005-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This  file is  part of  the FreeType  project, and  may only  be used,
@@ -947,7 +1009,7 @@ and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2005-2021 by
+Copyright (C) 2005-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used
@@ -958,7 +1020,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2005-2021 by
+Copyright (C) 2005-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used,
@@ -969,7 +1031,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2005-2021 by
+Copyright (C) 2005-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used, modified,
@@ -980,7 +1042,7 @@ fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2005-2021 by
+Copyright (C) 2005-2022 by
 David Turner.
 
 This file is part of the FreeType project, and may only be used,
@@ -991,7 +1053,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2005-2021 by
+Copyright (C) 2005-2022 by
 Werner Lemberg and Detlef Würkner.
 
 This file is part of the FreeType project, and may only be used,
@@ -1002,7 +1064,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2005-2021 by
+Copyright (C) 2005-2022 by
 Werner Lemberg and Detlef Würkner.
 
 This file is part of the FreeType project, and may only be used, modified,
@@ -1013,7 +1075,7 @@ fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2005-2021 by
+Copyright (C) 2005-2022 by
 suzuki toshiya, Masatake YAMATO, Red Hat K.K.,
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
@@ -1025,7 +1087,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2006-2021 by
+Copyright (C) 2006-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This  file is  part of  the FreeType  project, and  may only  be used,
@@ -1036,7 +1098,7 @@ and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2006-2021 by
+Copyright (C) 2006-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used,
@@ -1047,7 +1109,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2006-2021 by
+Copyright (C) 2006-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used, modified,
@@ -1058,7 +1120,7 @@ fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2006-2021 by
+Copyright (C) 2006-2022 by
 suzuki toshiya, David Turner, Robert Wilhelm, and Werner Lemberg.
 
 
@@ -1086,7 +1148,7 @@ limitations under the License.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2007-2021 by
+Copyright (C) 2007-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used,
@@ -1097,7 +1159,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2007-2021 by
+Copyright (C) 2007-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 Written by George Williams.
@@ -1110,7 +1172,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2007-2021 by
+Copyright (C) 2007-2022 by
 David Turner.
 
 This file is part of the FreeType project, and may only be used,
@@ -1121,7 +1183,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2007-2021 by
+Copyright (C) 2007-2022 by
 Dereg Clegg and Michael Toftdal.
 
 This file is part of the FreeType project, and may only be used,
@@ -1132,7 +1194,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2007-2021 by
+Copyright (C) 2007-2022 by
 Derek Clegg and Michael Toftdal.
 
 This file is part of the FreeType project, and may only be used,
@@ -1143,7 +1205,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2007-2021 by
+Copyright (C) 2007-2022 by
 Rahul Bhalerao <rahul.bhalerao@redhat.com>, <b.rahul.pm@gmail.com>.
 
 This file is part of the FreeType project, and may only be used,
@@ -1154,7 +1216,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2008-2021 by
+Copyright (C) 2008-2022 by
 David Turner, Robert Wilhelm, Werner Lemberg, and suzuki toshiya.
 
 This file is part of the FreeType project, and may only be used,
@@ -1165,7 +1227,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2008-2021 by
+Copyright (C) 2008-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used,
@@ -1176,7 +1238,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2008-2021 by
+Copyright (C) 2008-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used, modified,
@@ -1187,7 +1249,7 @@ fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2009-2021 by
+Copyright (C) 2009-2022 by
 Oran Agra and Mickey Gabel.
 
 This file is part of the FreeType project, and may only be used,
@@ -1198,7 +1260,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2010-2021 by
+Copyright (C) 2010-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used,
@@ -1209,7 +1271,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2010-2021 by
+Copyright (C) 2010-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used, modified,
@@ -1220,7 +1282,7 @@ fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2010-2021 by
+Copyright (C) 2010-2022 by
 Joel Klinghed.
 
 This file is part of the FreeType project, and may only be used,
@@ -1231,7 +1293,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2010-2021 by
+Copyright (C) 2010-2022 by
 Joel Klinghed.
 
 based on `src/gzip/ftgzip.c'
@@ -1244,7 +1306,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2010-2021 by
+Copyright (C) 2010-2022 by
 Joel Klinghed.
 
 based on `src/lzw/rules.mk'
@@ -1257,7 +1319,7 @@ fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2012-2021 by
+Copyright (C) 2012-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used,
@@ -1268,7 +1330,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2013-2021 by
+Copyright (C) 2013-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used,
@@ -1279,7 +1341,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2013-2021 by
+Copyright (C) 2013-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used, modified,
@@ -1290,7 +1352,7 @@ fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2013-2021 by
+Copyright (C) 2013-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 Written originally by John Cary <cary@txcorp.com>
@@ -1303,7 +1365,7 @@ fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2013-2021 by
+Copyright (C) 2013-2022 by
 Google, Inc.
 Written by Stuart Gill and Behdad Esfahbod.
 
@@ -1315,7 +1377,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2014-2021 by
+Copyright (C) 2014-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 Written by David Wimsey <david@wimsey.us>
@@ -1328,7 +1390,7 @@ fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2015-2021 by
+Copyright (C) 2015-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used, modified,
@@ -1339,7 +1401,7 @@ fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2015-2021 by
+Copyright (C) 2015-2022 by
 Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used, modified,
@@ -1350,7 +1412,7 @@ fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2016-2021 by
+Copyright (C) 2016-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used,
@@ -1361,7 +1423,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2016-2021 by
+Copyright (C) 2016-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used, modified,
@@ -1372,7 +1434,7 @@ fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2017-2021 by
+Copyright (C) 2017-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used,
@@ -1383,7 +1445,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2017-2021 by
+Copyright (C) 2017-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used, modified,
@@ -1394,7 +1456,7 @@ fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2018-2021 by
+Copyright (C) 2018-2022 by
 Armin Hasitzka, David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used,
@@ -1405,7 +1467,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2018-2021 by
+Copyright (C) 2018-2022 by
 David Turner, Robert Wilhelm, Dominik Röttsches, and Werner Lemberg.
 
 Originally written by Shao Yu Zhang <shaozhang@fb.com>.
@@ -1418,7 +1480,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2018-2021 by
+Copyright (C) 2018-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 Originally written by Shao Yu Zhang <shaozhang@fb.com>.
@@ -1431,7 +1493,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2018-2021 by
+Copyright (C) 2018-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used,
@@ -1442,7 +1504,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2018-2021 by
+Copyright (C) 2018-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used, modified,
@@ -1453,7 +1515,7 @@ fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2018-2021 by
+Copyright (C) 2018-2022 by
 Nikhil Ramakrishnan, David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This  file is  part of  the FreeType  project, and  may only  be used,
@@ -1464,7 +1526,7 @@ and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2019-2021 by
+Copyright (C) 2019-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 Written by Werner Lemberg <wl@gnu.org>
@@ -1477,7 +1539,7 @@ fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2019-2021 by
+Copyright (C) 2019-2022 by
 Nikhil Ramakrishnan, David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used,
@@ -1488,7 +1550,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2020-2021 by
+Copyright (C) 2020-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used,
@@ -1499,7 +1561,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2020-2021 by
+Copyright (C) 2020-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used, modified,
@@ -1510,7 +1572,7 @@ fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2020-2021 by
+Copyright (C) 2020-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 Written by Anuj Verma.
@@ -1523,7 +1585,7 @@ understand and accept it fully.
 
 -------------------------------------------------------------------
 
-Copyright (C) 2021 by
+Copyright (C) 2021-2022 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This file is part of the FreeType project, and may only be used,
@@ -1531,6 +1593,40 @@ modified, and distributed under the terms of the FreeType project
 license, LICENSE.TXT.  By continuing to use, modify, or distribute
 this file you indicate that you have read the license and
 understand and accept it fully.
+
+-------------------------------------------------------------------
+
+Copyright (C) 2022 by
+David Turner, Robert Wilhelm, Werner Lemberg, George Williams, and
+Dominik Röttsches.
+
+This file is part of the FreeType project, and may only be used,
+modified, and distributed under the terms of the FreeType project
+license, LICENSE.TXT.  By continuing to use, modify, or distribute
+this file you indicate that you have read the license and
+understand and accept it fully.
+
+-------------------------------------------------------------------
+
+Copyright (C) 2022 by
+David Turner, Robert Wilhelm, Werner Lemberg, and Moazin Khatti.
+
+This file is part of the FreeType project, and may only be used,
+modified, and distributed under the terms of the FreeType project
+license, LICENSE.TXT.  By continuing to use, modify, or distribute
+this file you indicate that you have read the license and
+understand and accept it fully.
+
+-------------------------------------------------------------------
+
+Copyright (C) 2022 by
+David Turner, Robert Wilhelm, Werner Lemberg, and Moazin Khatti.
+
+This file is part of the FreeType project, and may only be used, modified,
+and distributed under the terms of the FreeType project license,
+LICENSE.TXT.  By continuing to use, modify, or distribute this file you
+indicate that you have read the license and understand and accept it
+fully.
 
 -------------------------------------------------------------------
 

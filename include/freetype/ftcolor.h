@@ -4,7 +4,7 @@
  *
  *   FreeType's glyph color management (specification).
  *
- * Copyright (C) 2018-2021 by
+ * Copyright (C) 2018-2022 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -521,21 +521,26 @@ FT_BEGIN_HEADER
    *
    * @description:
    *   This iterator object is needed for @FT_Get_Colorline_Stops.  It keeps
-   *   state while iterating over the stops of an @FT_ColorLine,
-   *   representing the `ColorLine` struct of the v1 extensions to 'COLR',
-   *   see 'https://github.com/googlefonts/colr-gradients-spec'.
+   *   state while iterating over the stops of an @FT_ColorLine, representing
+   *   the `ColorLine` struct of the v1 extensions to 'COLR', see
+   *   'https://github.com/googlefonts/colr-gradients-spec'.  Do not manually
+   *   modify fields of this iterator.
    *
    * @fields:
    *   num_color_stops ::
    *     The number of color stops for the requested glyph index.  Set by
-   *     @FT_Get_Colorline_Stops.
+   *     @FT_Get_Paint.
    *
    *   current_color_stop ::
    *     The current color stop.  Set by @FT_Get_Colorline_Stops.
    *
    *   p ::
-   *     An opaque pointer into 'COLR' table data.  The caller must set this
-   *     to `NULL` before the first call of @FT_Get_Colorline_Stops.
+   *     An opaque pointer into 'COLR' table data.  Set by @FT_Get_Paint.
+   *     Updated by @FT_Get_Colorline_Stops.
+   *
+   *   read_variable ::
+   *     A boolean keeping track of whether variable color lines are to be
+   *     read.  Set by @FT_Get_Paint.
    *
    * @since:
    *   2.11 -- **currently experimental only!**  There might be changes
@@ -548,6 +553,8 @@ FT_BEGIN_HEADER
     FT_UInt  current_color_stop;
 
     FT_Byte*  p;
+
+    FT_Bool  read_variable;
 
   } FT_ColorStopIterator;
 
@@ -592,7 +599,8 @@ FT_BEGIN_HEADER
    *
    * @fields:
    *   stop_offset ::
-   *     The stop offset between 0 and 1 along the gradient.
+   *     The stop offset along the gradient, expressed as a 16.16 fixed-point
+   *     coordinate.
    *
    *   color ::
    *     The color information for this stop, see @FT_ColorIndex.
@@ -604,7 +612,7 @@ FT_BEGIN_HEADER
    */
   typedef struct  FT_ColorStop_
   {
-    FT_F2Dot14     stop_offset;
+    FT_Fixed       stop_offset;
     FT_ColorIndex  color;
 
   } FT_ColorStop;
