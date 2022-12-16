@@ -82,6 +82,7 @@ cc_defaults {
         "src/sdf/sdf.c",
         "src/sfnt/sfnt.c",
         "src/smooth/smooth.c",
+        "src/svg/svg.c",
         "src/truetype/truetype.c",
         "src/type1/type1.c",
     ],
@@ -102,6 +103,8 @@ cc_defaults {
         "-Wno-unused-parameter",
         // Disabling some of modules results in warnings
         "-Wno-unused-variable",
+        // Temporary disables unused function warning
+        "-Wno-unused-function",
     ],
 }
 
@@ -215,17 +218,18 @@ filegroup {
     licenses: ["external_freetype_license.builds.unused.zlib"],
     srcs: [
         "src/gzip/adler32.c",
+        "src/gzip/crc32.c",
+        "src/gzip/crc32.h",  // No license header
         "src/gzip/ftzconf.h",
-        "src/gzip/infblock.c",
-        "src/gzip/infblock.h",
+        "src/gzip/gzguts.h",
+        "src/gzip/infback.c",
+        "src/gzip/inffast.c",
+        "src/gzip/inffast.h",
         "src/gzip/inffixed.h",  // No license header
-        "src/gzip/infcodes.c",
-        "src/gzip/infcodes.h",
         "src/gzip/inflate.c",
+        "src/gzip/inflate.h",
         "src/gzip/inftrees.c",
         "src/gzip/inftrees.h",
-        "src/gzip/infutil.c",
-        "src/gzip/infutil.h",
         "src/gzip/zlib.h",
         "src/gzip/zutil.c",
         "src/gzip/zutil.h",
