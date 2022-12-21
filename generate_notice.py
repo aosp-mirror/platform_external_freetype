@@ -28,6 +28,10 @@ IGNORE_FILE_NAME = [
   "docs/FTL.TXT",
   "docs/GPLv2.TXT",
   "src/gzip/LICENSE_ZLIB.TXT",
+
+  # The patch file contains copyright line as a diff. Use it if Copyright is not
+  # in a unified diff line.
+  "src/gzip/patches/freetype-zlib.diff",
 ]
 
 NO_COPYRIGHT_FILES = [
@@ -103,7 +107,6 @@ NO_COPYRIGHT_FILES = [
   "src/gzip/README.freetype",
   "src/gzip/crc32.h",
   "src/gzip/inffixed.h",
-  "src/gzip/patches/freetype-zlib.diff",
   "src/tools/apinames.c",
   "src/tools/chktrcmp.py",
   "src/tools/cordic.py",
