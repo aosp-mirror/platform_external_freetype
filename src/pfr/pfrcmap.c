@@ -69,14 +69,17 @@
   pfr_cmap_char_index( PFR_CMap   cmap,
                        FT_UInt32  char_code )
   {
-    FT_UInt   min = 0;
-    FT_UInt   max = cmap->num_chars;
-    FT_UInt   mid = min + ( max - min ) / 2;
-    PFR_Char  gchar;
+    FT_UInt  min = 0;
+    FT_UInt  max = cmap->num_chars;
 
 
     while ( min < max )
     {
+      PFR_Char  gchar;
+      FT_UInt   mid;
+
+
+      mid   = min + ( max - min ) / 2;
       gchar = cmap->chars + mid;
 
       if ( gchar->char_code == char_code )
@@ -86,11 +89,6 @@
         min = mid + 1;
       else
         max = mid;
-
-      /* reasonable prediction in a continuous block */
-      mid += char_code - gchar->char_code;
-      if ( mid >= max || mid < min )
-        mid = min + ( max - min ) / 2;
     }
     return 0;
   }
@@ -108,12 +106,13 @@
     {
       FT_UInt   min = 0;
       FT_UInt   max = cmap->num_chars;
-      FT_UInt   mid = min + ( max - min ) / 2;
+      FT_UInt   mid;
       PFR_Char  gchar;
 
 
       while ( min < max )
       {
+        mid   = min + ( ( max - min ) >> 1 );
         gchar = cmap->chars + mid;
 
         if ( gchar->char_code == char_code )
@@ -133,11 +132,6 @@
           min = mid + 1;
         else
           max = mid;
-
-        /* reasonable prediction in a continuous block */
-        mid += char_code - gchar->char_code;
-        if ( mid >= max || mid < min )
-          mid = min + ( max - min ) / 2;
       }
 
       /* we didn't find it, but we have a pair just above it */

@@ -84,16 +84,14 @@ def generate_ftmodule(lists):
         )
 
     for module in lists["RASTER_MODULES"]:
-        names = {
-            "raster": ("ft_raster1",),
-            "smooth": ("ft_smooth",),
-            "svg": ("ft_svg",),
-            "sdf": ("ft_sdf", "ft_bitmap_sdf"),
+        name = {
+            "raster": "ft_raster1",
+            "smooth": "ft_smooth",
+            "svg": "ft_svg",
         }.get(module)
-        for name in names:
-            result += (
-                "FT_USE_MODULE( FT_Renderer_Class, %s_renderer_class )\n" % name
-            )
+        result += (
+            "FT_USE_MODULE( FT_Renderer_Class, %s_renderer_class )\n" % name
+        )
 
     for module in lists["AUX_MODULES"]:
         if module in ("psaux", "psnames", "otvalid", "gxvalid"):

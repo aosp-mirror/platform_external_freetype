@@ -19,7 +19,6 @@
 #ifndef SVMM_H_
 #define SVMM_H_
 
-#include <freetype/ftmm.h>
 #include <freetype/internal/ftserv.h>
 #include <freetype/internal/ftmmtypes.h>
 

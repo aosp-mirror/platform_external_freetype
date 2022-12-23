@@ -10,8 +10,6 @@
 #  include "gzguts.h"
 #endif
 
-#ifndef Z_FREETYPE
-
 z_const char * const z_errmsg[10] = {
     (z_const char *)"need dictionary",     /* Z_NEED_DICT       2  */
     (z_const char *)"stream end",          /* Z_STREAM_END      1  */
@@ -140,8 +138,6 @@ const char * ZEXPORT zError(
     return ERR_MSG(err);
 }
 
-#endif  /* !Z_FREETYPE */
-
 #if defined(_WIN32_WCE) && _WIN32_WCE < 0x800
     /* The older Microsoft C Run-Time Library for Windows CE doesn't have
      * errno.  We define it as a global variable to simplify porting.
@@ -162,8 +158,6 @@ void ZLIB_INTERNAL zmemcpy(
         *dest++ = *source++; /* ??? to be unrolled */
     } while (--len != 0);
 }
-
-#ifndef Z_FREETYPE
 
 int ZLIB_INTERNAL zmemcmp(
     const Bytef* s1,
@@ -187,7 +181,6 @@ void ZLIB_INTERNAL zmemzero(
         *dest++ = 0;  /* ??? to be unrolled */
     } while (--len != 0);
 }
-#endif  /* !Z_FREETYPE */
 #endif
 
 #ifndef Z_SOLO

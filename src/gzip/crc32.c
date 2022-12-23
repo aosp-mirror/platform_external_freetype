@@ -103,11 +103,9 @@
 #  define ARMCRC32
 #endif
 
-#ifndef Z_FREETYPE
 /* Local functions. */
 local z_crc_t multmodp OF((z_crc_t a, z_crc_t b));
 local z_crc_t x2nmodp OF((z_off64_t n, unsigned k));
-#endif  /* Z_FREETYPE */
 
 #if defined(W) && (!defined(ARMCRC32) || defined(DYNAMIC_CRC_TABLE))
     local z_word_t byte_swap OF((z_word_t word));
@@ -546,8 +544,6 @@ local void braid(ltl, big, n, w)
  * generation above.
  */
 
-#ifndef Z_FREETYPE
-
 /*
   Return a(x) multiplied by b(x) modulo p(x), where p(x) is the CRC polynomial,
   reflected. For speed, this requires that a not be zero.
@@ -603,8 +599,6 @@ const z_crc_t FAR * ZEXPORT get_crc_table()
 #endif /* DYNAMIC_CRC_TABLE */
     return (const z_crc_t FAR *)crc_table;
 }
-
-#endif  /* Z_FREETYPE */
 
 /* =========================================================================
  * Use ARM machine instructions if available. This will compute the CRC about
@@ -1083,8 +1077,6 @@ unsigned long ZEXPORT crc32(
     return crc32_z(crc, buf, len);
 }
 
-#ifndef Z_FREETYPE
-
 /* ========================================================================= */
 uLong ZEXPORT crc32_combine64(
     uLong crc1,
@@ -1131,5 +1123,3 @@ uLong ZEXPORT crc32_combine_op(
 {
     return multmodp(op, crc1) ^ (crc2 & 0xffffffff);
 }
-
-#endif  /* Z_FREETYPE */
