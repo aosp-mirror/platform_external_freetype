@@ -26,6 +26,9 @@ license {
         "SPDX-license-identifier-FTL",
         "SPDX-license-identifier-MIT",
 
+        // For src/autofit/ft-hb.{h|c}. This file is not used but included from source file.
+        // "SPDX-license-Identifier-MIT-Modern-Variant"
+
         // TODO: Following licenses left from original. Check where these licenses are came from.
         "SPDX-license-identifier-BSD",
         "SPDX-license-identifier-ISC",
@@ -41,6 +44,7 @@ license {
         "LICENSE_APACHE2.TXT",
         "LICENSE_MIT.TXT",
         "LICENSE_BSD_3_CLAUSE.TXT",
+        "LICENSE_MIT_MODERN_VARIANT.TXT",
     ],
 }
 

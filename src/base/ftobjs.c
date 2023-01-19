@@ -1489,7 +1489,7 @@
   static FT_Error
   open_face( FT_Driver      driver,
              FT_Stream      *astream,
-             FT_Bool        external_stream,
+             FT_Bool        *anexternal_stream,
              FT_Long        face_index,
              FT_Int         num_params,
              FT_Parameter*  params,
@@ -1515,7 +1515,7 @@
     face->stream = *astream;
 
     /* set the FT_FACE_FLAG_EXTERNAL_STREAM bit for FT_Done_Face */
-    if ( external_stream )
+    if ( *anexternal_stream )
       face->face_flags |= FT_FACE_FLAG_EXTERNAL_STREAM;
 
     if ( FT_NEW( internal ) )
@@ -1545,7 +1545,10 @@
                                 (FT_Int)face_index,
                                 num_params,
                                 params );
-    *astream = face->stream; /* Stream may have been changed. */
+    /* Stream may have been changed. */
+    *astream = face->stream;
+    *anexternal_stream =
+      ( face->face_flags & FT_FACE_FLAG_EXTERNAL_STREAM ) != 0;
     if ( error )
       goto Fail;
 
@@ -2586,7 +2589,7 @@
           params     = args->params;
         }
 
-        error = open_face( driver, &stream, external_stream, face_index,
+        error = open_face( driver, &stream, &external_stream, face_index,
                            num_params, params, &face );
         if ( !error )
           goto Success;
@@ -2622,7 +2625,7 @@
             params     = args->params;
           }
 
-          error = open_face( driver, &stream, external_stream, face_index,
+          error = open_face( driver, &stream, &external_stream, face_index,
                              num_params, params, &face );
           if ( !error )
             goto Success;
@@ -3280,32 +3283,47 @@
       scaled_h = FT_REQUEST_HEIGHT( req );
 
       /* determine scales */
+      if ( req->height || !req->width )
+      {
+        if ( h == 0 )
+        {
+          FT_ERROR(( "FT_Request_Metrics: Divide by zero\n" ));
+          error = FT_ERR( Divide_By_Zero );
+          goto Exit;
+        }
+
+        metrics->y_scale = FT_DivFix( scaled_h, h );
+      }
+
       if ( req->width )
       {
+        if ( w == 0 )
+        {
+          FT_ERROR(( "FT_Request_Metrics: Divide by zero\n" ));
+          error = FT_ERR( Divide_By_Zero );
+          goto Exit;
+        }
+
         metrics->x_scale = FT_DivFix( scaled_w, w );
-
-        if ( req->height )
-        {
-          metrics->y_scale = FT_DivFix( scaled_h, h );
-
-          if ( req->type == FT_SIZE_REQUEST_TYPE_CELL )
-          {
-            if ( metrics->y_scale > metrics->x_scale )
-              metrics->y_scale = metrics->x_scale;
-            else
-              metrics->x_scale = metrics->y_scale;
-          }
-        }
-        else
-        {
-          metrics->y_scale = metrics->x_scale;
-          scaled_h = FT_MulDiv( scaled_w, h, w );
-        }
       }
       else
       {
-        metrics->x_scale = metrics->y_scale = FT_DivFix( scaled_h, h );
+        metrics->x_scale = metrics->y_scale;
         scaled_w = FT_MulDiv( scaled_h, w, h );
+      }
+
+      if ( !req->height )
+      {
+        metrics->y_scale = metrics->x_scale;
+        scaled_h = FT_MulDiv( scaled_w, h, w );
+      }
+
+      if ( req->type == FT_SIZE_REQUEST_TYPE_CELL )
+      {
+        if ( metrics->y_scale > metrics->x_scale )
+          metrics->y_scale = metrics->x_scale;
+        else
+          metrics->x_scale = metrics->y_scale;
       }
 
   Calculate_Ppem:
