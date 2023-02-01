@@ -4,7 +4,7 @@
  *
  *   A new `perfect' anti-aliasing renderer (body).
  *
- * Copyright (C) 2000-2021 by
+ * Copyright (C) 2000-2022 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -333,7 +333,9 @@ typedef ptrdiff_t  FT_PtrDist;
 #define PIXEL_BITS  8
 
 #define ONE_PIXEL       ( 1 << PIXEL_BITS )
+#undef TRUNC
 #define TRUNC( x )      (TCoord)( (x) >> PIXEL_BITS )
+#undef FRACT
 #define FRACT( x )      (TCoord)( (x) & ( ONE_PIXEL - 1 ) )
 
 #if PIXEL_BITS >= 6
@@ -1907,10 +1909,10 @@ typedef ptrdiff_t  FT_PtrDist;
 
 
   static int
-  gray_convert_glyph_inner( RAS_ARG,
+  gray_convert_glyph_inner( RAS_ARG_
                             int  continued )
   {
-    int  error;
+    volatile int  error;
 
 
     if ( ft_setjmp( ras.jump_buffer ) == 0 )
@@ -2002,7 +2004,7 @@ typedef ptrdiff_t  FT_PtrDist;
         ras.max_ey    = band[0];
         ras.count_ey  = width;
 
-        error     = gray_convert_glyph_inner( RAS_VAR, continued );
+        error     = gray_convert_glyph_inner( RAS_VAR_ continued );
         continued = 1;
 
         if ( !error )
