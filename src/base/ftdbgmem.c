@@ -4,7 +4,7 @@
  *
  *   Memory debugger (body).
  *
- * Copyright (C) 2001-2021 by
+ * Copyright (C) 2001-2022 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -874,7 +874,7 @@
   }
 
 
-  static int
+  FT_COMPARE_DEF( int )
   ft_mem_source_compare( const void*  p1,
                          const void*  p2 )
   {
