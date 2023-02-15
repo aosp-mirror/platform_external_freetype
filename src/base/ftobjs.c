@@ -4,7 +4,7 @@
  *
  *   The FreeType private base classes (body).
  *
- * Copyright (C) 1996-2022 by
+ * Copyright (C) 1996-2023 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -508,7 +508,7 @@
 
     case FT_PIXEL_MODE_LCD_V:
       height *= 3;
-      /* fall through */
+      FALL_THROUGH;
 
     case FT_PIXEL_MODE_GRAY:
     default:
@@ -1185,28 +1185,34 @@
                 pixel_modes[slot->bitmap.pixel_mode],
                 slot->bitmap.pixel_mode ));
     FT_TRACE5(( "\n" ));
-    FT_TRACE5(( "  x advance: %f\n", slot->advance.x / 64.0 ));
-    FT_TRACE5(( "  y advance: %f\n", slot->advance.y / 64.0 ));
+    FT_TRACE5(( "  x advance: %f\n", (double)slot->advance.x / 64 ));
+    FT_TRACE5(( "  y advance: %f\n", (double)slot->advance.y / 64 ));
     FT_TRACE5(( "  linear x advance: %f\n",
-                slot->linearHoriAdvance / 65536.0 ));
+                (double)slot->linearHoriAdvance / 65536 ));
     FT_TRACE5(( "  linear y advance: %f\n",
-                slot->linearVertAdvance / 65536.0 ));
+                (double)slot->linearVertAdvance / 65536 ));
 
     {
       FT_Glyph_Metrics*  metrics = &slot->metrics;
 
 
       FT_TRACE5(( "  metrics:\n" ));
-      FT_TRACE5(( "    width:  %f\n", metrics->width  / 64.0 ));
-      FT_TRACE5(( "    height: %f\n", metrics->height / 64.0 ));
+      FT_TRACE5(( "    width:  %f\n", (double)metrics->width / 64 ));
+      FT_TRACE5(( "    height: %f\n", (double)metrics->height / 64 ));
       FT_TRACE5(( "\n" ));
-      FT_TRACE5(( "    horiBearingX: %f\n", metrics->horiBearingX / 64.0 ));
-      FT_TRACE5(( "    horiBearingY: %f\n", metrics->horiBearingY / 64.0 ));
-      FT_TRACE5(( "    horiAdvance:  %f\n", metrics->horiAdvance  / 64.0 ));
+      FT_TRACE5(( "    horiBearingX: %f\n",
+                  (double)metrics->horiBearingX / 64 ));
+      FT_TRACE5(( "    horiBearingY: %f\n",
+                  (double)metrics->horiBearingY / 64 ));
+      FT_TRACE5(( "    horiAdvance:  %f\n",
+                  (double)metrics->horiAdvance / 64 ));
       FT_TRACE5(( "\n" ));
-      FT_TRACE5(( "    vertBearingX: %f\n", metrics->vertBearingX / 64.0 ));
-      FT_TRACE5(( "    vertBearingY: %f\n", metrics->vertBearingY / 64.0 ));
-      FT_TRACE5(( "    vertAdvance:  %f\n", metrics->vertAdvance  / 64.0 ));
+      FT_TRACE5(( "    vertBearingX: %f\n",
+                  (double)metrics->vertBearingX / 64 ));
+      FT_TRACE5(( "    vertBearingY: %f\n",
+                  (double)metrics->vertBearingY / 64 ));
+      FT_TRACE5(( "    vertAdvance:  %f\n",
+                  (double)metrics->vertAdvance / 64 ));
     }
 #endif
 
@@ -1672,13 +1678,13 @@
   static void
   memory_stream_close( FT_Stream  stream )
   {
-    FT_Memory  memory = stream->memory;
+    FT_Memory  memory = (FT_Memory)stream->descriptor.pointer;
 
 
     FT_FREE( stream->base );
-
     stream->size  = 0;
     stream->close = NULL;
+    FT_FREE( stream );
   }
 
 
@@ -1709,7 +1715,8 @@
 
     FT_Stream_OpenMemory( stream, base, size );
 
-    stream->close = close;
+    stream->descriptor.pointer = memory;
+    stream->close              = close;
 
     *astream = stream;
 
@@ -1730,28 +1737,36 @@
   {
     FT_Open_Args  args;
     FT_Error      error;
-    FT_Stream     stream = NULL;
     FT_Memory     memory = library->memory;
 
 
+    args.flags = 0;
+
+    if ( driver_name )
+    {
+      args.driver = FT_Get_Module( library, driver_name );
+      if ( !args.driver )
+      {
+        FT_FREE( base );
+        return FT_THROW( Missing_Module );
+      }
+
+      args.flags = args.flags | FT_OPEN_DRIVER;
+    }
+
+    /* `memory_stream_close` also frees the stream object. */
     error = new_memory_stream( library,
                                base,
                                size,
                                memory_stream_close,
-                               &stream );
+                               &args.stream );
     if ( error )
     {
       FT_FREE( base );
       return error;
     }
 
-    args.flags  = FT_OPEN_STREAM;
-    args.stream = stream;
-    if ( driver_name )
-    {
-      args.flags  = args.flags | FT_OPEN_DRIVER;
-      args.driver = FT_Get_Module( library, driver_name );
-    }
+    args.flags |= FT_OPEN_STREAM;
 
 #ifdef FT_MACINTOSH
     /* At this point, the face index has served its purpose;  */
@@ -1763,21 +1778,7 @@
       face_index &= 0x7FFF0000L; /* retain GX data */
 #endif
 
-    error = ft_open_face_internal( library, &args, face_index, aface, 0 );
-
-    if ( !error )
-      (*aface)->face_flags &= ~FT_FACE_FLAG_EXTERNAL_STREAM;
-    else
-#ifdef FT_MACINTOSH
-      FT_Stream_Free( stream, 0 );
-#else
-    {
-      FT_Stream_Close( stream );
-      FT_FREE( stream );
-    }
-#endif
-
-    return error;
+    return ft_open_face_internal( library, &args, face_index, aface, 0 );
   }
 
 
@@ -1920,7 +1921,7 @@
                                    sfnt_ps,
                                    length,
                                    FT_MIN( face_index, 0 ),
-                                   is_sfnt_cid ? "cid" : "type1",
+                                   is_sfnt_cid ? "t1cid" : "type1",
                                    aface );
   Exit:
     {
@@ -2557,7 +2558,7 @@
 
     /* test for valid `library' delayed to `FT_Stream_New' */
 
-    if ( ( !aface && face_index >= 0 ) || !args )
+    if ( !args )
       return FT_THROW( Invalid_Argument );
 
     external_stream = FT_BOOL( ( args->flags & FT_OPEN_STREAM ) &&
@@ -2567,6 +2568,14 @@
     error = FT_Stream_New( library, args, &stream );
     if ( error )
       goto Fail3;
+
+    /* Do this error check after `FT_Stream_New` to ensure that the */
+    /* 'close' callback is called.                                  */
+    if ( !aface && face_index >= 0 )
+    {
+      error = FT_THROW( Invalid_Argument );
+      goto Fail3;
+    }
 
     memory = library->memory;
 
@@ -3399,15 +3408,19 @@
 
 
       FT_TRACE5(( "  x scale: %ld (%f)\n",
-                  metrics->x_scale, metrics->x_scale / 65536.0 ));
+                  metrics->x_scale, (double)metrics->x_scale / 65536 ));
       FT_TRACE5(( "  y scale: %ld (%f)\n",
-                  metrics->y_scale, metrics->y_scale / 65536.0 ));
-      FT_TRACE5(( "  ascender: %f\n",    metrics->ascender / 64.0 ));
-      FT_TRACE5(( "  descender: %f\n",   metrics->descender / 64.0 ));
-      FT_TRACE5(( "  height: %f\n",      metrics->height / 64.0 ));
-      FT_TRACE5(( "  max advance: %f\n", metrics->max_advance / 64.0 ));
-      FT_TRACE5(( "  x ppem: %d\n",      metrics->x_ppem ));
-      FT_TRACE5(( "  y ppem: %d\n",      metrics->y_ppem ));
+                  metrics->y_scale, (double)metrics->y_scale / 65536 ));
+      FT_TRACE5(( "  ascender: %f\n",
+                  (double)metrics->ascender / 64 ));
+      FT_TRACE5(( "  descender: %f\n",
+                  (double)metrics->descender / 64 ));
+      FT_TRACE5(( "  height: %f\n",
+                  (double)metrics->height / 64 ));
+      FT_TRACE5(( "  max advance: %f\n",
+                  (double)metrics->max_advance / 64 ));
+      FT_TRACE5(( "  x ppem: %d\n", metrics->x_ppem ));
+      FT_TRACE5(( "  y ppem: %d\n", metrics->y_ppem ));
     }
 #endif
 
@@ -3479,15 +3492,19 @@
 
 
       FT_TRACE5(( "  x scale: %ld (%f)\n",
-                  metrics->x_scale, metrics->x_scale / 65536.0 ));
+                  metrics->x_scale, (double)metrics->x_scale / 65536 ));
       FT_TRACE5(( "  y scale: %ld (%f)\n",
-                  metrics->y_scale, metrics->y_scale / 65536.0 ));
-      FT_TRACE5(( "  ascender: %f\n",    metrics->ascender / 64.0 ));
-      FT_TRACE5(( "  descender: %f\n",   metrics->descender / 64.0 ));
-      FT_TRACE5(( "  height: %f\n",      metrics->height / 64.0 ));
-      FT_TRACE5(( "  max advance: %f\n", metrics->max_advance / 64.0 ));
-      FT_TRACE5(( "  x ppem: %d\n",      metrics->x_ppem ));
-      FT_TRACE5(( "  y ppem: %d\n",      metrics->y_ppem ));
+                  metrics->y_scale, (double)metrics->y_scale / 65536 ));
+      FT_TRACE5(( "  ascender: %f\n",
+                  (double)metrics->ascender / 64 ));
+      FT_TRACE5(( "  descender: %f\n",
+                  (double)metrics->descender / 64 ));
+      FT_TRACE5(( "  height: %f\n",
+                  (double)metrics->height / 64 ));
+      FT_TRACE5(( "  max advance: %f\n",
+                  (double)metrics->max_advance / 64 ));
+      FT_TRACE5(( "  x ppem: %d\n", metrics->x_ppem ));
+      FT_TRACE5(( "  y ppem: %d\n", metrics->y_ppem ));
     }
 #endif
 
