@@ -26,6 +26,7 @@ HOW TO UPDATE
   ex: for 2.8.1: http://git.savannah.gnu.org/cgit/freetype/freetype2.git/commit/?h=VER-2-8-1&id=39ce3ac499d4cd7371031a062f410953c8ecce29
 * In <checkout_dir>, run git merge <commit_sha>
   i.e. git merge 39ce3ac499d4cd7371031a062f410953c8ecce29
+* Update version and last upgrade date in MEATADATA file.
 * Upload the changes.
   ex: git push origin HEAD:refs/for/master
 * Gerrit will run the text related tests.

@@ -4,7 +4,7 @@
  *
  *   OpenType MATH table validation (body).
  *
- * Copyright 2007-2018 by
+ * Copyright (C) 2007-2023 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * Written by George Williams.
@@ -30,7 +30,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_otvmath
+#define FT_COMPONENT  otvmath
 
 
 
@@ -141,7 +141,7 @@
     OTV_OPTIONAL_TABLE( DeviceTableOffset );
 
 
-    /* OTV_NAME_ENTER( "MathKern" );*/
+    /* OTV_NAME_ENTER( "MathKern" ); */
 
     OTV_LIMIT_CHECK( 2 );
 

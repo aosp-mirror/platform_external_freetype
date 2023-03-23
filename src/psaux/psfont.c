@@ -36,8 +36,7 @@
  */
 
 
-#include <ft2build.h>
-#include FT_INTERNAL_CALC_H
+#include <freetype/internal/ftcalc.h>
 
 #include "psft.h"
 
@@ -274,9 +273,6 @@
 
     if ( !font->isT1 )
     {
-      FT_Service_CFFLoad  cffload = (FT_Service_CFFLoad)font->cffload;
-
-
       /* check for variation vectors */
       vstore        = cf2_getVStore( decoder );
       hasVariations = ( vstore->dataCount != 0 );
@@ -284,6 +280,9 @@
       if ( hasVariations )
       {
 #ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
+        FT_Service_CFFLoad  cffload = (FT_Service_CFFLoad)font->cffload;
+
+
         /* check whether Private DICT in this subfont needs to be reparsed */
         font->error = cf2_getNormalizedVector( decoder,
                                                &lenNormalizedV,
@@ -331,7 +330,7 @@
     }
 
     /* copy hinted flag on each call */
-    font->hinted = (FT_Bool)( font->renderingFlags & CF2_FlagsHinted );
+    font->hinted = FT_BOOL( font->renderingFlags & CF2_FlagsHinted );
 
     /* determine if transform has changed;       */
     /* include Fontmatrix but ignore translation */
@@ -366,7 +365,7 @@
     if ( font->stemDarkened != ( font->renderingFlags & CF2_FlagsDarkened ) )
     {
       font->stemDarkened =
-        (FT_Bool)( font->renderingFlags & CF2_FlagsDarkened );
+        FT_BOOL( font->renderingFlags & CF2_FlagsDarkened );
 
       /* blue zones depend on darkened flag */
       needExtraSetup = TRUE;

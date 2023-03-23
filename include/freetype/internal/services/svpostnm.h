@@ -4,7 +4,7 @@
  *
  *   The FreeType PostScript name services (specification).
  *
- * Copyright 2003-2018 by
+ * Copyright (C) 2003-2023 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -19,16 +19,16 @@
 #ifndef SVPOSTNM_H_
 #define SVPOSTNM_H_
 
-#include FT_INTERNAL_SERVICE_H
+#include <freetype/internal/ftserv.h>
 
 
 FT_BEGIN_HEADER
 
   /*
-   * A trivial service used to retrieve the PostScript name of a given
-   * font when available.  The `get_name' field should never be NULL.
+   * A trivial service used to retrieve the PostScript name of a given font
+   * when available.  The `get_name' field should never be `NULL`.
    *
-   * The corresponding function can return NULL to indicate that the
+   * The corresponding function can return `NULL` to indicate that the
    * PostScript name is not available.
    *
    * The name is owned by the face and will be destroyed with it.

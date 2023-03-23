@@ -4,7 +4,7 @@
  *
  *   LZW-compressed stream support.
  *
- * Copyright 2004-2018 by
+ * Copyright (C) 2004-2023 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -19,8 +19,7 @@
 #ifndef FTLZW_H_
 #define FTLZW_H_
 
-#include <ft2build.h>
-#include FT_FREETYPE_H
+#include <freetype/freetype.h>
 
 #ifdef FREETYPE_H
 #error "freetype.h of FreeType 1 has been loaded!"
@@ -43,19 +42,28 @@ FT_BEGIN_HEADER
    *   Using LZW-compressed font files.
    *
    * @description:
+   *   In certain builds of the library, LZW compression recognition is
+   *   automatically handled when calling @FT_New_Face or @FT_Open_Face.
+   *   This means that if no font driver is capable of handling the raw
+   *   compressed file, the library will try to open a LZW stream from it and
+   *   re-open the face with it.
+   *
+   *   The stream implementation is very basic and resets the decompression
+   *   process each time seeking backwards is needed within the stream,
+   *   which significantly undermines the performance.
+   *
    *   This section contains the declaration of LZW-specific functions.
    *
    */
 
-  /************************************************************************
+  /**************************************************************************
    *
    * @function:
    *   FT_Stream_OpenLZW
    *
    * @description:
-   *   Open a new stream to parse LZW-compressed font files.  This is
-   *   mainly used to support the compressed `*.pcf.Z' fonts that come
-   *   with XFree86.
+   *   Open a new stream to parse LZW-compressed font files.  This is mainly
+   *   used to support the compressed `*.pcf.Z` fonts that come with XFree86.
    *
    * @input:
    *   stream ::
@@ -70,20 +78,11 @@ FT_BEGIN_HEADER
    * @note:
    *   The source stream must be opened _before_ calling this function.
    *
-   *   Calling the internal function `FT_Stream_Close' on the new stream will
-   *   *not* call `FT_Stream_Close' on the source stream.  None of the stream
-   *   objects will be released to the heap.
+   *   Calling the internal function `FT_Stream_Close` on the new stream will
+   *   **not** call `FT_Stream_Close` on the source stream.  None of the
+   *   stream objects will be released to the heap.
    *
-   *   The stream implementation is very basic and resets the decompression
-   *   process each time seeking backwards is needed within the stream
-   *
-   *   In certain builds of the library, LZW compression recognition is
-   *   automatically handled when calling @FT_New_Face or @FT_Open_Face.
-   *   This means that if no font driver is capable of handling the raw
-   *   compressed file, the library will try to open a LZW stream from it
-   *   and re-open the face with it.
-   *
-   *   This function may return `FT_Err_Unimplemented_Feature' if your build
+   *   This function may return `FT_Err_Unimplemented_Feature` if your build
    *   of FreeType was not compiled with LZW support.
    */
   FT_EXPORT( FT_Error )

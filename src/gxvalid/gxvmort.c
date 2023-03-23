@@ -4,7 +4,7 @@
  *
  *   TrueTypeGX/AAT mort table validation (body).
  *
- * Copyright 2005-2018 by
+ * Copyright (C) 2005-2023 by
  * suzuki toshiya, Masatake YAMATO, Red Hat K.K.,
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
@@ -36,7 +36,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_gxvmort
+#define FT_COMPONENT  gxvmort
 
 
   static void
@@ -123,6 +123,7 @@
                               GXV_Validator  gxvalid )
   {
     FT_UNUSED( gxvalid );
+    FT_UNUSED( coverage );
 
 #ifdef FT_DEBUG_LEVEL_TRACE
     if ( coverage & 0x8000U )
@@ -287,7 +288,7 @@
 
     for ( i = 0; i < nChains; i++ )
     {
-      GXV_TRACE(( "validating chain %d/%d\n", i + 1, nChains ));
+      GXV_TRACE(( "validating chain %lu/%lu\n", i + 1, nChains ));
       GXV_32BIT_ALIGNMENT_VALIDATE( p - table );
       gxv_mort_chain_validate( p, limit, gxvalid );
       p += gxvalid->subtable_length;

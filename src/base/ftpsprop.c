@@ -5,7 +5,7 @@
  *   Get and set properties of PostScript drivers (body).
  *   See `ftdriver.h' for available properties.
  *
- * Copyright 2017-2018 by
+ * Copyright (C) 2017-2023 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -17,12 +17,11 @@
  */
 
 
-#include <ft2build.h>
-#include FT_DRIVER_H
-#include FT_INTERNAL_DEBUG_H
-#include FT_INTERNAL_POSTSCRIPT_AUX_H
-#include FT_INTERNAL_OBJECTS_H
-#include FT_INTERNAL_POSTSCRIPT_PROPS_H
+#include <freetype/ftdriver.h>
+#include <freetype/internal/ftdebug.h>
+#include <freetype/internal/psaux.h>
+#include <freetype/internal/ftobjs.h>
+#include <freetype/internal/ftpsprop.h>
 
 
   /**************************************************************************
@@ -32,7 +31,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_psprops
+#define FT_COMPONENT  psprops
 
 
   FT_BASE_CALLBACK_DEF( FT_Error )
@@ -165,9 +164,9 @@
           driver->hinting_engine = *hinting_engine;
         else
           error = FT_ERR( Unimplemented_Feature );
-
-        return error;
       }
+
+      return error;
     }
 
     else if ( !ft_strcmp( property_name, "no-stem-darkening" ) )
@@ -221,7 +220,7 @@
       return error;
     }
 
-    FT_TRACE0(( "ps_property_set: missing property `%s'\n",
+    FT_TRACE2(( "ps_property_set: missing property `%s'\n",
                 property_name ));
     return FT_THROW( Missing_Property );
   }
@@ -276,7 +275,7 @@
       return error;
     }
 
-    FT_TRACE0(( "ps_property_get: missing property `%s'\n",
+    FT_TRACE2(( "ps_property_get: missing property `%s'\n",
                 property_name ));
     return FT_THROW( Missing_Property );
   }
