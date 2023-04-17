@@ -4,7 +4,7 @@
  *
  *   FreeType outline management (body).
  *
- * Copyright 1996-2018 by
+ * Copyright (C) 1996-2023 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -16,19 +16,11 @@
  */
 
 
-  /**************************************************************************
-   *
-   * All functions are declared in freetype.h.
-   *
-   */
-
-
-#include <ft2build.h>
-#include FT_OUTLINE_H
-#include FT_INTERNAL_OBJECTS_H
-#include FT_INTERNAL_CALC_H
-#include FT_INTERNAL_DEBUG_H
-#include FT_TRIGONOMETRY_H
+#include <freetype/ftoutln.h>
+#include <freetype/internal/ftobjs.h>
+#include <freetype/internal/ftcalc.h>
+#include <freetype/internal/ftdebug.h>
+#include <freetype/fttrigon.h>
 
 
   /**************************************************************************
@@ -38,7 +30,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_outline
+#define FT_COMPONENT  outline
 
 
   static
@@ -53,8 +45,7 @@
                         void*                    user )
   {
 #undef  SCALED
-#define SCALED( x )  ( ( (x) < 0 ? -( -(x) << shift )             \
-                                 :  (  (x) << shift ) ) - delta )
+#define SCALED( x )  ( (x) * ( 1L << shift ) - delta )
 
     FT_Vector   v_last;
     FT_Vector   v_control;
@@ -139,7 +130,7 @@
       }
 
       FT_TRACE5(( "  move to (%.2f, %.2f)\n",
-                  v_start.x / 64.0, v_start.y / 64.0 ));
+                  (double)v_start.x / 64, (double)v_start.y / 64 ));
       error = func_interface->move_to( &v_start, user );
       if ( error )
         goto Exit;
@@ -161,7 +152,7 @@
             vec.y = SCALED( point->y );
 
             FT_TRACE5(( "  line to (%.2f, %.2f)\n",
-                        vec.x / 64.0, vec.y / 64.0 ));
+                        (double)vec.x / 64, (double)vec.y / 64 ));
             error = func_interface->line_to( &vec, user );
             if ( error )
               goto Exit;
@@ -190,8 +181,10 @@
             {
               FT_TRACE5(( "  conic to (%.2f, %.2f)"
                           " with control (%.2f, %.2f)\n",
-                          vec.x / 64.0, vec.y / 64.0,
-                          v_control.x / 64.0, v_control.y / 64.0 ));
+                          (double)vec.x / 64,
+                          (double)vec.y / 64,
+                          (double)v_control.x / 64,
+                          (double)v_control.y / 64 ));
               error = func_interface->conic_to( &v_control, &vec, user );
               if ( error )
                 goto Exit;
@@ -206,8 +199,10 @@
 
             FT_TRACE5(( "  conic to (%.2f, %.2f)"
                         " with control (%.2f, %.2f)\n",
-                        v_middle.x / 64.0, v_middle.y / 64.0,
-                        v_control.x / 64.0, v_control.y / 64.0 ));
+                        (double)v_middle.x / 64,
+                        (double)v_middle.y / 64,
+                        (double)v_control.x / 64,
+                        (double)v_control.y / 64 ));
             error = func_interface->conic_to( &v_control, &v_middle, user );
             if ( error )
               goto Exit;
@@ -218,8 +213,10 @@
 
           FT_TRACE5(( "  conic to (%.2f, %.2f)"
                       " with control (%.2f, %.2f)\n",
-                      v_start.x / 64.0, v_start.y / 64.0,
-                      v_control.x / 64.0, v_control.y / 64.0 ));
+                      (double)v_start.x / 64,
+                      (double)v_start.y / 64,
+                      (double)v_control.x / 64,
+                      (double)v_control.y / 64 ));
           error = func_interface->conic_to( &v_control, &v_start, user );
           goto Close;
 
@@ -251,9 +248,12 @@
 
               FT_TRACE5(( "  cubic to (%.2f, %.2f)"
                           " with controls (%.2f, %.2f) and (%.2f, %.2f)\n",
-                          vec.x / 64.0, vec.y / 64.0,
-                          vec1.x / 64.0, vec1.y / 64.0,
-                          vec2.x / 64.0, vec2.y / 64.0 ));
+                          (double)vec.x / 64,
+                          (double)vec.y / 64,
+                          (double)vec1.x / 64,
+                          (double)vec1.y / 64,
+                          (double)vec2.x / 64,
+                          (double)vec2.y / 64 ));
               error = func_interface->cubic_to( &vec1, &vec2, &vec, user );
               if ( error )
                 goto Exit;
@@ -262,9 +262,12 @@
 
             FT_TRACE5(( "  cubic to (%.2f, %.2f)"
                         " with controls (%.2f, %.2f) and (%.2f, %.2f)\n",
-                        v_start.x / 64.0, v_start.y / 64.0,
-                        vec1.x / 64.0, vec1.y / 64.0,
-                        vec2.x / 64.0, vec2.y / 64.0 ));
+                        (double)v_start.x / 64,
+                        (double)v_start.y / 64,
+                        (double)vec1.x / 64,
+                        (double)vec1.y / 64,
+                        (double)vec2.x / 64,
+                        (double)vec2.y / 64 ));
             error = func_interface->cubic_to( &vec1, &vec2, &v_start, user );
             goto Close;
           }
@@ -273,7 +276,7 @@
 
       /* close the contour with a line segment */
       FT_TRACE5(( "  line to (%.2f, %.2f)\n",
-                  v_start.x / 64.0, v_start.y / 64.0 ));
+                  (double)v_start.x / 64, (double)v_start.y / 64 ));
       error = func_interface->line_to( &v_start, user );
 
     Close:
@@ -283,7 +286,7 @@
       first = (FT_UInt)last + 1;
     }
 
-    FT_TRACE5(( "FT_Outline_Decompose: Done\n", n ));
+    FT_TRACE5(( "FT_Outline_Decompose: Done\n" ));
     return FT_Err_Ok;
 
   Invalid_Outline:
@@ -296,14 +299,22 @@
   }
 
 
-  FT_EXPORT_DEF( FT_Error )
-  FT_Outline_New_Internal( FT_Memory    memory,
-                           FT_UInt      numPoints,
-                           FT_Int       numContours,
-                           FT_Outline  *anoutline )
-  {
-    FT_Error  error;
+  /* documentation is in ftoutln.h */
 
+  FT_EXPORT_DEF( FT_Error )
+  FT_Outline_New( FT_Library   library,
+                  FT_UInt      numPoints,
+                  FT_Int       numContours,
+                  FT_Outline  *anoutline )
+  {
+    FT_Error   error;
+    FT_Memory  memory;
+
+
+    if ( !library )
+      return FT_THROW( Invalid_Library_Handle );
+
+    memory = library->memory;
 
     if ( !anoutline || !memory )
       return FT_THROW( Invalid_Argument );
@@ -330,25 +341,9 @@
 
   Fail:
     anoutline->flags |= FT_OUTLINE_OWNER;
-    FT_Outline_Done_Internal( memory, anoutline );
+    FT_Outline_Done( library, anoutline );
 
     return error;
-  }
-
-
-  /* documentation is in ftoutln.h */
-
-  FT_EXPORT_DEF( FT_Error )
-  FT_Outline_New( FT_Library   library,
-                  FT_UInt      numPoints,
-                  FT_Int       numContours,
-                  FT_Outline  *anoutline )
-  {
-    if ( !library )
-      return FT_THROW( Invalid_Library_Handle );
-
-    return FT_Outline_New_Internal( library->memory, numPoints,
-                                    numContours, anoutline );
   }
 
 
@@ -436,12 +431,22 @@
   }
 
 
+  /* documentation is in ftoutln.h */
+
   FT_EXPORT_DEF( FT_Error )
-  FT_Outline_Done_Internal( FT_Memory    memory,
-                            FT_Outline*  outline )
+  FT_Outline_Done( FT_Library   library,
+                   FT_Outline*  outline )
   {
+    FT_Memory  memory;
+
+
+    if ( !library )
+      return FT_THROW( Invalid_Library_Handle );
+
     if ( !outline )
       return FT_THROW( Invalid_Outline );
+
+    memory = library->memory;
 
     if ( !memory )
       return FT_THROW( Invalid_Argument );
@@ -455,21 +460,6 @@
     *outline = null_outline;
 
     return FT_Err_Ok;
-  }
-
-
-  /* documentation is in ftoutln.h */
-
-  FT_EXPORT_DEF( FT_Error )
-  FT_Outline_Done( FT_Library   library,
-                   FT_Outline*  outline )
-  {
-    /* check for valid `outline' in FT_Outline_Done_Internal() */
-
-    if ( !library )
-      return FT_THROW( Invalid_Library_Handle );
-
-    return FT_Outline_Done_Internal( library->memory, outline );
   }
 
 
@@ -641,6 +631,16 @@
 
     params->source = (void*)outline;
 
+    /* preset clip_box for direct mode */
+    if ( params->flags & FT_RASTER_FLAG_DIRECT    &&
+         !( params->flags & FT_RASTER_FLAG_CLIP ) )
+    {
+      params->clip_box.xMin = cbox.xMin >> 6;
+      params->clip_box.yMin = cbox.yMin >> 6;
+      params->clip_box.xMax = ( cbox.xMax + 63 ) >> 6;
+      params->clip_box.yMax = ( cbox.yMax + 63 ) >> 6;
+    }
+
     error = FT_ERR( Cannot_Render_Glyph );
     while ( renderer )
     {
@@ -722,7 +722,7 @@
     FT_Vector*  limit;
 
 
-    if ( !outline || !matrix )
+    if ( !outline || !matrix || !outline->points )
       return;
 
     vec   = outline->points;
@@ -1072,6 +1072,11 @@
     if ( cbox.xMin == cbox.xMax || cbox.yMin == cbox.yMax )
       return FT_ORIENTATION_NONE;
 
+    /* Reject values large outlines. */
+    if ( cbox.xMin < -0x1000000L || cbox.yMin < -0x1000000L ||
+         cbox.xMax >  0x1000000L || cbox.yMax >  0x1000000L )
+      return FT_ORIENTATION_NONE;
+
     xshift = FT_MSB( (FT_UInt32)( FT_ABS( cbox.xMax ) |
                                   FT_ABS( cbox.xMin ) ) ) - 14;
     xshift = FT_MAX( xshift, 0 );
@@ -1096,7 +1101,8 @@
         v_cur.y = points[n].y >> yshift;
 
         area = ADD_LONG( area,
-                         ( v_cur.y - v_prev.y ) * ( v_cur.x + v_prev.x ) );
+                         MUL_LONG( v_cur.y - v_prev.y,
+                                   v_cur.x + v_prev.x ) );
 
         v_prev = v_cur;
       }

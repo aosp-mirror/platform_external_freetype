@@ -4,7 +4,7 @@
  *
  *   CFF character mapping table (cmap) support (body).
  *
- * Copyright 2002-2018 by
+ * Copyright (C) 2002-2023 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -16,8 +16,7 @@
  */
 
 
-#include <ft2build.h>
-#include FT_INTERNAL_DEBUG_H
+#include <freetype/internal/ftdebug.h>
 #include "cffcmap.h"
 #include "cffload.h"
 
@@ -82,7 +81,7 @@
 
     if ( char_code < 255 )
     {
-      FT_UInt  code = (FT_UInt)(char_code + 1);
+      FT_UInt  code = (FT_UInt)( char_code + 1 );
 
 
       for (;;)
@@ -160,6 +159,9 @@
     /* because we don't know glyph names.         */
     if ( !charset->sids )
       return FT_THROW( No_Unicode_Glyph_Name );
+
+    if ( !psnames->unicodes_init )
+      return FT_THROW( Unimplemented_Feature );
 
     return psnames->unicodes_init( memory,
                                    unicodes,

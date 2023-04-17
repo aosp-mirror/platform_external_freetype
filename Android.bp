@@ -1,10 +1,61 @@
-cc_library_shared {
-    name: "libft2",
+package {
+    default_applicable_licenses: ["external_freetype_license"],
+}
+
+// Added automatically by a large-scale-change that took the approach of
+// 'apply every license found to every target'. While this makes sure we respect
+// every license restriction, it may not be entirely correct.
+//
+// e.g. GPL in an MIT project might only apply to the contrib/ directory.
+//
+// Please consider splitting the single license below into multiple licenses,
+// taking care not to lose any license_kind information, and overriding the
+// default license using the 'licenses: [...]' property on targets as needed.
+//
+// For unused files, consider creating a 'fileGroup' with "//visibility:private"
+// to attach the license to, and including a comment whether the files may be
+// used in the current project.
+// See: http://go/android-license-faq
+license {
+    name: "external_freetype_license",
+    visibility: [":__subpackages__"],
+    license_kinds: [
+        "SPDX-license-identifier-Apache-2.0",
+        "SPDX-license-identifier-BSD-3-Clause",
+        "SPDX-license-identifier-FSFAP",
+        "SPDX-license-identifier-FTL",
+        "SPDX-license-identifier-MIT",
+
+        // For src/autofit/ft-hb.{h|c}. This file is not used but included from source file.
+        // "SPDX-license-Identifier-MIT-Modern-Variant"
+
+        // TODO: Following licenses left from original. Check where these licenses are came from.
+        "SPDX-license-identifier-BSD",
+        "SPDX-license-identifier-ISC",
+        "SPDX-license-identifier-LGPL",
+        "legacy_unencumbered",
+    ],
+    license_text: [
+        "LICENSE.TXT",
+        "LICENSE",
+        "NOTICE",
+
+        "docs/FTL.TXT",
+        "LICENSE_APACHE2.TXT",
+        "LICENSE_MIT.TXT",
+        "LICENSE_BSD_3_CLAUSE.TXT",
+        "LICENSE_MIT_MODERN_VARIANT.TXT",
+    ],
+}
+
+cc_defaults {
+    name: "libft2_defaults",
     host_supported: true,
+    // TODO(b/153609531): remove when no longer needed.
+    native_bridge_supported: true,
 
     // compile in ARM mode, since the glyph loader/renderer is a hotspot
     // when loading complex pages in the browser
-    //
     arch: {
         arm: {
             instruction_set: "arm",
@@ -32,8 +83,10 @@ cc_library_shared {
         "src/pshinter/pshinter.c",
         "src/psnames/psnames.c",
         "src/raster/raster.c",
+        "src/sdf/sdf.c",
         "src/sfnt/sfnt.c",
         "src/smooth/smooth.c",
+        "src/svg/svg.c",
         "src/truetype/truetype.c",
         "src/type1/type1.c",
     ],
@@ -54,6 +107,23 @@ cc_library_shared {
         "-Wno-unused-parameter",
         // Disabling some of modules results in warnings
         "-Wno-unused-variable",
+        // Temporary disables unused function warning
+        "-Wno-unused-function",
+    ],
+}
+
+cc_library {
+    name: "libft2",
+    defaults: ["libft2_defaults"],
+
+    cflags: [
+        // Usually these are defined in include/freetype/config/ftoption.h
+        // we have commented them and defined them here to allow for the
+        // no dependency variant libft2.nodep below.
+        "-DFT_CONFIG_OPTION_USE_PNG",
+        "-DFT_CONFIG_OPTION_USE_ZLIB",
+        "-DFT_CONFIG_OPTION_SYSTEM_ZLIB",
+
         // the following is for testing only, and should not be used in final
         // builds of the product
         // "-DTT_CONFIG_OPTION_BYTECODE_INTERPRETER",
@@ -81,11 +151,125 @@ cc_library_shared {
             enabled: true,
         },
     },
+
+    llndk: {
+        private: true,
+        symbol_file: "libft2.map.txt",
+    },
 }
 
-llndk_library {
-    name: "libft2",
-    vendor_available: false,
-    symbol_file: "libft2.map.txt",
-    export_include_dirs: ["include"],
+// variant of libft2 without any library dependencies.
+cc_library_static {
+    name: "libft2.nodep",
+    vendor_available: true,
+    defaults: ["libft2_defaults"],
 }
+
+// Following defines unused files that is under licenses that are different
+// from default licenses.
+
+license {
+    name: "external_freetype_license.builds.unused.unix.GPLv2",
+    visibility: ["//visibility:private"],
+    license_kinds: [
+      "SPDX-license-identifier-GPL-2.0-with-autoconf-exception",
+    ],
+    license_text: [
+        "builds/unix/LICENSE_GPLv2_WITH_AUTOCONF_EXCEPTION.TXT",
+    ],
+}
+
+filegroup {
+    name: "freetype.builds.unix.GPLv2",
+    visibility: ["//visibility:private"],
+    licenses: ["external_freetype_license.builds.unused.unix.GPLv2"],
+    srcs: ["builds/unix/pkg.m4"],
+}
+
+license {
+    name: "external_freetype_license.builds.unused.unix.GPLv3",
+    visibility: ["//visibility:private"],
+    license_kinds: [
+      "SPDX-license-identifier-GPL-3.0-with-autoconf-exception",
+    ],
+    license_text: [
+        // For builds/unix/ax_pthread.m4
+        "builds/unix/LICENSE_GPLv3_WITH_AUTOCONF_EXCEPTION.TXT",
+    ],
+}
+
+filegroup {
+    name: "freetype.builds.unix.GPLv3",
+    visibility: ["//visibility:private"],
+    licenses: ["external_freetype_license.builds.unused.unix.GPLv3"],
+    srcs: ["builds/unix/ax_pthread.m4"],
+}
+
+license {
+    name: "external_freetype_license.builds.unused.zlib",
+    visibility: ["//visibility:private"],
+    license_kinds: [
+        "SPDX-license-identifier-Zlib",
+    ],
+    license_text: [
+        "src/gzip/LICENSE_ZLIB.TXT"
+    ],
+}
+
+filegroup {
+    name: "freetype.unused.zlib",
+    visibility: ["//visibility:private"],
+    licenses: ["external_freetype_license.builds.unused.zlib"],
+    srcs: [
+        "src/gzip/adler32.c",
+        "src/gzip/crc32.c",
+        "src/gzip/crc32.h",  // No license header
+        "src/gzip/ftzconf.h",
+        "src/gzip/gzguts.h",
+        "src/gzip/infback.c",
+        "src/gzip/inffast.c",
+        "src/gzip/inffast.h",
+        "src/gzip/inffixed.h",  // No license header
+        "src/gzip/inflate.c",
+        "src/gzip/inflate.h",
+        "src/gzip/inftrees.c",
+        "src/gzip/inftrees.h",
+        "src/gzip/zlib.h",
+        "src/gzip/zutil.c",
+        "src/gzip/zutil.h",
+    ],
+}
+
+license {
+    name: "external_freetype_license.unused.base.pcf",
+    visibility: ["//visibility:private"],
+    license_kinds: [
+      "SPDX-license-identifier-FTL",
+      "SPDX-license-identifier-MIT",
+      "legacy_notice",  // For src/base/pcf/pcfutil.c
+    ],
+    license_text: [
+        "docs/FTL.TXT",
+        "LICENSE_MIT.TXT",
+    ],
+}
+
+filegroup {
+    name: "freetype.unused.base.pcf",
+    visibility: ["//visibility:private"],
+    licenses: ["external_freetype_license.unused.base.pcf"],
+    srcs: [
+        "src/pcf/module.mk",
+        "src/pcf/pcfdrivr.c",
+        "src/pcf/pcfdrivr.h",
+        "src/pcf/pcferror.h",
+        "src/pcf/pcf.h",
+        "src/pcf/pcfread.c",
+        "src/pcf/pcfread.h",
+        "src/pcf/pcfutil.c",
+        "src/pcf/pcfutil.h",
+        "src/pcf/README",
+        "src/pcf/rules.mk",
+    ],
+}
+

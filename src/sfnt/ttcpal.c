@@ -4,7 +4,7 @@
  *
  *   TrueType and OpenType color palette support (body).
  *
- * Copyright 2018 by
+ * Copyright (C) 2018-2023 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * Originally written by Shao Yu Zhang <shaozhang@fb.com>.
@@ -27,11 +27,10 @@
    */
 
 
-#include <ft2build.h>
-#include FT_INTERNAL_DEBUG_H
-#include FT_INTERNAL_STREAM_H
-#include FT_TRUETYPE_TAGS_H
-#include FT_COLOR_H
+#include <freetype/internal/ftdebug.h>
+#include <freetype/internal/ftstream.h>
+#include <freetype/tttags.h>
+#include <freetype/ftcolor.h>
 
 
 #ifdef TT_CONFIG_OPTION_COLOR_LAYERS
@@ -40,8 +39,8 @@
 
 
   /* NOTE: These are the table sizes calculated through the specs. */
-#define CPAL_V0_HEADER_BASE_SIZE  12
-#define COLOR_SIZE                 4
+#define CPAL_V0_HEADER_BASE_SIZE  12U
+#define COLOR_SIZE                 4U
 
 
   /* all data from `CPAL' not covered in FT_Palette_Data */
@@ -68,7 +67,7 @@
    * messages during execution.
    */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_ttcpal
+#define FT_COMPONENT  ttcpal
 
 
   FT_LOCAL_DEF( FT_Error )
@@ -121,6 +120,9 @@
     if ( cpal->num_colors * COLOR_SIZE > table_size - colors_offset )
       goto InvalidTable;
 
+    if ( face->palette_data.num_palette_entries > cpal->num_colors )
+      goto InvalidTable;
+
     cpal->color_indices = p;
     cpal->colors        = (FT_Byte*)( table + colors_offset );
 
@@ -137,7 +139,7 @@
            3U * 4                               > table_size )
         goto InvalidTable;
 
-      p += face->palette_data.num_palettes * 2;
+      p += face->palette_data.num_palettes * 2U;
 
       type_offset        = FT_NEXT_ULONG( p );
       label_offset       = FT_NEXT_ULONG( p );
@@ -147,7 +149,7 @@
       {
         if ( type_offset >= table_size )
           goto InvalidTable;
-        if ( face->palette_data.num_palettes * 2 >
+        if ( face->palette_data.num_palettes * 2U >
                table_size - type_offset )
           goto InvalidTable;
 
@@ -168,7 +170,7 @@
       {
         if ( label_offset >= table_size )
           goto InvalidTable;
-        if ( face->palette_data.num_palettes * 2 >
+        if ( face->palette_data.num_palettes * 2U >
                table_size - label_offset )
           goto InvalidTable;
 
@@ -189,7 +191,7 @@
       {
         if ( entry_label_offset >= table_size )
           goto InvalidTable;
-        if ( face->palette_data.num_palette_entries * 2 >
+        if ( face->palette_data.num_palette_entries * 2U >
                table_size - entry_label_offset )
           goto InvalidTable;
 
@@ -217,7 +219,8 @@
                        face->palette_data.num_palette_entries ) )
       goto NoCpal;
 
-    tt_face_palette_set( face, 0 );
+    if ( tt_face_palette_set( face, 0 ) )
+      goto InvalidTable;
 
     return FT_Err_Ok;
 
@@ -227,6 +230,8 @@
   NoCpal:
     FT_FRAME_RELEASE( table );
     FT_FREE( cpal );
+
+    face->cpal = NULL;
 
     /* arrays in `face->palette_data' and `face->palette' */
     /* are freed in `sfnt_done_face'                      */
@@ -264,20 +269,20 @@
     FT_Color*  q;
     FT_Color*  limit;
 
-    FT_ULong  record_offset;
+    FT_UShort  color_index;
 
 
     if ( !cpal || palette_index >= face->palette_data.num_palettes )
       return FT_THROW( Invalid_Argument );
 
-    offset        = cpal->color_indices + 2 * palette_index;
-    record_offset = COLOR_SIZE * FT_PEEK_USHORT( offset );
+    offset      = cpal->color_indices + 2 * palette_index;
+    color_index = FT_PEEK_USHORT( offset );
 
-    if ( record_offset + COLOR_SIZE * face->palette_data.num_palette_entries >
-           cpal->table_size )
+    if ( color_index + face->palette_data.num_palette_entries >
+           cpal->num_colors )
       return FT_THROW( Invalid_Table );
 
-    p     = cpal->colors + record_offset;
+    p     = cpal->colors + COLOR_SIZE * color_index;
     q     = face->palette;
     limit = q + face->palette_data.num_palette_entries;
 

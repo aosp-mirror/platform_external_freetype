@@ -4,7 +4,7 @@
  *
  *   The FreeType TrueType/sfnt cmap extra information service.
  *
- * Copyright 2003-2018 by
+ * Copyright (C) 2003-2023 by
  * Masatake YAMATO, Redhat K.K.,
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
@@ -22,8 +22,8 @@
 #ifndef SVTTCMAP_H_
 #define SVTTCMAP_H_
 
-#include FT_INTERNAL_SERVICE_H
-#include FT_TRUETYPE_TABLES_H
+#include <freetype/internal/ftserv.h>
+#include <freetype/tttables.h>
 
 
 FT_BEGIN_HEADER
@@ -45,15 +45,14 @@ FT_BEGIN_HEADER
    * @fields:
    *   language ::
    *     The language ID used in Mac fonts.  Definitions of values are in
-   *     `ttnameid.h'.
+   *     `ttnameid.h`.
    *
    *   format ::
-   *     The cmap format.  OpenType 1.6 defines the formats 0 (byte
-   *     encoding table), 2~(high-byte mapping through table), 4~(segment
-   *     mapping to delta values), 6~(trimmed table mapping), 8~(mixed
-   *     16-bit and 32-bit coverage), 10~(trimmed array), 12~(segmented
-   *     coverage), 13~(last resort font), and 14 (Unicode Variation
-   *     Sequences).
+   *     The cmap format.  OpenType 1.6 defines the formats 0 (byte encoding
+   *     table), 2~(high-byte mapping through table), 4~(segment mapping to
+   *     delta values), 6~(trimmed table mapping), 8~(mixed 16-bit and 32-bit
+   *     coverage), 10~(trimmed array), 12~(segmented coverage), 13~(last
+   *     resort font), and 14 (Unicode Variation Sequences).
    */
   typedef struct  TT_CMapInfo_
   {

@@ -4,7 +4,7 @@
  *
  *   Arithmetic computations (specification).
  *
- * Copyright 1996-2018 by
+ * Copyright (C) 1996-2023 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -20,9 +20,9 @@
 #define FTCALC_H_
 
 
-#include <ft2build.h>
-#include FT_FREETYPE_H
+#include <freetype/freetype.h>
 
+#include "compiler-macros.h"
 
 FT_BEGIN_HEADER
 
@@ -252,7 +252,7 @@ FT_BEGIN_HEADER
    *   FT_MulDiv_No_Round
    *
    * @description:
-   *   A very simple function used to perform the computation `(a*b)/c'
+   *   A very simple function used to perform the computation '(a*b)/c'
    *   (without rounding) with maximum accuracy (it uses a 64-bit
    *   intermediate integer whenever necessary).
    *
@@ -268,9 +268,9 @@ FT_BEGIN_HEADER
    *     The divisor.
    *
    * @return:
-   *   The result of `(a*b)/c'.  This function never traps when trying to
-   *   divide by zero; it simply returns `MaxInt' or `MinInt' depending
-   *   on the signs of `a' and `b'.
+   *   The result of '(a*b)/c'.  This function never traps when trying to
+   *   divide by zero; it simply returns 'MaxInt' or 'MinInt' depending on
+   *   the signs of 'a' and 'b'.
    */
   FT_BASE( FT_Long )
   FT_MulDiv_No_Round( FT_Long  a,
@@ -278,13 +278,46 @@ FT_BEGIN_HEADER
                       FT_Long  c );
 
 
+  /**************************************************************************
+   *
+   * @function:
+   *   FT_MulAddFix
+   *
+   * @description:
+   *   Compute `(s[0] * f[0] + s[1] * f[1] + ...) / 0x10000`, where `s[n]` is
+   *   usually a 16.16 scalar.
+   *
+   * @input:
+   *   s ::
+   *     The array of scalars.
+   *   f ::
+   *     The array of factors.
+   *   count ::
+   *     The number of entries in the array.
+   *
+   * @return:
+   *   The result of `(s[0] * f[0] + s[1] * f[1] + ...) / 0x10000`.
+   *
+   * @note:
+   *   This function is currently used for the scaled delta computation of
+   *   variation stores.  It internally uses 64-bit data types when
+   *   available, otherwise it emulates 64-bit math by using 32-bit
+   *   operations, which produce a correct result but most likely at a slower
+   *   performance in comparison to the implementation base on `int64_t`.
+   *
+   */
+  FT_BASE( FT_Int32 )
+  FT_MulAddFix( FT_Fixed*  s,
+                FT_Int32*  f,
+                FT_UInt    count );
+
+
   /*
-   * A variant of FT_Matrix_Multiply which scales its result afterwards.
-   * The idea is that both `a' and `b' are scaled by factors of 10 so that
-   * the values are as precise as possible to get a correct result during
-   * the 64bit multiplication.  Let `sa' and `sb' be the scaling factors of
-   * `a' and `b', respectively, then the scaling factor of the result is
-   * `sa*sb'.
+   * A variant of FT_Matrix_Multiply which scales its result afterwards.  The
+   * idea is that both `a' and `b' are scaled by factors of 10 so that the
+   * values are as precise as possible to get a correct result during the
+   * 64bit multiplication.  Let `sa' and `sb' be the scaling factors of `a'
+   * and `b', respectively, then the scaling factor of the result is `sa*sb'.
    */
   FT_BASE( void )
   FT_Matrix_Multiply_Scaled( const FT_Matrix*  a,
@@ -318,22 +351,22 @@ FT_BEGIN_HEADER
 
 
   /*
-   * This function normalizes a vector and returns its original length.
-   * The normalized vector is a 16.16 fixed-point unit vector with length
-   * close to 0x10000.  The accuracy of the returned length is limited to
-   * 16 bits also.  The function utilizes quick inverse square root
-   * approximation without divisions and square roots relying on Newton's
-   * iterations instead.
+   * This function normalizes a vector and returns its original length.  The
+   * normalized vector is a 16.16 fixed-point unit vector with length close
+   * to 0x10000.  The accuracy of the returned length is limited to 16 bits
+   * also.  The function utilizes quick inverse square root approximation
+   * without divisions and square roots relying on Newton's iterations
+   * instead.
    */
   FT_BASE( FT_UInt32 )
   FT_Vector_NormLen( FT_Vector*  vector );
 
 
   /*
-   * Return -1, 0, or +1, depending on the orientation of a given corner.
-   * We use the Cartesian coordinate system, with positive vertical values
-   * going upwards.  The function returns +1 if the corner turns to the
-   * left, -1 to the right, and 0 for undecidable cases.
+   * Return -1, 0, or +1, depending on the orientation of a given corner.  We
+   * use the Cartesian coordinate system, with positive vertical values going
+   * upwards.  The function returns +1 if the corner turns to the left, -1 to
+   * the right, and 0 for undecidable cases.
    */
   FT_BASE( FT_Int )
   ft_corner_orientation( FT_Pos  in_x,
@@ -360,8 +393,8 @@ FT_BEGIN_HEADER
 
 #ifndef  FT_CONFIG_OPTION_NO_ASSEMBLER
 
-#if defined( __GNUC__ )                                          && \
-    ( __GNUC__ > 3 || ( __GNUC__ == 3 && __GNUC_MINOR__ >= 4 ) )
+#if defined( __clang__ ) || ( defined( __GNUC__ )                &&  \
+    ( __GNUC__ > 3 || ( __GNUC__ == 3 && __GNUC_MINOR__ >= 4 ) ) )
 
 #if FT_SIZEOF_INT == 4
 
@@ -371,14 +404,28 @@ FT_BEGIN_HEADER
 
 #define FT_MSB( x )  ( 31 - __builtin_clzl( x ) )
 
-#endif /* __GNUC__ */
+#endif
 
+#elif defined( _MSC_VER ) && _MSC_VER >= 1400
 
-#elif defined( _MSC_VER ) && ( _MSC_VER >= 1400 )
+#if defined( _WIN32_WCE )
 
-#if FT_SIZEOF_INT == 4
+#include <cmnintrin.h>
+#pragma intrinsic( _CountLeadingZeros )
+
+#define FT_MSB( x )  ( 31 - _CountLeadingZeros( x ) )
+
+#elif defined( _M_ARM64 ) || defined( _M_ARM )
 
 #include <intrin.h>
+#pragma intrinsic( _CountLeadingZeros )
+
+#define FT_MSB( x )  ( 31 - _CountLeadingZeros( x ) )
+
+#elif defined( _M_IX86 ) || defined( _M_AMD64 ) || defined( _M_IA64 )
+
+#include <intrin.h>
+#pragma intrinsic( _BitScanReverse )
 
   static __inline FT_Int32
   FT_MSB_i386( FT_UInt32  x )
@@ -386,20 +433,44 @@ FT_BEGIN_HEADER
     unsigned long  where;
 
 
-    /* not available in older VC versions */
     _BitScanReverse( &where, x );
 
     return (FT_Int32)where;
   }
 
-#define FT_MSB( x )  ( FT_MSB_i386( x ) )
+#define FT_MSB( x )  FT_MSB_i386( x )
 
 #endif
 
-#endif /* _MSC_VER */
+#elif defined( __WATCOMC__ ) && defined( __386__ )
 
+  extern __inline FT_Int32
+  FT_MSB_i386( FT_UInt32  x );
+
+#pragma aux FT_MSB_i386 =             \
+  "bsr eax, eax"                      \
+  __parm [__eax] __nomemory           \
+  __value [__eax]                     \
+  __modify __exact [__eax] __nomemory;
+
+#define FT_MSB( x )  FT_MSB_i386( x )
+
+#elif defined( __DECC ) || defined( __DECCXX )
+
+#include <builtins.h>
+
+#define FT_MSB( x )  (FT_Int)( 63 - _leadz( x ) )
+
+#elif defined( _CRAYC )
+
+#include <intrinsics.h>
+
+#define FT_MSB( x )  (FT_Int)( 31 - _leadz32( x ) )
+
+#endif /* FT_MSB macro definitions */
 
 #endif /* !FT_CONFIG_OPTION_NO_ASSEMBLER */
+
 
 #ifndef FT_MSB
 
@@ -433,7 +504,7 @@ FT_BEGIN_HEADER
    *     The value to compute the root for.
    *
    * @return:
-   *   The result of `sqrt(x)'.
+   *   The result of 'sqrt(x)'.
    *
    * @note:
    *   This function is not very fast.
@@ -450,8 +521,7 @@ FT_BEGIN_HEADER
 #define F2DOT14_TO_FIXED( x )  ( (FT_Long)(x) * 4 )      /* << 2  */
 #define FIXED_TO_INT( x )      ( FT_RoundFix( x ) >> 16 )
 
-#define ROUND_F26DOT6( x )     ( x >= 0 ? (    ( (x) + 32 ) & -64 )     \
-                                        : ( -( ( 32 - (x) ) & -64 ) ) )
+#define ROUND_F26DOT6( x )     ( ( (x) + 32 - ( x < 0 ) ) & -64 )
 
   /*
    * The following macros have two purposes.
@@ -488,6 +558,19 @@ FT_BEGIN_HEADER
           (FT_Int32)( (FT_UInt32)(a) * (FT_UInt32)(b) )
 #define NEG_INT32( a )                                  \
           (FT_Int32)( (FT_UInt32)0 - (FT_UInt32)(a) )
+
+#ifdef FT_INT64
+
+#define ADD_INT64( a, b )                               \
+          (FT_Int64)( (FT_UInt64)(a) + (FT_UInt64)(b) )
+#define SUB_INT64( a, b )                               \
+          (FT_Int64)( (FT_UInt64)(a) - (FT_UInt64)(b) )
+#define MUL_INT64( a, b )                               \
+          (FT_Int64)( (FT_UInt64)(a) * (FT_UInt64)(b) )
+#define NEG_INT64( a )                                  \
+          (FT_Int64)( (FT_UInt64)0 - (FT_UInt64)(a) )
+
+#endif /* FT_INT64 */
 
 
 FT_END_HEADER
