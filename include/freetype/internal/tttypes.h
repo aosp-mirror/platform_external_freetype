@@ -5,7 +5,7 @@
  *   Basic SFNT/TrueType type definitions and interface (specification
  *   only).
  *
- * Copyright (C) 1996-2021 by
+ * Copyright (C) 1996-2023 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -1390,8 +1390,8 @@ FT_BEGIN_HEADER
    *   hdmx_record_size ::
    *     The size of a single hdmx record.
    *
-   *   hdmx_record_sizes ::
-   *     An array holding the ppem sizes available in the 'hdmx' table.
+   *   hdmx_records ::
+   *     A array of pointers to the 'hdmx' table records sorted by ppem.
    *
    *   sbit_table ::
    *     A pointer to the font's embedded bitmap location table.
@@ -1508,8 +1508,14 @@ FT_BEGIN_HEADER
     void*                 mm;
 
     /* a typeless pointer to the FT_Service_MetricsVariationsRec table */
-    /* used to handle the HVAR, VVAR, and MVAR OpenType tables         */
-    void*                 var;
+    /* used to handle the HVAR, VVAR, and MVAR OpenType tables by the  */
+    /* "truetype" driver                                               */
+    void*                 tt_var;
+
+    /* a typeless pointer to the FT_Service_MetricsVariationsRec table */
+    /* used to handle the HVAR, VVAR, and MVAR OpenType tables by this */
+    /* TT_Face's driver                                                */
+    void*                 face_var;
 #endif
 
     /* a typeless pointer to the PostScript Aux service */
@@ -1605,7 +1611,7 @@ FT_BEGIN_HEADER
     FT_ULong              hdmx_table_size;
     FT_UInt               hdmx_record_count;
     FT_ULong              hdmx_record_size;
-    FT_Byte*              hdmx_record_sizes;
+    FT_Byte**             hdmx_records;
 
     FT_Byte*              sbit_table;
     FT_ULong              sbit_table_size;
@@ -1643,6 +1649,9 @@ FT_BEGIN_HEADER
     /* since 2.10 */
     void*                 cpal;
     void*                 colr;
+
+    /* since 2.12 */
+    void*                 svg;
 
   } TT_FaceRec;
 
@@ -1768,6 +1777,9 @@ FT_BEGIN_HEADER
 
     /* since version 2.6.2 */
     FT_ListRec       composites;
+
+    /* since version 2.11.2 */
+    FT_Byte*         widthp;
 
   } TT_LoaderRec;
 
