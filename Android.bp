@@ -20,19 +20,31 @@ license {
     name: "external_freetype_license",
     visibility: [":__subpackages__"],
     license_kinds: [
-        "SPDX-license-identifier-BSD",
+        "SPDX-license-identifier-Apache-2.0",
+        "SPDX-license-identifier-BSD-3-Clause",
+        "SPDX-license-identifier-FSFAP",
         "SPDX-license-identifier-FTL",
-        "SPDX-license-identifier-GPL",
-        "SPDX-license-identifier-GPL-2.0",
-        "SPDX-license-identifier-GPL-3.0",
+        "SPDX-license-identifier-MIT",
+
+        // For src/autofit/ft-hb.{h|c}. This file is not used but included from source file.
+        // "SPDX-license-Identifier-MIT-Modern-Variant"
+
+        // TODO: Following licenses left from original. Check where these licenses are came from.
+        "SPDX-license-identifier-BSD",
         "SPDX-license-identifier-ISC",
         "SPDX-license-identifier-LGPL",
-        "SPDX-license-identifier-MIT",
-        "SPDX-license-identifier-Zlib",
         "legacy_unencumbered",
     ],
     license_text: [
+        "LICENSE.TXT",
+        "LICENSE",
         "NOTICE",
+
+        "docs/FTL.TXT",
+        "LICENSE_APACHE2.TXT",
+        "LICENSE_MIT.TXT",
+        "LICENSE_BSD_3_CLAUSE.TXT",
+        "LICENSE_MIT_MODERN_VARIANT.TXT",
     ],
 }
 
@@ -74,6 +86,7 @@ cc_defaults {
         "src/sdf/sdf.c",
         "src/sfnt/sfnt.c",
         "src/smooth/smooth.c",
+        "src/svg/svg.c",
         "src/truetype/truetype.c",
         "src/type1/type1.c",
     ],
@@ -94,6 +107,8 @@ cc_defaults {
         "-Wno-unused-parameter",
         // Disabling some of modules results in warnings
         "-Wno-unused-variable",
+        // Temporary disables unused function warning
+        "-Wno-unused-function",
     ],
 }
 
@@ -107,6 +122,7 @@ cc_library {
         // no dependency variant libft2.nodep below.
         "-DFT_CONFIG_OPTION_USE_PNG",
         "-DFT_CONFIG_OPTION_USE_ZLIB",
+        "-DFT_CONFIG_OPTION_SYSTEM_ZLIB",
 
         // the following is for testing only, and should not be used in final
         // builds of the product
@@ -148,3 +164,112 @@ cc_library_static {
     vendor_available: true,
     defaults: ["libft2_defaults"],
 }
+
+// Following defines unused files that is under licenses that are different
+// from default licenses.
+
+license {
+    name: "external_freetype_license.builds.unused.unix.GPLv2",
+    visibility: ["//visibility:private"],
+    license_kinds: [
+      "SPDX-license-identifier-GPL-2.0-with-autoconf-exception",
+    ],
+    license_text: [
+        "builds/unix/LICENSE_GPLv2_WITH_AUTOCONF_EXCEPTION.TXT",
+    ],
+}
+
+filegroup {
+    name: "freetype.builds.unix.GPLv2",
+    visibility: ["//visibility:private"],
+    licenses: ["external_freetype_license.builds.unused.unix.GPLv2"],
+    srcs: ["builds/unix/pkg.m4"],
+}
+
+license {
+    name: "external_freetype_license.builds.unused.unix.GPLv3",
+    visibility: ["//visibility:private"],
+    license_kinds: [
+      "SPDX-license-identifier-GPL-3.0-with-autoconf-exception",
+    ],
+    license_text: [
+        // For builds/unix/ax_pthread.m4
+        "builds/unix/LICENSE_GPLv3_WITH_AUTOCONF_EXCEPTION.TXT",
+    ],
+}
+
+filegroup {
+    name: "freetype.builds.unix.GPLv3",
+    visibility: ["//visibility:private"],
+    licenses: ["external_freetype_license.builds.unused.unix.GPLv3"],
+    srcs: ["builds/unix/ax_pthread.m4"],
+}
+
+license {
+    name: "external_freetype_license.builds.unused.zlib",
+    visibility: ["//visibility:private"],
+    license_kinds: [
+        "SPDX-license-identifier-Zlib",
+    ],
+    license_text: [
+        "src/gzip/LICENSE_ZLIB.TXT"
+    ],
+}
+
+filegroup {
+    name: "freetype.unused.zlib",
+    visibility: ["//visibility:private"],
+    licenses: ["external_freetype_license.builds.unused.zlib"],
+    srcs: [
+        "src/gzip/adler32.c",
+        "src/gzip/crc32.c",
+        "src/gzip/crc32.h",  // No license header
+        "src/gzip/ftzconf.h",
+        "src/gzip/gzguts.h",
+        "src/gzip/infback.c",
+        "src/gzip/inffast.c",
+        "src/gzip/inffast.h",
+        "src/gzip/inffixed.h",  // No license header
+        "src/gzip/inflate.c",
+        "src/gzip/inflate.h",
+        "src/gzip/inftrees.c",
+        "src/gzip/inftrees.h",
+        "src/gzip/zlib.h",
+        "src/gzip/zutil.c",
+        "src/gzip/zutil.h",
+    ],
+}
+
+license {
+    name: "external_freetype_license.unused.base.pcf",
+    visibility: ["//visibility:private"],
+    license_kinds: [
+      "SPDX-license-identifier-FTL",
+      "SPDX-license-identifier-MIT",
+      "legacy_notice",  // For src/base/pcf/pcfutil.c
+    ],
+    license_text: [
+        "docs/FTL.TXT",
+        "LICENSE_MIT.TXT",
+    ],
+}
+
+filegroup {
+    name: "freetype.unused.base.pcf",
+    visibility: ["//visibility:private"],
+    licenses: ["external_freetype_license.unused.base.pcf"],
+    srcs: [
+        "src/pcf/module.mk",
+        "src/pcf/pcfdrivr.c",
+        "src/pcf/pcfdrivr.h",
+        "src/pcf/pcferror.h",
+        "src/pcf/pcf.h",
+        "src/pcf/pcfread.c",
+        "src/pcf/pcfread.h",
+        "src/pcf/pcfutil.c",
+        "src/pcf/pcfutil.h",
+        "src/pcf/README",
+        "src/pcf/rules.mk",
+    ],
+}
+
