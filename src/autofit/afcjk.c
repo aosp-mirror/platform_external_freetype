@@ -4,7 +4,7 @@
  *
  *   Auto-fitter hinting routines for CJK writing system (body).
  *
- * Copyright (C) 2006-2021 by
+ * Copyright (C) 2006-2023 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -650,7 +650,7 @@
       af_cjk_metrics_check_digits( metrics, face );
     }
 
-    FT_Set_Charmap( face, oldmap );
+    face->charmap = oldmap;
     return FT_Err_Ok;
   }
 
@@ -741,9 +741,11 @@
                     ( dim == AF_DIMENSION_HORZ ) ? 'H' : 'V',
                     nn, blue->ref.org, blue->shoot.org ));
         FT_TRACE5(( "     ref:   cur=%.2f fit=%.2f\n",
-                    blue->ref.cur / 64.0, blue->ref.fit / 64.0 ));
+                    (double)blue->ref.cur / 64,
+                    (double)blue->ref.fit / 64 ));
         FT_TRACE5(( "     shoot: cur=%.2f fit=%.2f\n",
-                    blue->shoot.cur / 64.0, blue->shoot.fit / 64.0 ));
+                    (double)blue->shoot.cur / 64,
+                    (double)blue->shoot.fit / 64 ));
 
         blue->flags |= AF_CJK_BLUE_ACTIVE;
       }
@@ -843,7 +845,7 @@
   {
     AF_AxisHints  axis          = &hints->axis[dim];
     AF_Segment    segments      = axis->segments;
-    AF_Segment    segment_limit = segments + axis->num_segments;
+    AF_Segment    segment_limit = FT_OFFSET( segments, axis->num_segments );
     AF_Direction  major_dir     = axis->major_dir;
     AF_Segment    seg1, seg2;
     FT_Pos        len_threshold;
@@ -1005,7 +1007,7 @@
     AF_CJKAxis    laxis  = &((AF_CJKMetrics)hints->metrics)->axis[dim];
 
     AF_Segment    segments      = axis->segments;
-    AF_Segment    segment_limit = segments + axis->num_segments;
+    AF_Segment    segment_limit = FT_OFFSET( segments, axis->num_segments );
     AF_Segment    seg;
 
     FT_Fixed      scale;
@@ -1044,7 +1046,7 @@
     {
       AF_Edge  found = NULL;
       FT_Pos   best  = 0xFFFFU;
-      FT_Int   ee;
+      FT_UInt  ee;
 
 
       /* look for an edge corresponding to the segment */
@@ -1153,7 +1155,7 @@
      */
     {
       AF_Edge  edges      = axis->edges;
-      AF_Edge  edge_limit = edges + axis->num_edges;
+      AF_Edge  edge_limit = FT_OFFSET( edges, axis->num_edges );
       AF_Edge  edge;
 
 
@@ -1291,7 +1293,7 @@
   {
     AF_AxisHints  axis       = &hints->axis[dim];
     AF_Edge       edge       = axis->edges;
-    AF_Edge       edge_limit = edge + axis->num_edges;
+    AF_Edge       edge_limit = FT_OFFSET( edge, axis->num_edges );
     AF_CJKAxis    cjk        = &metrics->axis[dim];
     FT_Fixed      scale      = cjk->scale;
     FT_Pos        best_dist0;  /* initial threshold */
@@ -1629,8 +1631,10 @@
     FT_TRACE5(( "  CJKLINK: edge %ld @%d (opos=%.2f) linked to %.2f,"
                 " dist was %.2f, now %.2f\n",
                 stem_edge - hints->axis[dim].edges, stem_edge->fpos,
-                stem_edge->opos / 64.0, stem_edge->pos / 64.0,
-                dist / 64.0, fitted_width / 64.0 ));
+                (double)stem_edge->opos / 64,
+                (double)stem_edge->pos / 64,
+                (double)dist / 64,
+                (double)fitted_width / 64 ));
   }
 
 
@@ -1798,7 +1802,7 @@
   {
     AF_AxisHints  axis       = &hints->axis[dim];
     AF_Edge       edges      = axis->edges;
-    AF_Edge       edge_limit = edges + axis->num_edges;
+    AF_Edge       edge_limit = FT_OFFSET( edges, axis->num_edges );
     FT_PtrDist    n_edges;
     AF_Edge       edge;
     AF_Edge       anchor   = NULL;
@@ -1850,8 +1854,8 @@
 #ifdef FT_DEBUG_LEVEL_TRACE
         FT_TRACE5(( "  CJKBLUE: edge %ld @%d (opos=%.2f) snapped to %.2f,"
                     " was %.2f\n",
-                    edge1 - edges, edge1->fpos, edge1->opos / 64.0,
-                    blue->fit / 64.0, edge1->pos / 64.0 ));
+                    edge1 - edges, edge1->fpos, (double)edge1->opos / 64,
+                    (double)blue->fit / 64, (double)edge1->pos / 64 ));
 
         num_actions++;
 #endif
@@ -2024,8 +2028,8 @@
 #if 0
       printf( "stem (%d,%d) adjusted (%.1f,%.1f)\n",
                edge - edges, edge2 - edges,
-               ( edge->pos - edge->opos ) / 64.0,
-               ( edge2->pos - edge2->opos ) / 64.0 );
+               (double)( edge->pos - edge->opos ) / 64,
+               (double)( edge2->pos - edge2->opos ) / 64 );
 #endif
 
       anchor = edge;
@@ -2177,7 +2181,7 @@
   {
     AF_AxisHints  axis       = & hints->axis[dim];
     AF_Edge       edges      = axis->edges;
-    AF_Edge       edge_limit = edges + axis->num_edges;
+    AF_Edge       edge_limit = FT_OFFSET( edges, axis->num_edges );
     AF_Edge       edge;
     FT_Bool       snapping;
 
