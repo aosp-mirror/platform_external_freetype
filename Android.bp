@@ -226,7 +226,6 @@ filegroup {
         "src/gzip/crc32.h",  // No license header
         "src/gzip/ftzconf.h",
         "src/gzip/gzguts.h",
-        "src/gzip/infback.c",
         "src/gzip/inffast.c",
         "src/gzip/inffast.h",
         "src/gzip/inffixed.h",  // No license header

@@ -11,6 +11,7 @@ MODULE_SRCS += \
 	$(FREETYPE_ROOT)/src/base/ftbase.c \
 	$(FREETYPE_ROOT)/src/base/ftbbox.c \
 	$(FREETYPE_ROOT)/src/base/ftglyph.c \
+	$(FREETYPE_ROOT)/src/base/ftmm.c \
 	$(FREETYPE_ROOT)/src/base/ftbitmap.c \
 	$(FREETYPE_ROOT)/src/sfnt/sfnt.c \
 	$(FREETYPE_ROOT)/src/truetype/truetype.c \
