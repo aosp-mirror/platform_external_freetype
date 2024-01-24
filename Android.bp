@@ -156,6 +156,12 @@ cc_library {
         private: true,
         symbol_file: "libft2.map.txt",
     },
+    sdk_version: "current",
+    min_sdk_version: "30",
+    apex_available: [
+        "com.android.mediaprovider",
+        "//apex_available:platform"
+    ],
 }
 
 // variant of libft2 without any library dependencies.
