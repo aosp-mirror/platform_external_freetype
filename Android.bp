@@ -115,7 +115,6 @@ cc_defaults {
 cc_library {
     name: "libft2",
     defaults: ["libft2_defaults"],
-    vendor_available: true,
 
     cflags: [
         // Usually these are defined in include/freetype/config/ftoption.h
@@ -151,6 +150,11 @@ cc_library {
         windows: {
             enabled: true,
         },
+    },
+
+    llndk: {
+        private: true,
+        symbol_file: "libft2.map.txt",
     },
 }
 
