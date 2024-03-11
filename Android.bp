@@ -157,7 +157,7 @@ cc_library {
         symbol_file: "libft2.map.txt",
     },
     sdk_version: "current",
-    min_sdk_version: "30",
+    min_sdk_version: "apex_inherit",
     apex_available: [
         "com.android.mediaprovider",
         "//apex_available:platform"
