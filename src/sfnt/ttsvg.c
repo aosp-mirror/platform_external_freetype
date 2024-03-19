@@ -405,7 +405,7 @@
 #else /* !FT_CONFIG_OPTION_SVG */
 
   /* ANSI C doesn't like empty source files */
-  typedef int  tt_svg_dummy_;
+  typedef int  _tt_svg_dummy;
 
 #endif /* !FT_CONFIG_OPTION_SVG */
 

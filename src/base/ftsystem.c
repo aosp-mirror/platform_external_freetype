@@ -206,7 +206,7 @@
    *     The number of bytes to read from the stream.
    *
    * @Return:
-   *   The number of bytes actually read.  If `count' is zero (that is,
+   *   The number of bytes actually read.  If `count' is zero (this is,
    *   the function is used for seeking), a non-zero return value
    *   indicates an error.
    */
@@ -219,18 +219,13 @@
     FT_FILE*  file;
 
 
-    if ( offset > stream->size && !count )
+    if ( !count && offset > stream->size )
       return 1;
 
     file = STREAM_FILE( stream );
 
     if ( stream->pos != offset )
       ft_fseek( file, (long)offset, SEEK_SET );
-
-    /* Avoid calling `fread` with `buffer=NULL` and `count=0`, */
-    /* which is undefined behaviour.                           */
-    if ( !count )
-      return 0;
 
     return (unsigned long)ft_fread( buffer, 1, count, file );
   }

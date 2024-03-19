@@ -851,11 +851,10 @@
 
   /* add one Type1 counter stem to the current hints table */
   static void
-  ps_hints_t1stem3( T1_Hints   hints_,    /* PS_Hints */
+  ps_hints_t1stem3( PS_Hints   hints,
                     FT_UInt    dimension,
                     FT_Fixed*  stems )
   {
-    PS_Hints  hints = (PS_Hints)hints_;
     FT_Error  error = FT_Err_Ok;
 
 
@@ -915,10 +914,9 @@
 
   /* reset hints (only with Type 1 hints) */
   static void
-  ps_hints_t1reset( T1_Hints  hints_,     /* PS_Hints */
+  ps_hints_t1reset( PS_Hints  hints,
                     FT_UInt   end_point )
   {
-    PS_Hints  hints = (PS_Hints)hints_;
     FT_Error  error = FT_Err_Ok;
 
 
@@ -955,12 +953,11 @@
 
   /* Type2 "hintmask" operator, add a new hintmask to each direction */
   static void
-  ps_hints_t2mask( T2_Hints        hints_,    /* PS_Hints */
+  ps_hints_t2mask( PS_Hints        hints,
                    FT_UInt         end_point,
                    FT_UInt         bit_count,
                    const FT_Byte*  bytes )
   {
-    PS_Hints  hints = (PS_Hints)hints_;
     FT_Error  error;
 
 
@@ -1002,11 +999,10 @@
 
 
   static void
-  ps_hints_t2counter( T2_Hints        hints_,    /* PS_Hints */
+  ps_hints_t2counter( PS_Hints        hints,
                       FT_UInt         bit_count,
                       const FT_Byte*  bytes )
   {
-    PS_Hints  hints = (PS_Hints)hints_;
     FT_Error  error;
 
 
@@ -1091,13 +1087,6 @@
     ps_hints_open( (PS_Hints)hints, PS_HINT_TYPE_1 );
   }
 
-  static FT_Error
-  t1_hints_close( T1_Hints  hints,
-                  FT_UInt   end_point )
-  {
-    return ps_hints_close( (PS_Hints)hints, end_point );
-  }
-
   static void
   t1_hints_stem( T1_Hints   hints,
                  FT_UInt    dimension,
@@ -1113,27 +1102,17 @@
   }
 
 
-  static FT_Error
-  t1_hints_apply( T1_Hints        hints,
-                  FT_Outline*     outline,
-                  PSH_Globals     globals,
-                  FT_Render_Mode  hint_mode )
-  {
-    return ps_hints_apply( (PS_Hints)hints, outline, globals, hint_mode );
-  }
-
-
   FT_LOCAL_DEF( void )
   t1_hints_funcs_init( T1_Hints_FuncsRec*  funcs )
   {
     FT_ZERO( funcs );
 
     funcs->open  = (T1_Hints_OpenFunc)    t1_hints_open;
-    funcs->close = (T1_Hints_CloseFunc)   t1_hints_close;
+    funcs->close = (T1_Hints_CloseFunc)   ps_hints_close;
     funcs->stem  = (T1_Hints_SetStemFunc) t1_hints_stem;
     funcs->stem3 = (T1_Hints_SetStem3Func)ps_hints_t1stem3;
     funcs->reset = (T1_Hints_ResetFunc)   ps_hints_t1reset;
-    funcs->apply = (T1_Hints_ApplyFunc)   t1_hints_apply;
+    funcs->apply = (T1_Hints_ApplyFunc)   ps_hints_apply;
   }
 
 
@@ -1149,14 +1128,6 @@
   t2_hints_open( T2_Hints  hints )
   {
     ps_hints_open( (PS_Hints)hints, PS_HINT_TYPE_2 );
-  }
-
-
-  static FT_Error
-  t2_hints_close( T2_Hints  hints,
-                  FT_UInt   end_point )
-  {
-    return ps_hints_close( (PS_Hints)hints, end_point );
   }
 
 
@@ -1197,27 +1168,17 @@
   }
 
 
-  static FT_Error
-  t2_hints_apply( T2_Hints        hints,
-                  FT_Outline*     outline,
-                  PSH_Globals     globals,
-                  FT_Render_Mode  hint_mode )
-  {
-    return ps_hints_apply( (PS_Hints)hints, outline, globals, hint_mode );
-  }
-
-
   FT_LOCAL_DEF( void )
   t2_hints_funcs_init( T2_Hints_FuncsRec*  funcs )
   {
     FT_ZERO( funcs );
 
-    funcs->open     = (T2_Hints_OpenFunc)   t2_hints_open;
-    funcs->close    = (T2_Hints_CloseFunc)  t2_hints_close;
-    funcs->stems    = (T2_Hints_StemsFunc)  t2_hints_stems;
-    funcs->hintmask = (T2_Hints_MaskFunc)   ps_hints_t2mask;
-    funcs->counter  = (T2_Hints_CounterFunc)ps_hints_t2counter;
-    funcs->apply    = (T2_Hints_ApplyFunc)  t2_hints_apply;
+    funcs->open    = (T2_Hints_OpenFunc)   t2_hints_open;
+    funcs->close   = (T2_Hints_CloseFunc)  ps_hints_close;
+    funcs->stems   = (T2_Hints_StemsFunc)  t2_hints_stems;
+    funcs->hintmask= (T2_Hints_MaskFunc)   ps_hints_t2mask;
+    funcs->counter = (T2_Hints_CounterFunc)ps_hints_t2counter;
+    funcs->apply   = (T2_Hints_ApplyFunc)  ps_hints_apply;
   }
 
 

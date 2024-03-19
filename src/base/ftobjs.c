@@ -1019,8 +1019,7 @@
       /*      elegant.                                            */
 
       /* try to load SVG documents if available */
-      if ( ( load_flags & FT_LOAD_NO_SVG ) == 0 &&
-           FT_HAS_SVG( face )                   )
+      if ( FT_HAS_SVG( face ) )
       {
         error = driver->clazz->load_glyph( slot, face->size,
                                            glyph_index,
@@ -1246,13 +1245,9 @@
   /* destructor for sizes list */
   static void
   destroy_size( FT_Memory  memory,
-                void*      size_,
-                void*      driver_ )
+                FT_Size    size,
+                FT_Driver  driver )
   {
-    FT_Size    size   = (FT_Size)size_;
-    FT_Driver  driver = (FT_Driver)driver_;
-
-
     /* finalize client-specific data */
     if ( size->generic.finalizer )
       size->generic.finalizer( size );
@@ -1298,12 +1293,10 @@
   /* destructor for faces list */
   static void
   destroy_face( FT_Memory  memory,
-                void*      face_,
-                void*      driver_ )
+                FT_Face    face,
+                FT_Driver  driver )
   {
-    FT_Face          face   = (FT_Face)face_;
-    FT_Driver        driver = (FT_Driver)driver_;
-    FT_Driver_Class  clazz  = driver->clazz;
+    FT_Driver_Class  clazz = driver->clazz;
 
 
     /* discard auto-hinting data */
@@ -1317,7 +1310,7 @@
 
     /* discard all sizes for this face */
     FT_List_Finalize( &face->sizes_list,
-                      destroy_size,
+                      (FT_List_Destructor)destroy_size,
                       memory,
                       driver );
     face->size = NULL;
@@ -1353,7 +1346,7 @@
   Destroy_Driver( FT_Driver  driver )
   {
     FT_List_Finalize( &driver->faces_list,
-                      destroy_face,
+                      (FT_List_Destructor)destroy_face,
                       driver->root.memory,
                       driver );
   }
@@ -1747,8 +1740,7 @@
     FT_Memory     memory = library->memory;
 
 
-    args.driver = NULL;
-    args.flags  = 0;
+    args.flags = 0;
 
     if ( driver_name )
     {

@@ -79,57 +79,41 @@
    *
    */
 
-  FT_CALLBACK_DEF( FT_Error )
-  sfnt_load_table( FT_Face    face,    /* TT_Face */
-                   FT_ULong   tag,
-                   FT_Long    offset,
-                   FT_Byte*   buffer,
-                   FT_ULong*  length )
-  {
-    TT_Face  ttface = (TT_Face)face;
-
-
-    return tt_face_load_any( ttface, tag, offset, buffer, length );
-  }
-
-
-  FT_CALLBACK_DEF( void* )
-  get_sfnt_table( FT_Face      face,  /* TT_Face */
+  static void*
+  get_sfnt_table( TT_Face      face,
                   FT_Sfnt_Tag  tag )
   {
-    TT_Face  ttface = (TT_Face)face;
-
     void*  table;
 
 
     switch ( tag )
     {
     case FT_SFNT_HEAD:
-      table = &ttface->header;
+      table = &face->header;
       break;
 
     case FT_SFNT_HHEA:
-      table = &ttface->horizontal;
+      table = &face->horizontal;
       break;
 
     case FT_SFNT_VHEA:
-      table = ttface->vertical_info ? &ttface->vertical : NULL;
+      table = face->vertical_info ? &face->vertical : NULL;
       break;
 
     case FT_SFNT_OS2:
-      table = ( ttface->os2.version == 0xFFFFU ) ? NULL : &ttface->os2;
+      table = ( face->os2.version == 0xFFFFU ) ? NULL : &face->os2;
       break;
 
     case FT_SFNT_POST:
-      table = &ttface->postscript;
+      table = &face->postscript;
       break;
 
     case FT_SFNT_MAXP:
-      table = &ttface->max_profile;
+      table = &face->max_profile;
       break;
 
     case FT_SFNT_PCLT:
-      table = ttface->pclt.Version ? &ttface->pclt : NULL;
+      table = face->pclt.Version ? &face->pclt : NULL;
       break;
 
     default:
@@ -140,29 +124,26 @@
   }
 
 
-  FT_CALLBACK_DEF( FT_Error )
-  sfnt_table_info( FT_Face    face,    /* TT_Face */
+  static FT_Error
+  sfnt_table_info( TT_Face    face,
                    FT_UInt    idx,
                    FT_ULong  *tag,
                    FT_ULong  *offset,
                    FT_ULong  *length )
   {
-    TT_Face  ttface = (TT_Face)face;
-
-
     if ( !offset || !length )
       return FT_THROW( Invalid_Argument );
 
     if ( !tag )
-      *length = ttface->num_tables;
+      *length = face->num_tables;
     else
     {
-      if ( idx >= ttface->num_tables )
+      if ( idx >= face->num_tables )
         return FT_THROW( Table_Missing );
 
-      *tag    = ttface->dir_tables[idx].Tag;
-      *offset = ttface->dir_tables[idx].Offset;
-      *length = ttface->dir_tables[idx].Length;
+      *tag    = face->dir_tables[idx].Tag;
+      *offset = face->dir_tables[idx].Offset;
+      *length = face->dir_tables[idx].Length;
     }
 
     return FT_Err_Ok;
@@ -172,9 +153,9 @@
   FT_DEFINE_SERVICE_SFNT_TABLEREC(
     sfnt_service_sfnt_table,
 
-    sfnt_load_table,  /* FT_SFNT_TableLoadFunc load_table */
-    get_sfnt_table,   /* FT_SFNT_TableGetFunc  get_table  */
-    sfnt_table_info   /* FT_SFNT_TableInfoFunc table_info */
+    (FT_SFNT_TableLoadFunc)tt_face_load_any,     /* load_table */
+    (FT_SFNT_TableGetFunc) get_sfnt_table,       /* get_table  */
+    (FT_SFNT_TableInfoFunc)sfnt_table_info       /* table_info */
   )
 
 
@@ -185,7 +166,7 @@
    *
    */
 
-  FT_CALLBACK_DEF( FT_Error )
+  static FT_Error
   sfnt_get_glyph_name( FT_Face     face,
                        FT_UInt     glyph_index,
                        FT_Pointer  buffer,
@@ -203,7 +184,7 @@
   }
 
 
-  FT_CALLBACK_DEF( FT_UInt )
+  static FT_UInt
   sfnt_get_name_index( FT_Face           face,
                        const FT_String*  glyph_name )
   {
@@ -240,8 +221,8 @@
   FT_DEFINE_SERVICE_GLYPHDICTREC(
     sfnt_service_glyph_dict,
 
-    sfnt_get_glyph_name,  /* FT_GlyphDict_GetNameFunc   get_name   */
-    sfnt_get_name_index   /* FT_GlyphDict_NameIndexFunc name_index */
+    (FT_GlyphDict_GetNameFunc)  sfnt_get_glyph_name,    /* get_name   */
+    (FT_GlyphDict_NameIndexFunc)sfnt_get_name_index     /* name_index */
   )
 
 #endif /* TT_CONFIG_OPTION_POSTSCRIPT_NAMES */
@@ -542,14 +523,15 @@
           FT_TRACE0(( "get_win_string:"
                       " Character 0x%X invalid in PS name string\n",
                       ((unsigned)p[0])*256 + (unsigned)p[1] ));
-        continue;
+        break;
       }
     }
-    *r = '\0';
+    if ( !len )
+      *r = '\0';
 
     FT_FRAME_EXIT();
 
-    if ( r != result )
+    if ( !len )
       return result;
 
   get_win_string_error:
@@ -598,14 +580,15 @@
           FT_TRACE0(( "get_apple_string:"
                       " Character `%c' (0x%X) invalid in PS name string\n",
                       *p, *p ));
-        continue;
+        break;
       }
     }
-    *r = '\0';
+    if ( !len )
+      *r = '\0';
 
     FT_FRAME_EXIT();
 
-    if ( r != result )
+    if ( !len )
       return result;
 
   get_apple_string_error:
@@ -619,7 +602,7 @@
   }
 
 
-  FT_CALLBACK_DEF( FT_Bool )
+  static FT_Bool
   sfnt_get_name_id( TT_Face    face,
                     FT_UShort  id,
                     FT_Int    *win,
@@ -836,9 +819,9 @@
 
       if ( !found )
       {
-        /* according to the 'name' documentation in the OpenType   */
-        /* specification the font family name is to be used if the */
-        /* typographic family name is missing, so let's do that    */
+        /* as a last resort we try the family name; note that this is */
+        /* not in the Adobe TechNote, but GX fonts (which predate the */
+        /* TechNote) benefit from this behaviour                      */
         found = sfnt_get_name_id( face,
                                   TT_NAME_ID_FONT_FAMILY,
                                   &win,
@@ -870,10 +853,6 @@
       {
         FT_TRACE0(( "sfnt_get_var_ps_name:"
                     " No valid PS name prefix for font instances found\n" ));
-        /* XXX It probably makes sense to never let this fail */
-        /*     since an arbitrary prefix should work, too.    */
-        /*     On the other hand, it is very unlikely that    */
-        /*     we ever reach this code at all.                */
         return NULL;
       }
 
@@ -1062,49 +1041,47 @@
 #endif /* TT_CONFIG_OPTION_GX_VAR_SUPPORT */
 
 
-  FT_CALLBACK_DEF( const char* )
-  sfnt_get_ps_name( FT_Face  face )    /* TT_Face */
+  static const char*
+  sfnt_get_ps_name( TT_Face  face )
   {
-    TT_Face  ttface = (TT_Face)face;
-
     FT_Int       found, win, apple;
     const char*  result = NULL;
 
 
-    if ( ttface->postscript_name )
-      return ttface->postscript_name;
+    if ( face->postscript_name )
+      return face->postscript_name;
 
 #ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
-    if ( ttface->blend                    &&
-         ( FT_IS_NAMED_INSTANCE( face ) ||
-           FT_IS_VARIATION( face )      ) )
+    if ( face->blend                                 &&
+         ( FT_IS_NAMED_INSTANCE( FT_FACE( face ) ) ||
+           FT_IS_VARIATION( FT_FACE( face ) )      ) )
     {
-      ttface->postscript_name = sfnt_get_var_ps_name( ttface );
-      return ttface->postscript_name;
+      face->postscript_name = sfnt_get_var_ps_name( face );
+      return face->postscript_name;
     }
 #endif
 
     /* scan the name table to see whether we have a Postscript name here, */
     /* either in Macintosh or Windows platform encodings                  */
-    found = sfnt_get_name_id( ttface, TT_NAME_ID_PS_NAME, &win, &apple );
+    found = sfnt_get_name_id( face, TT_NAME_ID_PS_NAME, &win, &apple );
     if ( !found )
       return NULL;
 
     /* prefer Windows entries over Apple */
     if ( win != -1 )
-      result = get_win_string( FT_FACE_MEMORY( face ),
-                               ttface->name_table.stream,
-                               ttface->name_table.names + win,
+      result = get_win_string( face->root.memory,
+                               face->name_table.stream,
+                               face->name_table.names + win,
                                sfnt_is_postscript,
                                1 );
     if ( !result && apple != -1 )
-      result = get_apple_string( FT_FACE_MEMORY( face ),
-                                 ttface->name_table.stream,
-                                 ttface->name_table.names + apple,
+      result = get_apple_string( face->root.memory,
+                                 face->name_table.stream,
+                                 face->name_table.names + apple,
                                  sfnt_is_postscript,
                                  1 );
 
-    ttface->postscript_name = result;
+    face->postscript_name = result;
 
     return result;
   }
@@ -1113,7 +1090,7 @@
   FT_DEFINE_SERVICE_PSFONTNAMEREC(
     sfnt_service_ps_name,
 
-    sfnt_get_ps_name  /* FT_PsName_GetFunc get_ps_font_name */
+    (FT_PsName_GetFunc)sfnt_get_ps_name       /* get_ps_font_name */
   )
 
 
@@ -1123,14 +1100,14 @@
   FT_DEFINE_SERVICE_TTCMAPSREC(
     tt_service_get_cmap_info,
 
-    tt_get_cmap_info  /* TT_CMap_Info_GetFunc get_cmap_info */
+    (TT_CMap_Info_GetFunc)tt_get_cmap_info    /* get_cmap_info */
   )
 
 
 #ifdef TT_CONFIG_OPTION_BDF
 
   static FT_Error
-  sfnt_get_charset_id( FT_Face       face,
+  sfnt_get_charset_id( TT_Face       face,
                        const char*  *acharset_encoding,
                        const char*  *acharset_registry )
   {
@@ -1168,8 +1145,8 @@
   FT_DEFINE_SERVICE_BDFRec(
     sfnt_service_bdf,
 
-    sfnt_get_charset_id,   /* FT_BDF_GetCharsetIdFunc get_charset_id */
-    tt_face_find_bdf_prop  /* FT_BDF_GetPropertyFunc  get_property   */
+    (FT_BDF_GetCharsetIdFunc)sfnt_get_charset_id,     /* get_charset_id */
+    (FT_BDF_GetPropertyFunc) tt_face_find_bdf_prop    /* get_property   */
   )
 
 
@@ -1360,9 +1337,9 @@
 
     (const void*)&sfnt_interface,  /* module specific interface */
 
-    NULL,               /* FT_Module_Constructor module_init   */
-    NULL,               /* FT_Module_Destructor  module_done   */
-    sfnt_get_interface  /* FT_Module_Requester   get_interface */
+    (FT_Module_Constructor)NULL,               /* module_init   */
+    (FT_Module_Destructor) NULL,               /* module_done   */
+    (FT_Module_Requester)  sfnt_get_interface  /* get_interface */
   )
 
 

@@ -376,11 +376,8 @@
 
 
   FT_LOCAL_DEF( void )
-  af_face_globals_free( void*  globals_ )
+  af_face_globals_free( AF_FaceGlobals  globals )
   {
-    AF_FaceGlobals  globals = (AF_FaceGlobals)globals_;
-
-
     if ( globals )
     {
       FT_Memory  memory = globals->face->memory;

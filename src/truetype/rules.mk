@@ -33,7 +33,8 @@ TT_DRV_SRC := $(TT_DIR)/ttdriver.c \
               $(TT_DIR)/ttgxvar.c  \
               $(TT_DIR)/ttinterp.c \
               $(TT_DIR)/ttobjs.c   \
-              $(TT_DIR)/ttpload.c
+              $(TT_DIR)/ttpload.c  \
+              $(TT_DIR)/ttsubpix.c
 
 # TrueType driver headers
 #

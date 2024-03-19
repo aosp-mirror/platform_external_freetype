@@ -15,52 +15,32 @@ How to prepare a new release
 
 . docs/VERSIONS.TXT: Document changed `version_info`.
 
-. Update the 'dlg' submodule with
+. Clone the git archive to another directory with
 
-    git submodule foreach git pull origin master
+    git clone -l -s . ../freetype.test
 
-. Copy the submodule code with
+  or something like this and run
 
-    make copy_submodule
-
-  and run
-
-    make distclean && make devel && make
-    make distclean && make devel && make multi
-    make distclean && make devel CC=g++ && make CC=g++ ANSIFLAGS=""
-    make distclean && make devel CC=g++ && make multi CC=g++ ANSIFLAGS=""
+    make distclean; make devel; make
+    make distclean; make devel; make multi
+    make distclean; make devel CC=g++; make CC=g++
+    make distclean; make devel CC=g++; make multi CC=g++
 
     sh autogen.sh
-    make distclean && ./configure CC=g++ && make ANSIFLAGS=""
+    make distclean; ./configure CC=g++; make
 
-  to test compilation with both gcc and g++ (you might also add the `-j`
-  flag to `make` for parallel compilation).
+  in the cloned repository to test compilation with both gcc and g++.
 
   Note that it is normally not necessary to test standard C
   compilation with the `configure`, `meson`, and `cmake` build tools
-  since this is done by the CI process of 'gitlab.freedesktop.org' for
+  since this is done by the CI process of 'gitlab.freetype.org' for
   every commit.
 
-. Test C++ compilation for 'freetype-demos' too; this needs a compiled
-  FreeType library as described in the `README` file.
-
-    make distclean && make
-    make distclean && make CC=g++ ANSIFLAGS=""
+. Test C++ compilation for 'freetype-demos' too (using `git clone` as
+  above).
 
 . Run `src/tools/chktrcmp.py` and check that there are no undefined
   `trace_XXXX` macros.
-
-. Update meson subproject files (for both the 'freetype' and
-  'freetype-demos' git repositories) with
-
-    meson subprojects update
-
-. Test meson compilation (for both the 'freetype' and 'freetype-demos'
-  git repositories) with
-
-    meson setup builddir && meson compile -C builddir
-
-. Commit everything.
 
 . After pushing the new release, tag the git repositories ('freetype',
   'freetype-demos') with

@@ -303,7 +303,7 @@
 #else /* !TT_CONFIG_OPTION_COLOR_LAYERS */
 
   /* ANSI C doesn't like empty source files */
-  typedef int  tt_cpal_dummy_;
+  typedef int  _tt_cpal_dummy;
 
 #endif /* !TT_CONFIG_OPTION_COLOR_LAYERS */
 

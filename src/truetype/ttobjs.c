@@ -312,8 +312,7 @@
 #define TRICK_SFNT_IDS_NUM_FACES  31
 
     static const tt_sfnt_id_rec sfnt_id[TRICK_SFNT_IDS_NUM_FACES]
-                                       [TRICK_SFNT_IDS_PER_FACE] =
-    {
+                                       [TRICK_SFNT_IDS_PER_FACE] = {
 
 #define TRICK_SFNT_ID_cvt   0
 #define TRICK_SFNT_ID_fpgm  1
@@ -582,7 +581,7 @@
     FT_Bool   result = FALSE;
 
     TT_Face   face = (TT_Face)ttface;
-    FT_ULong  asize;
+    FT_UInt   asize;
     FT_ULong  i;
     FT_ULong  glyph_index = 0;
     FT_UInt   count       = 0;
@@ -590,7 +589,7 @@
 
     for( i = 0; i < face->num_locations; i++ )
     {
-      tt_face_get_location( ttface, i, &asize );
+      tt_face_get_location( face, i, &asize );
       if ( asize > 0 )
       {
         count += 1;
@@ -778,6 +777,7 @@
     }
 
 #ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
+
     {
       FT_UInt  instance_index = (FT_UInt)face_index >> 16;
 
@@ -785,11 +785,14 @@
       if ( FT_HAS_MULTIPLE_MASTERS( ttface ) &&
            instance_index > 0                )
       {
-        error = FT_Set_Named_Instance( ttface, instance_index );
+        error = TT_Set_Named_Instance( face, instance_index );
         if ( error )
           goto Exit;
+
+        tt_apply_mvar( face );
       }
     }
+
 #endif /* TT_CONFIG_OPTION_GX_VAR_SUPPORT */
 
     /* initialize standard glyph loading routines */
@@ -855,7 +858,7 @@
     face->cvt_program_size  = 0;
 
 #ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
-    tt_done_blend( ttface );
+    tt_done_blend( face );
     face->blend = NULL;
 #endif
   }
@@ -1335,28 +1338,38 @@
   /**************************************************************************
    *
    * @Function:
-   *   tt_size_reset_height
+   *   tt_size_reset
    *
    * @Description:
-   *   Recompute a TrueType size's ascender, descender, and height
-   *   when resolutions and character dimensions have been changed.
-   *   Used for variation fonts as an iterator function.
+   *   Reset a TrueType size when resolutions and character dimensions
+   *   have been changed.
    *
    * @Input:
-   *   ft_size ::
-   *     A handle to the target TT_Size object. This function will be called
-   *     through a `FT_Size_Reset_Func` pointer which takes `FT_Size`. This
-   *     function must take `FT_Size` as a result. The passed `FT_Size` is
-   *     expected to point to a `TT_Size`.
+   *   size ::
+   *     A handle to the target size object.
+   *
+   *   only_height ::
+   *     Only recompute ascender, descender, and height;
+   *     this flag is used for variation fonts where
+   *     `tt_size_reset' is used as an iterator function.
    */
   FT_LOCAL_DEF( FT_Error )
-  tt_size_reset_height( FT_Size  ft_size )
+  tt_size_reset( TT_Size  size,
+                 FT_Bool  only_height )
   {
-    TT_Size           size         = (TT_Size)ft_size;
-    TT_Face           face         = (TT_Face)size->root.face;
-    FT_Size_Metrics*  size_metrics = &size->hinted_metrics;
+    TT_Face           face;
+    FT_Size_Metrics*  size_metrics;
+
+
+    face = (TT_Face)size->root.face;
+
+    /* nothing to do for CFF2 */
+    if ( face->is_cff2 )
+      return FT_Err_Ok;
 
     size->ttmetrics.valid = FALSE;
+
+    size_metrics = &size->hinted_metrics;
 
     /* copy the result from base layer */
     *size_metrics = size->root.metrics;
@@ -1384,34 +1397,12 @@
 
     size->ttmetrics.valid = TRUE;
 
-    return FT_Err_Ok;
-  }
-
-
-  /**************************************************************************
-   *
-   * @Function:
-   *   tt_size_reset
-   *
-   * @Description:
-   *   Reset a TrueType size when resolutions and character dimensions
-   *   have been changed.
-   *
-   * @Input:
-   *   size ::
-   *     A handle to the target size object.
-   */
-  FT_LOCAL_DEF( FT_Error )
-  tt_size_reset( TT_Size  size )
-  {
-    FT_Error          error;
-    TT_Face           face         = (TT_Face)size->root.face;
-    FT_Size_Metrics*  size_metrics = &size->hinted_metrics;
-
-
-    error = tt_size_reset_height( (FT_Size)size );
-    if ( error )
-      return error;
+    if ( only_height )
+    {
+      /* we must not recompute the scaling values here since       */
+      /* `tt_size_reset' was already called (with only_height = 0) */
+      return FT_Err_Ok;
+    }
 
     if ( face->header.Flags & 8 )
     {
@@ -1481,6 +1472,9 @@
     TT_Driver  driver = (TT_Driver)ttdriver;
 
     driver->interpreter_version = TT_INTERPRETER_VERSION_35;
+#ifdef TT_SUPPORT_SUBPIXEL_HINTING_INFINALITY
+    driver->interpreter_version = TT_INTERPRETER_VERSION_38;
+#endif
 #ifdef TT_SUPPORT_SUBPIXEL_HINTING_MINIMAL
     driver->interpreter_version = TT_INTERPRETER_VERSION_40;
 #endif

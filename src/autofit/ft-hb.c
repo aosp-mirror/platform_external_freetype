@@ -108,7 +108,7 @@ hb_ft_font_create_ (FT_Face           ft_face,
 #else /* !FT_CONFIG_OPTION_USE_HARFBUZZ */
 
 /* ANSI C doesn't like empty source files */
-typedef int  ft_hb_dummy_;
+typedef int  _ft_hb_dummy;
 
 #endif /* !FT_CONFIG_OPTION_USE_HARFBUZZ */
 

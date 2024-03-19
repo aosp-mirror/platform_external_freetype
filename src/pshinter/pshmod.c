@@ -37,11 +37,8 @@
 
   /* finalize module */
   FT_CALLBACK_DEF( void )
-  ps_hinter_done( FT_Module  module_ )    /* PS_Hinter_Module */
+  ps_hinter_done( PS_Hinter_Module  module )
   {
-    PS_Hinter_Module  module = (PS_Hinter_Module)module_;
-
-
     module->t1_funcs.hints = NULL;
     module->t2_funcs.hints = NULL;
 
@@ -51,10 +48,8 @@
 
   /* initialize module, create hints recorder and the interface */
   FT_CALLBACK_DEF( FT_Error )
-  ps_hinter_init( FT_Module  module_ )    /* PS_Hinter_Module */
+  ps_hinter_init( PS_Hinter_Module  module )
   {
-    PS_Hinter_Module  module = (PS_Hinter_Module)module_;
-
     FT_Memory  memory = module->root.memory;
     void*      ph     = &module->ps_hints;
 

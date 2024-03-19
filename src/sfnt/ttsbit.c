@@ -1677,7 +1677,7 @@
 #else /* !TT_CONFIG_OPTION_EMBEDDED_BITMAPS */
 
   /* ANSI C doesn't like empty source files */
-  typedef int  tt_sbit_dummy_;
+  typedef int  _tt_sbit_dummy;
 
 #endif /* !TT_CONFIG_OPTION_EMBEDDED_BITMAPS */
 

@@ -1082,7 +1082,7 @@
 #else /* !FT_MACINTOSH */
 
   /* ANSI C doesn't like empty source files */
-  typedef int  ft_mac_dummy_;
+  typedef int  _ft_mac_dummy;
 
 #endif /* !FT_MACINTOSH */
 

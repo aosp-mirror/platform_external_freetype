@@ -69,8 +69,8 @@
     FT_Module         module;
 
 
-    module = FT_Get_Module( font->library, "pshinter" );
-
+    module = FT_Get_Module( size->root.face->driver->root.library,
+                            "pshinter" );
     return ( module && pshinter && pshinter->get_globals_funcs )
            ? pshinter->get_globals_funcs( module )
            : 0;
@@ -182,7 +182,8 @@
       goto Exit;
 
     cff_make_private_dict( &font->top_font, &priv );
-    error = funcs->create( memory, &priv, &internal->topfont );
+    error = funcs->create( cffsize->face->memory, &priv,
+                             &internal->topfont );
     if ( error )
       goto Exit;
 
@@ -192,7 +193,8 @@
 
 
       cff_make_private_dict( sub, &priv );
-      error = funcs->create( memory, &priv, &internal->subfonts[i - 1] );
+      error = funcs->create( cffsize->face->memory, &priv,
+                               &internal->subfonts[i - 1] );
       if ( error )
         goto Exit;
     }
@@ -379,7 +381,8 @@
       FT_Module  module;
 
 
-      module = FT_Get_Module( slot->library, "pshinter" );
+      module = FT_Get_Module( slot->face->driver->root.library,
+                              "pshinter" );
       if ( module )
       {
         T2_Hints_Funcs  funcs;
@@ -719,15 +722,22 @@
 
 #ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
       {
+        FT_Service_MultiMasters       mm  = (FT_Service_MultiMasters)face->mm;
+        FT_Service_MetricsVariations  var = (FT_Service_MetricsVariations)face->var;
+
         FT_UInt  instance_index = (FT_UInt)face_index >> 16;
 
 
         if ( FT_HAS_MULTIPLE_MASTERS( cffface ) &&
+             mm                                 &&
              instance_index > 0                 )
         {
-          error = FT_Set_Named_Instance( cffface, instance_index );
+          error = mm->set_instance( cffface, instance_index );
           if ( error )
             goto Exit;
+
+          if ( var )
+            var->metrics_adjust( cffface );
         }
       }
 #endif /* TT_CONFIG_OPTION_GX_VAR_SUPPORT */
@@ -1150,7 +1160,7 @@
     }
 
 #ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
-    cff_done_blend( cffface );
+    cff_done_blend( face );
     face->blend = NULL;
 #endif
   }

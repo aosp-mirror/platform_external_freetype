@@ -624,34 +624,31 @@
 
 
   static FT_Error
-  fnt_cmap_init( FT_CMap     cmap,     /* FNT_CMap */
+  fnt_cmap_init( FNT_CMap    cmap,
                  FT_Pointer  pointer )
   {
-    FNT_CMap  fntcmap = (FNT_CMap)cmap;
-    FNT_Face  face    = (FNT_Face)FT_CMAP_FACE( cmap );
-    FNT_Font  font    = face->font;
+    FNT_Face  face = (FNT_Face)FT_CMAP_FACE( cmap );
+    FNT_Font  font = face->font;
 
     FT_UNUSED( pointer );
 
 
-    fntcmap->first = (FT_UInt32)font->header.first_char;
-    fntcmap->count = (FT_UInt32)( font->header.last_char -
-                                  fntcmap->first + 1 );
+    cmap->first = (FT_UInt32)  font->header.first_char;
+    cmap->count = (FT_UInt32)( font->header.last_char - cmap->first + 1 );
 
     return 0;
   }
 
 
   static FT_UInt
-  fnt_cmap_char_index( FT_CMap    cmap,       /* FNT_CMap */
+  fnt_cmap_char_index( FNT_CMap   cmap,
                        FT_UInt32  char_code )
   {
-    FNT_CMap  fntcmap = (FNT_CMap)cmap;
-    FT_UInt   gindex  = 0;
+    FT_UInt  gindex = 0;
 
 
-    char_code -= fntcmap->first;
-    if ( char_code < fntcmap->count )
+    char_code -= cmap->first;
+    if ( char_code < cmap->count )
       /* we artificially increase the glyph index; */
       /* FNT_Load_Glyph reverts to the right one   */
       gindex = (FT_UInt)( char_code + 1 );
@@ -659,27 +656,26 @@
   }
 
 
-  static FT_UInt
-  fnt_cmap_char_next( FT_CMap     cmap,        /* FNT_CMap */
+  static FT_UInt32
+  fnt_cmap_char_next( FNT_CMap    cmap,
                       FT_UInt32  *pchar_code )
   {
-    FNT_CMap   fntcmap   = (FNT_CMap)cmap;
-    FT_UInt    gindex    = 0;
-    FT_UInt32  result    = 0;
+    FT_UInt    gindex = 0;
+    FT_UInt32  result = 0;
     FT_UInt32  char_code = *pchar_code + 1;
 
 
-    if ( char_code <= fntcmap->first )
+    if ( char_code <= cmap->first )
     {
-      result = fntcmap->first;
+      result = cmap->first;
       gindex = 1;
     }
     else
     {
-      char_code -= fntcmap->first;
-      if ( char_code < fntcmap->count )
+      char_code -= cmap->first;
+      if ( char_code < cmap->count )
       {
-        result = fntcmap->first + char_code;
+        result = cmap->first + char_code;
         gindex = (FT_UInt)( char_code + 1 );
       }
     }

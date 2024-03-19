@@ -417,14 +417,16 @@
 
         {
           FT_Int  nn;
-          FT_Int  pp, first, last;
+          FT_Int  first = 0;
+          FT_Int  last  = -1;
 
 
-          last = -1;
-          for ( nn = 0; nn < outline.n_contours; nn++ )
+          for ( nn = 0; nn < outline.n_contours; first = last + 1, nn++ )
           {
-            first = last + 1;
-            last  = outline.contours[nn];
+            FT_Int  pp;
+
+
+            last = outline.contours[nn];
 
             /* Avoid single-point contours since they are never rasterized. */
             /* In some fonts, they correspond to mark attachment points     */
@@ -567,8 +569,8 @@
   af_cjk_metrics_check_digits( AF_CJKMetrics  metrics,
                                FT_Face        face )
   {
-    FT_Bool  started = 0, same_width = 1;
-    FT_Long  advance = 0, old_advance = 0;
+    FT_Bool   started = 0, same_width = 1;
+    FT_Fixed  advance = 0, old_advance = 0;
 
     /* If HarfBuzz is not available, we need a pointer to a single */
     /* unsigned long value.                                        */
@@ -633,11 +635,10 @@
   /* Initialize global metrics. */
 
   FT_LOCAL_DEF( FT_Error )
-  af_cjk_metrics_init( AF_StyleMetrics  metrics_,  /* AF_CJKMetrics */
-                       FT_Face          face )
+  af_cjk_metrics_init( AF_CJKMetrics  metrics,
+                       FT_Face        face )
   {
-    AF_CJKMetrics  metrics = (AF_CJKMetrics)metrics_;
-    FT_CharMap     oldmap  = face->charmap;
+    FT_CharMap  oldmap = face->charmap;
 
 
     metrics->units_per_em = face->units_per_EM;
@@ -755,12 +756,9 @@
   /* Scale global values in both directions. */
 
   FT_LOCAL_DEF( void )
-  af_cjk_metrics_scale( AF_StyleMetrics  metrics_,   /* AF_CJKMetrics */
-                        AF_Scaler        scaler )
+  af_cjk_metrics_scale( AF_CJKMetrics  metrics,
+                        AF_Scaler      scaler )
   {
-    AF_CJKMetrics  metrics = (AF_CJKMetrics)metrics_;
-
-
     /* we copy the whole structure since the x and y scaling values */
     /* are not modified, contrary to e.g. the `latin' auto-hinter   */
     metrics->root.scaler = *scaler;
@@ -773,14 +771,11 @@
   /* Extract standard_width from writing system/script specific */
   /* metrics class.                                             */
 
-  FT_CALLBACK_DEF( void )
-  af_cjk_get_standard_widths( AF_StyleMetrics  metrics_,  /* AF_CJKMetrics */
-                              FT_Pos*          stdHW,
-                              FT_Pos*          stdVW )
+  FT_LOCAL_DEF( void )
+  af_cjk_get_standard_widths( AF_CJKMetrics  metrics,
+                              FT_Pos*        stdHW,
+                              FT_Pos*        stdVW )
   {
-    AF_CJKMetrics  metrics = (AF_CJKMetrics)metrics_;
-
-
     if ( stdHW )
       *stdHW = metrics->axis[AF_DIMENSION_VERT].standard_width;
 
@@ -1381,10 +1376,9 @@
   /* Initalize hinting engine. */
 
   FT_LOCAL_DEF( FT_Error )
-  af_cjk_hints_init( AF_GlyphHints    hints,
-                     AF_StyleMetrics  metrics_ )   /* AF_CJKMetrics */
+  af_cjk_hints_init( AF_GlyphHints  hints,
+                     AF_CJKMetrics  metrics )
   {
-    AF_CJKMetrics   metrics = (AF_CJKMetrics)metrics_;
     FT_Render_Mode  mode;
     FT_UInt32       scaler_flags, other_flags;
 
@@ -1634,7 +1628,7 @@
 
     stem_edge->pos = base_edge->pos + fitted_width;
 
-    FT_TRACE5(( "  CJKLINK: edge %td @%d (opos=%.2f) linked to %.2f,"
+    FT_TRACE5(( "  CJKLINK: edge %ld @%d (opos=%.2f) linked to %.2f,"
                 " dist was %.2f, now %.2f\n",
                 stem_edge - hints->axis[dim].edges, stem_edge->fpos,
                 (double)stem_edge->opos / 64,
@@ -1858,7 +1852,7 @@
           continue;
 
 #ifdef FT_DEBUG_LEVEL_TRACE
-        FT_TRACE5(( "  CJKBLUE: edge %td @%d (opos=%.2f) snapped to %.2f,"
+        FT_TRACE5(( "  CJKBLUE: edge %ld @%d (opos=%.2f) snapped to %.2f,"
                     " was %.2f\n",
                     edge1 - edges, edge1->fpos, (double)edge1->opos / 64,
                     (double)blue->fit / 64, (double)edge1->pos / 64 ));
@@ -1922,7 +1916,7 @@
       /* this should not happen, but it's better to be safe */
       if ( edge2->blue_edge )
       {
-        FT_TRACE5(( "ASSERTION FAILED for edge %td\n", edge2 - edges ));
+        FT_TRACE5(( "ASSERTION FAILED for edge %ld\n", edge2-edges ));
 
         af_cjk_align_linked_edge( hints, dim, edge2, edge );
         edge->flags |= AF_EDGE_DONE;
@@ -2274,13 +2268,11 @@
   /* Apply the complete hinting algorithm to a CJK glyph. */
 
   FT_LOCAL_DEF( FT_Error )
-  af_cjk_hints_apply( FT_UInt          glyph_index,
-                      AF_GlyphHints    hints,
-                      FT_Outline*      outline,
-                      AF_StyleMetrics  metrics_ )   /* AF_CJKMetrics */
+  af_cjk_hints_apply( FT_UInt        glyph_index,
+                      AF_GlyphHints  hints,
+                      FT_Outline*    outline,
+                      AF_CJKMetrics  metrics )
   {
-    AF_CJKMetrics  metrics = (AF_CJKMetrics)metrics_;
-
     FT_Error  error;
     int       dim;
 

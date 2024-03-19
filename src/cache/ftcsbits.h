@@ -81,6 +81,17 @@ FT_BEGIN_HEADER
   FTC_SNode_Weight( FTC_SNode  inode );
 #endif
 
+
+#ifdef FTC_INLINE
+
+  FT_LOCAL( FT_Bool )
+  FTC_SNode_Compare( FTC_SNode   snode,
+                     FTC_GQuery  gquery,
+                     FTC_Cache   cache,
+                     FT_Bool*    list_changed);
+
+#endif
+
   /* */
 
 FT_END_HEADER

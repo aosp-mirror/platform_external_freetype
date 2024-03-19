@@ -329,23 +329,29 @@
                                FTC_MruNode_CompareFunc  selection,
                                FT_Pointer               key )
   {
-    FTC_MruNode  first = list->nodes;
-    FTC_MruNode  prev, node;
+    FTC_MruNode  first, node, next;
 
 
-    if ( !first || !selection )
-      return;
-
-    prev = first->prev;
-    do
+    first = list->nodes;
+    while ( first && ( !selection || selection( first, key ) ) )
     {
-      node = prev;
-      prev = node->prev;
+      FTC_MruList_Remove( list, first );
+      first = list->nodes;
+    }
 
-      if ( selection( node, key ) )
-        FTC_MruList_Remove( list, node );
+    if ( first )
+    {
+      node = first->next;
+      while ( node != first )
+      {
+        next = node->next;
 
-    } while ( node != first );
+        if ( selection( node, key ) )
+          FTC_MruList_Remove( list, node );
+
+        node = next;
+      }
+    }
   }
 
 

@@ -320,9 +320,8 @@
 
 
   static char*
-  af_print_idx( char*   p,
-                size_t  n,
-                int     idx )
+  af_print_idx( char* p,
+                int   idx )
   {
     if ( idx == -1 )
     {
@@ -331,7 +330,7 @@
       p[2] = '\0';
     }
     else
-      ft_snprintf( p, n, "%d", idx );
+      ft_sprintf( p, "%d", idx );
 
     return p;
   }
@@ -458,12 +457,12 @@
                 " %5d %5d %7.2f %7.2f %7.2f %7.2f"
                 " %5s %5s %5s %5s\n",
                 point_idx,
-                af_print_idx( buf1, 16,
+                af_print_idx( buf1,
                               af_get_edge_index( hints, segment_idx_1, 1 ) ),
-                af_print_idx( buf2, 16, segment_idx_1 ),
-                af_print_idx( buf3, 16,
+                af_print_idx( buf2, segment_idx_1 ),
+                af_print_idx( buf3,
                               af_get_edge_index( hints, segment_idx_0, 0 ) ),
-                af_print_idx( buf4, 16, segment_idx_0 ),
+                af_print_idx( buf4, segment_idx_0 ),
                 ( point->flags & AF_FLAG_NEAR )
                   ? " near "
                   : ( point->flags & AF_FLAG_WEAK_INTERPOLATION )
@@ -477,22 +476,18 @@
                 (double)point->x / 64,
                 (double)point->y / 64,
 
-                af_print_idx( buf5, 16,
-                              af_get_strong_edge_index( hints,
-                                                        point->before,
-                                                        1 ) ),
-                af_print_idx( buf6, 16,
-                              af_get_strong_edge_index( hints,
-                                                        point->after,
-                                                        1 ) ),
-                af_print_idx( buf7, 16,
-                              af_get_strong_edge_index( hints,
-                                                        point->before,
-                                                        0 ) ),
-                af_print_idx( buf8, 16,
-                              af_get_strong_edge_index( hints,
-                                                        point->after,
-                                                        0 ) ) ));
+                af_print_idx( buf5, af_get_strong_edge_index( hints,
+                                                              point->before,
+                                                              1 ) ),
+                af_print_idx( buf6, af_get_strong_edge_index( hints,
+                                                              point->after,
+                                                              1 ) ),
+                af_print_idx( buf7, af_get_strong_edge_index( hints,
+                                                              point->before,
+                                                              0 ) ),
+                af_print_idx( buf8, af_get_strong_edge_index( hints,
+                                                              point->after,
+                                                              0 ) ) ));
     }
     AF_DUMP(( "\n" ));
   }
@@ -579,12 +574,9 @@
                   AF_INDEX_NUM( seg->first, points ),
                   AF_INDEX_NUM( seg->last, points ),
 
-                  af_print_idx( buf1, 16,
-                                AF_INDEX_NUM( seg->link, segments ) ),
-                  af_print_idx( buf2, 16,
-                                AF_INDEX_NUM( seg->serif, segments ) ),
-                  af_print_idx( buf3, 16,
-                                AF_INDEX_NUM( seg->edge, edges ) ),
+                  af_print_idx( buf1, AF_INDEX_NUM( seg->link, segments ) ),
+                  af_print_idx( buf2, AF_INDEX_NUM( seg->serif, segments ) ),
+                  af_print_idx( buf3, AF_INDEX_NUM( seg->edge, edges ) ),
 
                   seg->height,
                   seg->height - ( seg->max_coord - seg->min_coord ),
@@ -724,10 +716,8 @@
                   AF_INDEX_NUM( edge, edges ),
                   (double)(int)edge->opos / 64,
                   af_dir_str( (AF_Direction)edge->dir ),
-                  af_print_idx( buf1, 16,
-                                AF_INDEX_NUM( edge->link, edges ) ),
-                  af_print_idx( buf2, 16,
-                                AF_INDEX_NUM( edge->serif, edges ) ),
+                  af_print_idx( buf1, AF_INDEX_NUM( edge->link, edges ) ),
+                  af_print_idx( buf2, AF_INDEX_NUM( edge->serif, edges ) ),
 
                   edge->blue_edge ? 'y' : 'n',
                   (double)edge->opos / 64,

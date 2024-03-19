@@ -167,7 +167,8 @@
       FT_Module  module;
 
 
-      module = FT_Get_Module( slot->library, "pshinter" );
+      module = FT_Get_Module( slot->face->driver->root.library,
+                              "pshinter" );
       if ( module )
       {
         T1_Hints_Funcs  funcs;
@@ -226,7 +227,7 @@
       face->len_buildchar = 0;
     }
 
-    T1_Done_Blend( t1face );
+    T1_Done_Blend( face );
     face->blend = NULL;
 #endif
 
@@ -289,8 +290,7 @@
    *
    * @Input:
    *   stream ::
-   *     Dummy argument for compatibility with the `FT_Face_InitFunc` API.
-   *     Ignored.  The stream should be passed through `face->root.stream`.
+   *     input stream where to load font data.
    *
    *   face_index ::
    *     The index of the font face in the resource.

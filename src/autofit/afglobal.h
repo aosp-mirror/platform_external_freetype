@@ -156,7 +156,7 @@ FT_BEGIN_HEADER
                                AF_StyleMetrics  *ametrics );
 
   FT_LOCAL( void )
-  af_face_globals_free( void*  globals );
+  af_face_globals_free( AF_FaceGlobals  globals );
 
   FT_LOCAL( FT_Bool )
   af_face_globals_is_digit( AF_FaceGlobals  globals,

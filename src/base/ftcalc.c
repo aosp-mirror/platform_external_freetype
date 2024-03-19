@@ -749,43 +749,65 @@
   FT_BASE_DEF( FT_Bool )
   FT_Matrix_Check( const FT_Matrix*  matrix )
   {
-    FT_Fixed  xx, xy, yx, yy;
-    FT_Fixed  val;
-    FT_Int    shift;
-    FT_ULong  temp1, temp2;
+    FT_Matrix  m;
+    FT_Fixed   val[4];
+    FT_Fixed   nonzero_minval, maxval;
+    FT_Fixed   temp1, temp2;
+    FT_UInt    i;
 
 
     if ( !matrix )
       return 0;
 
-    xx  = matrix->xx;
-    xy  = matrix->xy;
-    yx  = matrix->yx;
-    yy  = matrix->yy;
-    val = FT_ABS( xx ) | FT_ABS( xy ) | FT_ABS( yx ) | FT_ABS( yy );
+    val[0] = FT_ABS( matrix->xx );
+    val[1] = FT_ABS( matrix->xy );
+    val[2] = FT_ABS( matrix->yx );
+    val[3] = FT_ABS( matrix->yy );
 
-    /* we only handle non-zero 32-bit values */
-    if ( !val || val > 0x7FFFFFFFL )
-      return 0;
+    /*
+     * To avoid overflow, we ensure that each value is not larger than
+     *
+     *   int(sqrt(2^31 / 4)) = 23170  ;
+     *
+     * we also check that no value becomes zero if we have to scale.
+     */
 
-    /* Scale matrix to avoid the temp1 overflow, which is */
-    /* more stringent than avoiding the temp2 overflow.   */
+    maxval         = 0;
+    nonzero_minval = FT_LONG_MAX;
 
-    shift = FT_MSB( val ) - 12;
-
-    if ( shift > 0 )
+    for ( i = 0; i < 4; i++ )
     {
-      xx >>= shift;
-      xy >>= shift;
-      yx >>= shift;
-      yy >>= shift;
+      if ( val[i] > maxval )
+        maxval = val[i];
+      if ( val[i] && val[i] < nonzero_minval )
+        nonzero_minval = val[i];
     }
 
-    temp1 = 32U * (FT_ULong)FT_ABS( xx * yy - xy * yx );
-    temp2 = (FT_ULong)( xx * xx ) + (FT_ULong)( xy * xy ) +
-            (FT_ULong)( yx * yx ) + (FT_ULong)( yy * yy );
+    /* we only handle 32bit values */
+    if ( maxval > 0x7FFFFFFFL )
+      return 0;
 
-    if ( temp1 <= temp2 )
+    if ( maxval > 23170 )
+    {
+      FT_Fixed  scale = FT_DivFix( maxval, 23170 );
+
+
+      if ( !FT_DivFix( nonzero_minval, scale ) )
+        return 0;    /* value range too large */
+
+      m.xx = FT_DivFix( matrix->xx, scale );
+      m.xy = FT_DivFix( matrix->xy, scale );
+      m.yx = FT_DivFix( matrix->yx, scale );
+      m.yy = FT_DivFix( matrix->yy, scale );
+    }
+    else
+      m = *matrix;
+
+    temp1 = FT_ABS( m.xx * m.yy - m.xy * m.yx );
+    temp2 = m.xx * m.xx + m.xy * m.xy + m.yx * m.yx + m.yy * m.yy;
+
+    if ( temp1 == 0         ||
+         temp2 / temp1 > 50 )
       return 0;
 
     return 1;
@@ -1039,7 +1061,7 @@
     /*                                                           */
     /* This approach has the advantage that the angle between    */
     /* `in' and `out' is not checked.  In case one of the two    */
-    /* vectors is `dominant', that is, much larger than the      */
+    /* vectors is `dominant', this is, much larger than the      */
     /* other vector, we thus always have a flat corner.          */
     /*                                                           */
     /*                hypotenuse                                 */
@@ -1070,6 +1092,9 @@
   {
     FT_UInt   i;
     FT_Int64  temp;
+#ifndef FT_INT64
+    FT_Int64  halfUnit;
+#endif
 
 
 #ifdef FT_INT64
@@ -1078,7 +1103,7 @@
     for ( i = 0; i < count; ++i )
       temp += (FT_Int64)s[i] * f[i];
 
-    return (FT_Int32)( ( temp + 0x8000 ) >> 16 );
+    return ( temp + 0x8000 ) >> 16;
 #else
     temp.hi = 0;
     temp.lo = 0;
@@ -1114,10 +1139,13 @@
       FT_Add64( &temp, &multResult, &temp );
     }
 
-    /* Shift and round value. */
-    return (FT_Int32)( ( ( temp.hi << 16 ) | ( temp.lo >> 16 ) )
-                                     + ( 1 & ( temp.lo >> 15 ) ) );
+    /* Round value. */
+    halfUnit.hi = 0;
+    halfUnit.lo = 0x8000;
+    FT_Add64( &temp, &halfUnit, &temp );
 
+    return (FT_Int32)( ( (FT_Int32)( temp.hi & 0xFFFF ) << 16 ) |
+                                   ( temp.lo >> 16 )            );
 
 #endif /* !FT_INT64 */
 
