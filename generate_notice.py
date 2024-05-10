@@ -21,6 +21,7 @@ IGNORE_FILE_NAME = [
   "LICENSE_BSD_3_CLAUSE.TXT",
   "LICENSE_FSFAP.TXT",
   "LICENSE_MIT.TXT",
+  "LICENSE_MIT_MODERN_VARIANT.TXT",
   "MODULE_LICENSE_BSD_LIKE",
   "NOTICE",
   "builds/unix/LICENSE_GPLv2_WITH_AUTOCONF_EXCEPTION.TXT",
@@ -28,6 +29,10 @@ IGNORE_FILE_NAME = [
   "docs/FTL.TXT",
   "docs/GPLv2.TXT",
   "src/gzip/LICENSE_ZLIB.TXT",
+
+  # The patch file contains copyright line as a diff. Use it if Copyright is not
+  # in a unified diff line.
+  "src/gzip/patches/freetype-zlib.diff",
 ]
 
 NO_COPYRIGHT_FILES = [
@@ -56,9 +61,7 @@ NO_COPYRIGHT_FILES = [
   "builds/mac/ftlib.prj.xml",
   "builds/unix/.gitignore",
   "builds/unix/freetype2.in",
-  "builds/vms/LIBS.OPT_IA64",
-  "builds/vms/_LINK.OPT_IA64",
-  "builds/vms/vmslib.dat",
+  "builds/vms/apinames_vms.bash",
   "builds/wince/vc2005-ce/freetype.sln",
   "builds/wince/vc2005-ce/freetype.vcproj",
   "builds/wince/vc2005-ce/index.html",
@@ -100,6 +103,8 @@ NO_COPYRIGHT_FILES = [
   "libft2.map.txt",
   "objs/.gitignore",
   "objs/README",
+  "src/gzip/README.freetype",
+  "src/gzip/crc32.h",
   "src/gzip/inffixed.h",
   "src/tools/apinames.c",
   "src/tools/chktrcmp.py",
@@ -112,6 +117,7 @@ NO_COPYRIGHT_FILES = [
   "src/tools/test_bbox.c",
   "src/tools/test_trig.c",
   "src/tools/update-copyright",
+  "subprojects/harfbuzz.wrap",
   "subprojects/libpng.wrap",
   "subprojects/zlib.wrap",
   "tests/README.md",
@@ -331,6 +337,8 @@ def extract_from_c_style_block_at(
     if "*/" in lines[i]:
       return True
     if "understand and accept it fully." in lines[i]:
+      return True
+    if "see copyright notice in zlib.h" in lines[i]:
       return True
     if lines[i] == " *" and lines[i + 1] == " *":
       return True
