@@ -156,6 +156,12 @@ cc_library {
         private: true,
         symbol_file: "libft2.map.txt",
     },
+    sdk_version: "current",
+    min_sdk_version: "apex_inherit",
+    apex_available: [
+        "com.android.mediaprovider",
+        "//apex_available:platform"
+    ],
 }
 
 // variant of libft2 without any library dependencies.
@@ -226,7 +232,6 @@ filegroup {
         "src/gzip/crc32.h",  // No license header
         "src/gzip/ftzconf.h",
         "src/gzip/gzguts.h",
-        "src/gzip/infback.c",
         "src/gzip/inffast.c",
         "src/gzip/inffast.h",
         "src/gzip/inffixed.h",  // No license header
