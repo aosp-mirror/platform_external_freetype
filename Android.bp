@@ -278,3 +278,8 @@ filegroup {
     ],
 }
 
+dirgroup {
+    name: "trusty_dirgroup_external_freetype",
+    dirs: ["."],
+    visibility: ["//trusty/vendor/google/aosp/scripts"],
+}
