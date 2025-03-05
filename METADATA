@@ -9,14 +9,14 @@ third_party {
     type: GIT
     value: "git://git.sv.nongnu.org/freetype/freetype2.git"
   }
-  version: "2.13.3"
+  version: "2.13.2"
   license_type: RESTRICTED
   last_upgrade_date {
-    year: 2024
-    month: 11
-    day: 6
+    year: 2023
+    month: 10
+    day: 17
   }
   security {
-      tag: "NVD-CPE2.3:cpe:/a:freetype:freetype:2.13.3"
+      tag: "NVD-CPE2.3:cpe:/a:freetype:freetype:2.13.2"
   }
 }
