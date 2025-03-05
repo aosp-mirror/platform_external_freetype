@@ -4,7 +4,7 @@
  *
  *   FreeType sbits manager (body).
  *
- * Copyright (C) 2000-2024 by
+ * Copyright (C) 2000-2023 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -53,7 +53,8 @@
 
     size = (FT_ULong)pitch * bitmap->rows;
 
-    FT_MEM_DUP( sbit->buffer, bitmap->buffer, size );
+    if ( !FT_QALLOC( sbit->buffer, size ) )
+      FT_MEM_COPY( sbit->buffer, bitmap->buffer, size );
 
     return error;
   }

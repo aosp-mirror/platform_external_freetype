@@ -4,7 +4,7 @@
  *
  *   FreeType PostScript hints recorder (body).
  *
- * Copyright (C) 2001-2024 by
+ * Copyright (C) 2001-2023 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -806,7 +806,7 @@
   ps_hints_stem( PS_Hints  hints,
                  FT_UInt   dimension,
                  FT_Int    count,
-                 FT_Pos*   stems )
+                 FT_Long*  stems )
   {
     PS_Dimension  dim;
 

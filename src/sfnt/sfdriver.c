@@ -4,7 +4,7 @@
  *
  *   High-level SFNT driver interface (body).
  *
- * Copyright (C) 1996-2024 by
+ * Copyright (C) 1996-2023 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -47,10 +47,6 @@
 #ifdef TT_CONFIG_OPTION_BDF
 #include "ttbdf.h"
 #include <freetype/internal/services/svbdf.h>
-#endif
-
-#ifdef TT_CONFIG_OPTION_GPOS_KERNING
-#include "ttgpos.h"
 #endif
 
 #include "ttcmap.h"
@@ -1255,12 +1251,6 @@
 #define PUT_PS_NAMES( a )  NULL
 #endif
 
-#ifdef TT_CONFIG_OPTION_GPOS_KERNING
-#define PUT_GPOS_KERNING( a )  a
-#else
-#define PUT_GPOS_KERNING( a )  NULL
-#endif
-
   FT_DEFINE_SFNT_INTERFACE(
     sfnt_interface,
 
@@ -1284,8 +1274,6 @@
     tt_face_free_name,      /* TT_Free_Table_Func      free_name       */
 
     tt_face_load_kern,      /* TT_Load_Table_Func      load_kern       */
-    PUT_GPOS_KERNING( tt_face_load_gpos ),
-                            /* TT_Load_Table_Func      load_gpos       */
     tt_face_load_gasp,      /* TT_Load_Table_Func      load_gasp       */
     tt_face_load_pclt,      /* TT_Load_Table_Func      load_init       */
 
@@ -1303,9 +1291,6 @@
 
     /* since version 2.1.8 */
     tt_face_get_kerning,    /* TT_Face_GetKerningFunc  get_kerning     */
-
-    PUT_GPOS_KERNING( tt_face_get_gpos_kerning ),
-                           /* TT_Face_GetKerningFunc  get_gpos_kerning */
 
     /* since version 2.2 */
     tt_face_load_font_dir,  /* TT_Load_Table_Func      load_font_dir   */

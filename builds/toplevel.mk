@@ -3,7 +3,7 @@
 #
 
 
-# Copyright (C) 1996-2024 by
+# Copyright (C) 1996-2023 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # This file is part of the FreeType project, and may only be used, modified,
@@ -170,7 +170,8 @@ endif # test check_platform
 
 check_out_submodule:
 	$(info Checking out submodule in `subprojects/dlg')
-	git -C $(TOP_DIR) submodule update --init
+	git --git-dir=$(TOP_DIR) submodule init
+	git --git-dir=$(TOP_DIR) submodule update
 
 copy_submodule:
 	$(info Copying files from `subprojects/dlg' to `src/dlg' and `include/dlg')

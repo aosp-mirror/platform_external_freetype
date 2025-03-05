@@ -4,7 +4,7 @@
  *
  *   SFNT object management (base).
  *
- * Copyright (C) 1996-2024 by
+ * Copyright (C) 1996-2023 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -38,10 +38,6 @@
 
 #ifdef TT_CONFIG_OPTION_BDF
 #include "ttbdf.h"
-#endif
-
-#ifdef TT_CONFIG_OPTION_GPOS_KERNING
-#include "ttgpos.h"
 #endif
 
 
@@ -1030,10 +1026,6 @@
     LOAD_( gasp );
     LOAD_( kern );
 
-#ifdef TT_CONFIG_OPTION_GPOS_KERNING
-    LOAD_( gpos );
-#endif
-
     face->root.num_glyphs = face->max_profile.numGlyphs;
 
     /* Bit 8 of the `fsSelection' field in the `OS/2' table denotes  */
@@ -1127,11 +1119,7 @@
         flags |= FT_FACE_FLAG_VERTICAL;
 
       /* kerning available ? */
-      if ( TT_FACE_HAS_KERNING( face )
-#ifdef TT_CONFIG_OPTION_GPOS_KERNING
-           || face->gpos_kerning_available
-#endif
-         )
+      if ( TT_FACE_HAS_KERNING( face ) )
         flags |= FT_FACE_FLAG_KERNING;
 
 #ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
@@ -1481,11 +1469,6 @@
 
     /* freeing the kerning table */
     tt_face_done_kern( face );
-
-#ifdef TT_CONFIG_OPTION_GPOS_KERNING
-    /* freeing the GPOS table */
-    tt_face_done_gpos( face );
-#endif
 
     /* freeing the collection table */
     FT_FREE( face->ttc_header.offsets );
