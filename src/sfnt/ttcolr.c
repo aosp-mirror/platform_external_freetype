@@ -4,7 +4,7 @@
  *
  *   TrueType and OpenType colored glyph layer support (body).
  *
- * Copyright (C) 2018-2023 by
+ * Copyright (C) 2018-2024 by
  * David Turner, Robert Wilhelm, Dominik Röttsches, and Werner Lemberg.
  *
  * Originally written by Shao Yu Zhang <shaozhang@fb.com>.
@@ -662,6 +662,7 @@
       FT_UInt32  first_layer_index;
 
 
+      ENSURE_READ_BYTES( 5 );
       num_layers = FT_NEXT_BYTE( p );
       if ( num_layers > colr->num_layers_v1 )
         return 0;
@@ -1279,7 +1280,8 @@
 
     while ( min < max )
     {
-      FT_UInt  mid = min + ( max - min ) / 2;
+      FT_UInt    mid = min + ( max - min ) / 2;
+      FT_UShort  gid;
 
       /*
        * `base_glyph_begin` is the beginning of `BaseGlyphV1List`;
@@ -1288,8 +1290,7 @@
        */
       FT_Byte  *p = base_glyph_begin + 4 + mid * BASE_GLYPH_PAINT_RECORD_SIZE;
 
-      FT_UShort  gid = FT_NEXT_USHORT( p );
-
+      gid = FT_NEXT_USHORT( p );
 
       if ( gid < glyph_id )
         min = mid + 1;
