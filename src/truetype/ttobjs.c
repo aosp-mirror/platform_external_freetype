@@ -4,7 +4,7 @@
  *
  *   Objects manager (body).
  *
- * Copyright (C) 1996-2024 by
+ * Copyright (C) 1996-2023 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
  *
  * This file is part of the FreeType project, and may only be used,
@@ -115,7 +115,7 @@
   FT_LOCAL_DEF( FT_Error )
   tt_glyphzone_new( FT_Memory     memory,
                     FT_UShort     maxPoints,
-                    FT_UShort     maxContours,
+                    FT_Short      maxContours,
                     TT_GlyphZone  zone )
   {
     FT_Error  error;
@@ -152,20 +152,18 @@
   static const FT_String*
   tt_skip_pdffont_random_tag( const FT_String*  name )
   {
-    if ( ft_isupper( name[0] ) &&
-         ft_isupper( name[1] ) &&
-         ft_isupper( name[2] ) &&
-         ft_isupper( name[3] ) &&
-         ft_isupper( name[4] ) &&
-         ft_isupper( name[5] ) &&
-              '+' == name[6]   &&
-                     name[7]   )
-    {
-      FT_TRACE7(( "name without randomization tag: %s\n", name + 7 ));
-      return name + 7;
-    }
+    unsigned int  i;
 
-    return name;
+
+    if ( ft_strlen( name ) < 8 || name[6] != '+' )
+      return name;
+
+    for ( i = 0; i < 6; i++ )
+      if ( !ft_isupper( name[i] ) )
+        return name;
+
+    FT_TRACE7(( "name without randomization tag: %s\n", name + 7 ));
+    return name + 7;
   }
 
 
@@ -256,20 +254,17 @@
   {
     FT_Error   error;
     FT_UInt32  checksum = 0;
-    FT_Byte*   p;
-    FT_Int     shift;
+    FT_UInt    i;
 
 
     if ( FT_FRAME_ENTER( length ) )
       return 0;
 
-    p = (FT_Byte*)stream->cursor;
-
     for ( ; length > 3; length -= 4 )
-      checksum += FT_NEXT_ULONG( p );
+      checksum += (FT_UInt32)FT_GET_ULONG();
 
-    for ( shift = 24; length > 0; length--, shift -=8 )
-      checksum += (FT_UInt32)FT_NEXT_BYTE( p ) << shift;
+    for ( i = 3; length > 0; length--, i-- )
+      checksum += (FT_UInt32)FT_GET_BYTE() << ( i * 8 );
 
     FT_FRAME_EXIT();
 
@@ -787,7 +782,8 @@
       FT_UInt  instance_index = (FT_UInt)face_index >> 16;
 
 
-      if ( FT_HAS_MULTIPLE_MASTERS( ttface ) )
+      if ( FT_HAS_MULTIPLE_MASTERS( ttface ) &&
+           instance_index > 0                )
       {
         error = FT_Set_Named_Instance( ttface, instance_index );
         if ( error )
@@ -994,16 +990,16 @@
     FT_Error        error;
     FT_UInt         i;
 
+    /* unscaled CVT values are already stored in 26.6 format */
+    FT_Fixed  scale = size->ttmetrics.scale >> 6;
+
 
     /* Scale the cvt values to the new ppem.            */
     /* By default, we use the y ppem value for scaling. */
     FT_TRACE6(( "CVT values:\n" ));
     for ( i = 0; i < size->cvt_size; i++ )
     {
-      /* Unscaled CVT values are already stored in 26.6 format.            */
-      /* Note that this scaling operation is very sensitive to rounding;   */
-      /* the integer division by 64 must be applied to the first argument. */
-      size->cvt[i] = FT_MulFix( face->cvt[i] / 64, size->ttmetrics.scale );
+      size->cvt[i] = FT_MulFix( face->cvt[i], scale );
       FT_TRACE6(( "  %3d: %f (%f)\n",
                   i, (double)face->cvt[i] / 64, (double)size->cvt[i] / 64 ));
     }
